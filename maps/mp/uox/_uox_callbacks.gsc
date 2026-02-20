@@ -34,6 +34,8 @@ Callback_StartGameType()
 
 	precacheString(&"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN");
 	precacheString(&"MPSCRIPT_KILLCAM");
+	precacheString(&"MPSCRIPT_ALLIES_WIN");
+	precacheString(&"MPSCRIPT_AXIS_WIN");
 	precacheString(&"GMI_MP_CEASEFIRE");
 
 	precacheMenu(game["menu_serverinfo"]);
@@ -52,6 +54,8 @@ Callback_StartGameType()
 	precacheShader("hudScoreboard_mp");
 	precacheShader("gfx/hud/hud@mpflag_none.tga");
 	precacheShader("gfx/hud/hud@mpflag_spectator.tga");
+	precacheShader("hudStopwatch");
+	precacheShader("hudStopwatchNeedle");
 	precacheStatusIcon("gfx/hud/hud@status_dead.tga");
 	precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
 	precacheItem("item_health");

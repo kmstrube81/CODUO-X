@@ -68,18 +68,10 @@ Spectators spawn randomly at one of these positions.
 UOX_Main()
 {
 	
-	spawnpointname = "mp_deathmatch_spawn";
-	spawnpoints = getentarray(spawnpointname, "classname");
-	
-	if(!spawnpoints.size)
-	{
-		maps\mp\gametypes\_callbacksetup::AbortLevel();
+	/* init spawns */
+	if(!maps\mp\uox\_uox_respawns::initSpawns("dm"))
 		return;
-	}
-
-	for(i = 0; i < spawnpoints.size; i++)
-		spawnpoints[i] placeSpawnpoint();
-
+	
 	level.callbackStartGameType = ::Callback_StartGameType;
 	level.callbackPlayerConnect = maps\mp\uox\_uox_callbacks::Callback_PlayerConnect;
 	level.callbackPlayerDisconnect = maps\mp\uox\_uox_callbacks::Callback_PlayerDisconnect;

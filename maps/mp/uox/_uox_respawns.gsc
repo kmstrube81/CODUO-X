@@ -44,57 +44,6 @@ spawnIntermission()
 		maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
 }
 
-spawnPlayer()
-{
-	self notify("spawned");
-	self notify("end_respawn");
-
-	resettimeout();
-
-	self.sessionteam = "none";
-	self.sessionstate = "playing";
-	self.spectatorclient = -1;
-	self.archivetime = 0;
-		
-	// make sure that the client compass is at the correct zoom specified by the level
-	self setClientCvar("cg_hudcompassMaxRange", game["compass_range"]);
-
-	spawnpointname = "mp_deathmatch_spawn";
-	spawnpoints = getentarray(spawnpointname, "classname");
-	spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_DM(spawnpoints);
-
-	if(isDefined(spawnpoint))
-		self spawn(spawnpoint.origin, spawnpoint.angles);
-	else
-		maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
-
-	self.statusicon = "";
-	self.maxhealth = 100;
-	self.health = self.maxhealth;
-
-	self.pers["rank"] = maps\mp\gametypes\_rank_gmi::DetermineBattleRank(self);
-	self.rank = self.pers["rank"];
-	
-	if(!isDefined(self.pers["savedmodel"]))
-		maps\mp\gametypes\_teams::model();
-	else
-		maps\mp\_utility::loadModel(self.pers["savedmodel"]);
-
-	// setup all the weapons
-	self maps\mp\gametypes\_loadout_gmi::PlayerSpawnLoadout();
-	
-	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
-
-	// set the status icon if battlerank is turned on
-	if(level.battlerank)
-	{
-		self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
-	}	
-
-	// setup the hud rank indicator
-	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();
-}
-
 spawnSpectator(origin, angles)
 {
 	self notify("spawned");
@@ -390,4 +339,471 @@ waitRemoveRespawnText(message)
 
 	self waittill(message);
 	self notify("remove_respawntext");
+}
+
+spawnPlayer(farthest)
+{
+	self notify("spawned");
+	self notify("end_respawn");
+
+	resettimeout();
+
+	if(level.uox_teamplay)
+		self.sessionteam = self.pers["team"];
+	else
+		self.sessionteam = "none";
+	self.sessionstate = "playing";
+	self.spectatorclient = -1;
+	self.archivetime = 0;
+	self.friendlydamage = undefined;
+		
+	// make sure that the client compass is at the correct zoom specified by the level
+	self setClientCvar("cg_hudcompassMaxRange", game["compass_range"]);
+	
+	gt = getCvar("g_gametype");
+	
+	spawnpoint = getSpawn(gt, farthest);
+	
+	if(isDefined(spawnpoint))
+		self spawn(spawnpoint.origin, spawnpoint.angles);
+	else
+		maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
+	
+	/*
+	spawnpointname = "mp_deathmatch_spawn";
+	spawnpoints = getentarray(spawnpointname, "classname");
+	spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_DM(spawnpoints);
+	*/
+	self.statusicon = "";
+	self.maxhealth = 100;
+	self.health = self.maxhealth;
+
+	self.pers["rank"] = maps\mp\gametypes\_rank_gmi::DetermineBattleRank(self);
+	self.rank = self.pers["rank"];
+	
+	if(!isDefined(self.pers["savedmodel"]))
+		maps\mp\gametypes\_teams::model();
+	else
+		maps\mp\_utility::loadModel(self.pers["savedmodel"]);
+
+	// setup all the weapons
+	self maps\mp\gametypes\_loadout_gmi::PlayerSpawnLoadout();
+	
+	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
+
+	// set the status icon if battlerank is turned on
+	if(level.battlerank)
+	{
+		self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+	}	
+
+	// setup the hud rank indicator
+	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();
+}
+
+getSpawn(gt, farthest)
+{
+	spawn_type_override = getCvar("scr_" + gt + "_spawn_type");
+	
+	switch(spawn_type_override)
+	{
+		case "deathmatch":
+		case "near_team":
+		case "random":
+		case "middle":
+		case "near_team_hq":
+		case "farthest":
+			spawn_type = spawn_type_override;
+			break;
+		default:
+			spawn_type = getDefaultSpawnType(gt);
+	}
+	
+	spawnpoints_type = getSpawnPoints(gt);
+	
+	switch(spawnpoints_type)
+	{
+		case "dm":
+			spawnpointname = "mp_deathmatch_spawn";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			break;
+		case "tdm":
+			spawnpointname = "mp_teamdeathmatch_spawn";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			break;
+		case "re":
+			if(self.pers["team"] == "allies")
+				spawnpointname = "mp_retrieval_spawn_allied";
+			else
+				spawnpointname = "mp_retrieval_spawn_axis";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			break;
+		case "sd":
+			if(self.pers["team"] == "allies")
+				spawnpointname = "mp_searchanddestroy_spawn_allied";
+			else
+				spawnpointname = "mp_searchanddestroy_spawn_axis";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			break;
+		case "uo":
+			if(self.pers["team"] == "allies")
+			{
+				base_spawn_name = "mp_uo_spawn_allies";
+				secondary_spawn_name = "mp_uo_spawn_allies_secondary";
+			}
+			else if(self.pers["team"] == "axis")
+			{
+				base_spawn_name = "mp_uo_spawn_axis";
+				secondary_spawn_name = "mp_uo_spawn_axis_secondary";
+			}	
+			spawnpoints = getentarray(base_spawn_name, "classname");
+			
+			// now add to the array any spawnpoints that are related to held flags
+			for(q=1;q<15;q++)
+			{
+				flag_trigger = getent("flag" + q,"targetname");
+				
+				if(!isDefined(flag_trigger)) // If the flag exists, then proceed. Which then tells all of the allies and axis flag to be hidden.
+				{
+					continue;
+				}
+				
+				if ( !isDefined( flag_trigger.target ) )
+					continue;
+					
+				// only get spawnpoints from flags that are held by this team	
+				if ( self.pers["team"] != flag_trigger.team )
+					continue;
+					
+				secondary_spawns =  getentarray(flag_trigger.target, "targetname");
+			
+				for ( i = 0; i < secondary_spawns.size; i++ )
+				{
+					// only get the ones for the current team
+					if ( secondary_spawns[i].classname != secondary_spawn_name )
+						continue;
+						
+					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
+				}
+			}
+			
+			// TODO: GRACEPERIOD secondary spawn points are used after the first few seconds of the round
+			if ( true )
+			{
+				secondary_spawns =  getentarray(secondary_spawn_name, "classname");
+			
+				for ( i = 0; i < secondary_spawns.size; i++ )
+				{
+					
+					// if this is targeted by a trigger then it must be a objective spawn so do not just grab it unless that trigger is 
+					// owned by this team
+					if ( isdefined(secondary_spawns[i].targetname) )
+					{
+						targeter =  getent(secondary_spawns[i].targetname, "target");
+						
+						if ( isdefined( targeter ) && isdefined(targeter.team) && targeter.team != self.pers["team"] )
+						{
+							continue;
+						}
+					}
+				
+					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
+				}
+			}
+			spawnpoints = getentarray(spawnpointname, "classname");
+			break;
+		case "bas":
+			// pick the appropriate spawn point
+			if(self.pers["team"] == "allies")
+			{
+				base_spawn_name = "mp_gmi_bas_allies_spawn";
+				secondary_spawn_name = "mp_gmi_bas_allied_secondary_spawn";
+			}
+			else 
+			{
+				base_spawn_name = "mp_gmi_bas_axis_spawn";
+				secondary_spawn_name = "mp_gmi_bas_axis_secondary_spawn";
+			}	
+			// get the base spawnpoints
+			spawnpoints = getentarray(base_spawn_name, "classname");
+			
+			// now add to the array any spawnpoints that are related to held bases
+			secondary_spawns =  getentarray(secondary_spawn_name, "classname");
+
+			for ( i = 0; i < secondary_spawns.size; i++ )
+			{
+				// only get the ones for the current team
+				if ( secondary_spawns[i].classname != secondary_spawn_name )
+					continue;
+					
+				spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
+			}
+
+			// now add any secondary spawnpoints
+			array = maps\mp\gametypes\_secondary_gmi::GetSecondaryTriggers(self.pers["team"]);
+			for ( i = 0; i < array.size; i++ )
+			{
+				if ( !isDefined( array[i].target ) )
+					continue;
+					
+				secondary_spawns =  getentarray(array[i].target, "targetname");
+			
+				for ( j = 0; j < secondary_spawns.size; j++ )
+				{
+					// only get the ones for the current team
+					if ( secondary_spawns[j].classname != secondary_spawn_name )
+						continue;
+						
+					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[j]);
+				}
+			}
+			break;
+		default:
+			spawnpointname = "mp_teamdeathmatch_spawn";
+			spawnpoints = getentarray(spawnpointname, "classname");
+	}
+	
+	switch(spawn_type)
+	{
+		case "deathmatch":
+			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_DM(spawnpoints);
+			break;
+		case "near_team":
+			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_NearTeam(spawnpoints);
+			break;
+		case "random":
+			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
+			break;
+		case "middle":
+			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_MiddleThird(spawnpoints);
+			break;
+		case "near_team_hq":
+			if (isdefined (farthest))
+				spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Farthest(spawnpoints);
+			else
+				spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_NearTeam_AwayfromRadios(spawnpoints);
+			break;
+		case "farthest":
+			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Farthest(spawnpoints);
+			break;
+		default:
+			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_DM(spawnpoints);
+	}
+	return spawnpoint;
+}
+
+getDefaultSpawnType(gt)
+{
+	switch(gt)
+	{
+		case "dm":
+			return "deathmatch";
+		case "tdm":
+		case "ctf":
+		case "dom":
+		case "bas":
+			return "near_team";
+		case "bel":
+			return "middle";
+		case "hq":
+			return "near_team_hq";
+		case "sd":
+		case "re":
+			return "random";
+		default:
+			return "near_team";
+	}
+	return "near_team";
+}
+
+getDefaultSpawnPoints(gt)
+{
+	switch(gt)
+	{
+		case "dm":
+			return "dm";
+		case "ctf":
+		case "dom":
+			return "uo";
+		case "bas":
+			return "bas";
+		case "tdm":
+		case "bel":
+		case "hq":
+			return "tdm";
+		case "sd":
+			return "sd";
+		case "re":
+			return "re";
+		default:
+			return "tdm";
+	}
+	return "tdm";
+}
+
+getSpawnPoints(gt)
+{
+	spawnpoints_override = getCvar("scr_" + gt + "_spawnpoints");
+	
+	switch(spawnpoints_override)
+	{
+		case "dm":
+		case "tdm":
+		case "sd":
+		case "re":
+		case "bas":
+		case "uo":
+			spawnpoints_type = spawnpoints_override;
+			break;
+		default:
+			spawnpoints_type = getDefaultSpawnPoints(gt);
+	}
+	
+	return spawnpoints_type;
+}
+
+initSpawns(gt)
+{
+	spawnpoints_type = getSpawnPoints(gt);
+	
+	switch(spawnpoints_type)
+	{
+		case "uo":
+			// init the spawn points first because if they do not exist then abort the game
+			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_allies", 1) )
+			{
+				if(gt == "dm")
+					setCvar("scr_dm_spawnpoints", "dm");
+				return false;;
+			}
+			// Set up the spawnpoints of the "axis"
+			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_axis", 1) )
+			{
+				if(gt == "dm")
+					setCvar("scr_dm_spawnpoints", "dm");
+				return false;
+			}
+			// Set up the spawnpoints of the "axis"
+			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_ctf_intermission", 1, 1) && !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_dom_intermission", 1, 1) )
+			{
+				if(gt == "dm")
+					setCvar("scr_dm_spawnpoints", "dm");
+				return false;
+			}
+			// set up secondary spawn points but don't abort if they are not there
+			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_allies_secondary");
+			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_axis");
+			break;
+		case "bas":
+			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_gmi_bas_allies_spawn", 1) )
+			{
+				if(gt == "dm")
+					setCvar("scr_dm_spawnpoints", "dm");
+				maps\mp\_utility::error("NO allied Spawns");
+				return false;
+			}
+			// Set up the spawnpoints of the "axis"
+			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_gmi_bas_axis_spawn", 1) )
+			{
+				if(gt == "dm")
+					setCvar("scr_dm_spawnpoints", "dm");
+				maps\mp\_utility::error("NO axis Spawns");
+				return false;
+			}
+			// set up secondary spawn points but don't abort if they are not there
+			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_gmi_bas_allied_secondary_spawn");
+			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_gmi_bas_axis_secondary_spawn");
+			break;
+		case "dm":
+			spawnpointname = "mp_deathmatch_spawn";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			
+			if(!spawnpoints.size)
+			{
+				maps\mp\gametypes\_callbacksetup::AbortLevel();
+				return false;
+			}
+
+			for(i = 0; i < spawnpoints.size; i++)
+			{
+				spawnpoints[i] placeSpawnpoint();
+			}
+			break;
+		case "tdm":
+			spawnpointname = "mp_teamdeathmatch_spawn";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			
+			if(!spawnpoints.size)
+			{
+				maps\mp\gametypes\_callbacksetup::AbortLevel();
+				return false;
+			}
+
+			for(i = 0; i < spawnpoints.size; i++)
+				spawnpoints[i] placeSpawnpoint();
+			break;
+		case "sd":
+			spawnpointname = "mp_searchanddestroy_spawn_allied";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			
+			if(!spawnpoints.size)
+			{
+				maps\mp\gametypes\_callbacksetup::AbortLevel();
+				return false;
+			}
+
+			for(i = 0; i < spawnpoints.size; i++)
+				spawnpoints[i] placeSpawnpoint();
+
+			spawnpointname = "mp_searchanddestroy_spawn_axis";
+			spawnpoints = getentarray(spawnpointname, "classname");
+
+			if(!spawnpoints.size)
+			{
+				maps\mp\gametypes\_callbacksetup::AbortLevel();
+				return false;
+			}
+
+			for(i = 0; i < spawnpoints.size; i++)
+				spawnpoints[i] PlaceSpawnpoint();
+			break;
+		case "re":
+			spawnpointname = "mp_retrieval_spawn_allied";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			
+			if(!spawnpoints.size)
+			{
+				maps\mp\gametypes\_callbacksetup::AbortLevel();
+				return false;
+			}
+
+			for(i = 0; i < spawnpoints.size; i++)
+				spawnpoints[i] placeSpawnpoint();
+
+			spawnpointname = "mp_retrieval_spawn_axis";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			
+			if(!spawnpoints.size)
+			{
+				maps\mp\gametypes\_callbacksetup::AbortLevel();
+				return false;
+			}
+
+			for(i = 0; i < spawnpoints.size; i++)
+				spawnpoints[i] PlaceSpawnpoint();
+			break;
+		default:
+			spawnpointname = "mp_deathmatch_spawn";
+			spawnpoints = getentarray(spawnpointname, "classname");
+			
+			if(!spawnpoints.size)
+			{
+				maps\mp\gametypes\_callbacksetup::AbortLevel();
+				return false;
+			}
+
+			for(i = 0; i < spawnpoints.size; i++)
+				spawnpoints[i] placeSpawnpoint();
+	}
+	return true;
 }
