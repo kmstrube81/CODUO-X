@@ -70,7 +70,10 @@ UOX_Main()
 	
 	/* init spawns */
 	if(!maps\mp\uox\_uox_respawns::initSpawns("dm"))
+	{
+		maps\mp\gametypes\_callbacksetup::AbortLevel();
 		return;
+	}
 	
 	level.callbackStartGameType = ::Callback_StartGameType;
 	level.callbackPlayerConnect = maps\mp\uox\_uox_callbacks::Callback_PlayerConnect;
@@ -98,6 +101,32 @@ UOX_Main()
 	level.scorelimit = getCvarInt("scr_dm_scorelimit");
 	setCvar("ui_dm_scorelimit", level.scorelimit);
 	makeCvarServerInfo("ui_dm_scorelimit", "50");
+	
+	if(getCvar("scr_dm_roundlimit") == "")		//Round limit
+		setCvar("scr_dm_roundlimit", 1);
+	level.roundlimit = getCvarInt("scr_dm_roundlimit");
+	setCvar("ui_dm_roundlimit", level.roundlimit);
+	makeCvarServerInfo("ui_dm_roundlimit", 1);
+	
+	if(getCvar("scr_dm_roundlength") == "")		// Time limit per map
+		setCvar("scr_dm_roundlength", "30");
+	else if(getCvarFloat("scr_dm_roundlength") > 60)
+		setCvar("scr_dm_roundlength", "0");
+	level.roundlength = getCvarFloat("scr_dm_roundlength");
+	setCvar("ui_dm_roundlength", level.roundlength);
+	makeCvarServerInfo("ui_dm_roundlength", "30");
+	
+	if(getCvar("scr_dm_roundreset") == "")		//Round limit
+		setCvar("scr_dm_roundreset", 0);
+	level.roundreset = getCvarInt("scr_dm_roundreset");
+	setCvar("ui_dm_roundreset", level.roundreset);
+	makeCvarServerInfo("ui_dm_roundreset", 0);
+	
+	if(getCvar("scr_dm_score_rounds") == "")		//Round limit
+		setCvar("scr_dm_score_rounds", 0);
+	level.scorerounds = getCvarInt("scr_dm_score_rounds");
+	setCvar("ui_dm_score_rounds", level.scorerounds);
+	makeCvarServerInfo("ui_dm_score_rounds", 0);
 
 	if(getCvar("scr_forcerespawn") == "")		// Force respawning
 		setCvar("scr_forcerespawn", "0");
@@ -131,11 +160,10 @@ UOX_Main()
 	setCvar("scr_killcam", killcam, true);
 	level.killcam = getCvarInt("scr_killcam");
 	
-	if(!isDefined(game["state"]))
-		game["state"] = "playing";
-
 	// this is just to define this variable to other scripts that use it dont crash
 	level.drawfriend = 0;
+	level.teambalance = 0;
+	level.lockteams = false;
 	
 	level.QuickMessageToAll = true;
 	level.mapended = false;
@@ -149,7 +177,7 @@ UOX_Main()
 Callback_StartGameType()
 {
 	maps\mp\uox\_uox_callbacks::Callback_StartGameType();
-	thread startGame();
+	thread maps\mp\uox\_uox::startGame("dm");
 	thread updateGametypeCvars();
 }
 
@@ -174,46 +202,8 @@ updateDeathArray()
 	level.deatharraycurrent++;
 }
 
-startGame()
-{
-	level.starttime = getTime();
 
-	if(level.timelimit > 0)
-	{
-		level.clock = newHudElem();
-		level.clock.x = 320;
-		level.clock.y = 460;
-		level.clock.alignX = "center";
-		level.clock.alignY = "middle";
-		level.clock.font = "bigfixed";
-		level.clock setTimer(level.timelimit * 60);
-	}
 
-	for(;;)
-	{
-		checkTimeLimit();
-		wait 1;
-	}
-}
-
-checkTimeLimit()
-{
-	if(level.timelimit <= 0)
-		return;
-
-	timepassed = (getTime() - level.starttime) / 1000;
-	timepassed = timepassed / 60.0;
-
-	if(timepassed < level.timelimit)
-		return;
-
-	if(level.mapended)
-		return;
-	level.mapended = true;
-
-	iprintln(&"MPSCRIPT_TIME_LIMIT_REACHED");
-	level thread maps\mp\uox\_uox::endMap();
-}
 
 updateGametypeCvars()
 {
@@ -271,7 +261,7 @@ updateGametypeCvars()
 					level.clock destroy();
 			}
 
-			checkTimeLimit();
+			maps\mp\uox\_uox::checkTimeLimit();
 		}
 
 		scorelimit = getCvarInt("scr_dm_scorelimit");
@@ -282,7 +272,7 @@ updateGametypeCvars()
 
 			players = getentarray("player", "classname");
 			for(i = 0; i < players.size; i++)
-				players[i] maps\mp\uox\_uox::checkDeathmatchScoreLimit("dm");
+				players[i] maps\mp\uox\_uox::checkScoreLimit("dm");
 		}
 
 		killcam = getCvarInt("scr_killcam");

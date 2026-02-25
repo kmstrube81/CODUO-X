@@ -1,75 +1,101 @@
 Callback_StartGameType()
 {
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(getCvar("g_gametype"));
-	// defaults if not defined in level script
-	if(!isDefined(game["allies"]))
-		game["allies"] = "american";
-	if(!isDefined(game["axis"]))
-		game["axis"] = "german";
-
-	if(!isDefined(game["layoutimage"]))
-		game["layoutimage"] = "default";
-	layoutname = "levelshots/layouts/hud@layout_" + game["layoutimage"];
-	precacheShader(layoutname);
-	setCvar("scr_layoutimage", layoutname);
-	makeCvarServerInfo("scr_layoutimage", "");
-
-	// server cvar overrides
-	if(getCvar("scr_allies") != "")
-		game["allies"] = getCvar("scr_allies");
-	if(getCvar("scr_axis") != "")
-		game["axis"] = getCvar("scr_axis");
-
-	game["menu_serverinfo"] = "serverinfo_" + getCvar("g_gametype");
-	game["menu_team"] = "team_" + game["allies"] + game["axis"];
-	game["menu_weapon_allies"] = "weapon_" + game["allies"];
-	game["menu_weapon_axis"] = "weapon_" + game["axis"];
-	game["menu_viewmap"] = "viewmap";
-	game["menu_callvote"] = "callvote";
-	game["menu_quickcommands"] = "quickcommands";
-	game["menu_quickstatements"] = "quickstatements";
-	game["menu_quickresponses"] = "quickresponses";
-	game["menu_quickvehicles"] = "quickvehicles";
-	game["menu_quickrequests"] = "quickrequests";
-
-	precacheString(&"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN");
-	precacheString(&"MPSCRIPT_KILLCAM");
-	precacheString(&"MPSCRIPT_ALLIES_WIN");
-	precacheString(&"MPSCRIPT_AXIS_WIN");
-	precacheString(&"GMI_MP_CEASEFIRE");
-
-	precacheMenu(game["menu_serverinfo"]);
-	precacheMenu(game["menu_team"]);
-	precacheMenu(game["menu_weapon_allies"]);
-	precacheMenu(game["menu_weapon_axis"]);
-	precacheMenu(game["menu_viewmap"]);
-	precacheMenu(game["menu_callvote"]);
-	precacheMenu(game["menu_quickcommands"]);
-	precacheMenu(game["menu_quickstatements"]);
-	precacheMenu(game["menu_quickresponses"]);
-	precacheMenu(game["menu_quickvehicles"]);
-	precacheMenu(game["menu_quickrequests"]);
-
-	precacheShader("black");
-	precacheShader("hudScoreboard_mp");
-	precacheShader("gfx/hud/hud@mpflag_none.tga");
-	precacheShader("gfx/hud/hud@mpflag_spectator.tga");
-	precacheShader("hudStopwatch");
-	precacheShader("hudStopwatchNeedle");
-	precacheStatusIcon("gfx/hud/hud@status_dead.tga");
-	precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
-	precacheItem("item_health");
-
+	level.exist["allies"] = 0;
+	level.exist["axis"] = 0;
+	level.exist["teams"] = false;
+	level.didexist["allies"] = false;
+	level.didexist["axis"] = false;
+	level.exist["2players"] = -1;
+	level.didexist["2players"] = false;
 	
-	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
+	level.bombplanted = false;
+	level.bombexploded = false;
+	level.roundstarted = false;
+	level.roundended = false;
+	level.mapended = false;
+	
+	if(!isDefined(game["gamestarted"]))
+	{
+	
+		if(!isDefined(game["timepassed"]))
+			game["timepassed"] = 0;
+		if(!isDefined(game["state"]))
+			game["state"] = "playing";
+		if(!isDefined(game["roundsplayed"]))
+			game["roundsplayed"] = 0;
+		if(!isDefined(game["matchstarted"]))
+			game["matchstarted"] = false;
+		
+		// defaults if not defined in level script
+		if(!isDefined(game["allies"]))
+			game["allies"] = "american";
+		if(!isDefined(game["axis"]))
+			game["axis"] = "german";
+	
+		if(!isDefined(game["layoutimage"]))
+			game["layoutimage"] = "default";
+		layoutname = "levelshots/layouts/hud@layout_" + game["layoutimage"];
+		precacheShader(layoutname);
+		setCvar("scr_layoutimage", layoutname);
+		makeCvarServerInfo("scr_layoutimage", "");
+
+		// server cvar overrides
+		if(getCvar("scr_allies") != "")
+			game["allies"] = getCvar("scr_allies");
+		if(getCvar("scr_axis") != "")
+			game["axis"] = getCvar("scr_axis");
+
+		game["menu_serverinfo"] = "serverinfo_" + getCvar("g_gametype");
+		game["menu_team"] = "team_" + game["allies"] + game["axis"];
+		game["menu_weapon_allies"] = "weapon_" + game["allies"];
+		game["menu_weapon_axis"] = "weapon_" + game["axis"];
+		game["menu_viewmap"] = "viewmap";
+		game["menu_callvote"] = "callvote";
+		game["menu_quickcommands"] = "quickcommands";
+		game["menu_quickstatements"] = "quickstatements";
+		game["menu_quickresponses"] = "quickresponses";
+		game["menu_quickvehicles"] = "quickvehicles";
+		game["menu_quickrequests"] = "quickrequests";
+
+		maps\mp\uox\_uox_hud::precache();
+
+		precacheMenu(game["menu_serverinfo"]);
+		precacheMenu(game["menu_team"]);
+		precacheMenu(game["menu_weapon_allies"]);
+		precacheMenu(game["menu_weapon_axis"]);
+		precacheMenu(game["menu_viewmap"]);
+		precacheMenu(game["menu_callvote"]);
+		precacheMenu(game["menu_quickcommands"]);
+		precacheMenu(game["menu_quickstatements"]);
+		precacheMenu(game["menu_quickresponses"]);
+		precacheMenu(game["menu_quickvehicles"]);
+		precacheMenu(game["menu_quickrequests"]);
+
+		precacheShader("black");
+		precacheShader("hudScoreboard_mp");
+		precacheShader("gfx/hud/hud@mpflag_none.tga");
+		precacheShader("gfx/hud/hud@mpflag_spectator.tga");
+		precacheShader("hudStopwatch");
+		precacheShader("hudStopwatchNeedle");
+		precacheStatusIcon("gfx/hud/hud@status_dead.tga");
+		precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
+		precacheItem("item_health");
+
+		
+		maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
+		maps\mp\gametypes\_teams::precache();
+	}
+	
 	maps\mp\gametypes\_teams::modeltype();
-	maps\mp\gametypes\_teams::precache();
 	maps\mp\gametypes\_teams::initGlobalCvars();
 	maps\mp\gametypes\_teams::initWeaponCvars();
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
 	thread maps\mp\gametypes\_teams::updateGlobalCvars();
 	thread maps\mp\gametypes\_teams::updateWeaponCvars();
-
+	
+	game["gamestarted"] = true;
+	
 	setClientNameMode("auto_change");
 
 	thread maps\mp\uox\_uox::addBotClients(); // For development testing
@@ -324,6 +350,9 @@ Callback_PlayerDisconnect()
 	lpselfnum = self getEntityNumber();
 	lpselfguid = self getGuid();
 	logPrint("Q;" + lpselfguid + ";" + lpselfnum + ";" + self.name + "\n");
+	
+	if(game["matchstarted"])
+		level thread maps\mp\uox\_uox::updateTeamStatus();
 }
 
 Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
@@ -444,7 +473,6 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 	}
 }
 
-
 Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
 {
 	self endon("spawned");
@@ -486,15 +514,17 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		{
 			doKillcam = false;
 
-			attacker.score--;
+			attacker.pers["score"]--;
+			attacker.score = attacker.pers["score"];
 		}
 		else
 		{
 			attackerNum = attacker getEntityNumber();
 			doKillcam = true;
 
-			attacker.score++;
-			level maps\mp\uox\_uox::checkRoundEndPlayerKilled();
+			attacker.pers["score"]++;
+			attacker.score = attacker.pers["score"];
+			level thread maps\mp\uox\_uox::checkRoundEndPlayerKilled();
 		}
 
 		lpattacknum = attacker getEntityNumber();
@@ -505,7 +535,8 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	{
 		doKillcam = false;
 
-		self.score--;
+		self.pers["score"]--;
+		self.score = self.pers["score"];
 
 		lpattacknum = -1;
 		lpattackguid = "";
@@ -527,6 +558,8 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	self dropHealth();
 
 	body = self cloneplayer();
+
+	maps\mp\uox\_uox::updateTeamStatus();
 
 	delay = 2;	// Delay the player becoming a spectator till after he's done dying
 	wait delay;	// ?? Also required for Callback_PlayerKilled to complete before respawn/killcam can execute

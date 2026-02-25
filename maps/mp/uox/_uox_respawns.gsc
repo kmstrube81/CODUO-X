@@ -72,6 +72,9 @@ spawnSpectator(origin, angles)
 			maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
 	}
 
+	level maps\mp\uox\_uox::updateTeamStatus();
+	if(!game["matchstarted"])
+		level maps\mp\uox\_uox::checkMatchStart();
 	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
 }
 
@@ -143,7 +146,7 @@ respawn_delayed()
 			death_wait_time = 7;
 	}
 	
-	self thread maps\mp\uox\_uox::stopwatch_start("respawn", death_wait_time);
+	self thread maps\mp\uox\_uox_hud::stopwatch_start("respawn", death_wait_time);
 
 	wait (death_wait_time);
 
@@ -176,7 +179,7 @@ respawn_wave()
 		level.respawn_timer = [];
 	if(!isDefined(level.respawn_timer[self.pers["team"]]))
 		level.respawn_timer[self.pers["team"]] = timer;	
-	self maps\mp\uox\_uox::stopwatch_start("respawn", level.respawn_timer[self.pers["team"]] );
+	self maps\mp\uox\_uox_hud::stopwatch_start("respawn", level.respawn_timer[self.pers["team"]] );
 	level thread respawn_pool(self.pers["team"], timer);
 	
 	level waittill("respawn_" + self.pers["team"]);
@@ -377,7 +380,17 @@ spawnPlayer(farthest)
 	self.statusicon = "";
 	self.maxhealth = 100;
 	self.health = self.maxhealth;
-
+	
+	if(!isDefined(self.pers["score"]))
+		self.pers["score"] = 0;
+	self.score = self.pers["score"];
+	
+	if(!isDefined(self.pers["roundswon"]))
+		self.pers["roundswon"] = 0;
+	
+	level maps\mp\uox\_uox::updateTeamStatus();
+	if(!game["matchstarted"])
+		level maps\mp\uox\_uox::checkMatchStart();
 	self.pers["rank"] = maps\mp\gametypes\_rank_gmi::DetermineBattleRank(self);
 	self.rank = self.pers["rank"];
 	
@@ -674,7 +687,7 @@ initSpawns(gt)
 			{
 				if(gt == "dm")
 					setCvar("scr_dm_spawnpoints", "dm");
-				return false;;
+				return false;
 			}
 			// Set up the spawnpoints of the "axis"
 			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_axis", 1) )
@@ -725,9 +738,7 @@ initSpawns(gt)
 			}
 
 			for(i = 0; i < spawnpoints.size; i++)
-			{
 				spawnpoints[i] placeSpawnpoint();
-			}
 			break;
 		case "tdm":
 			spawnpointname = "mp_teamdeathmatch_spawn";
