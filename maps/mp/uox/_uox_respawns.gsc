@@ -133,7 +133,7 @@ respawn_delayed()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	gt = getCvar("g_gametype");
+	gt = level.gametype;
 	death_wait_time_override = getCvarInt("scr_" + gt + "_spawndelay_time");
 	
 	if(death_wait_time_override > 0)
@@ -162,7 +162,7 @@ respawn_wave()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	gt = getCvar("g_gametype");
+	gt = level.gametype;
 	wave_time_override = getCvarInt("scr_" + gt + "_respawn_wave_time");
 	
 	if(wave_time_override > 0)
@@ -218,23 +218,16 @@ respawn_obj()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	gt = getCvar("g_gametype");
-	
-	if(getCvar("scr_" + gt + "_reinforcements") != "")
-		reinforcements = getCvarInt("scr_" + gt + "_reinforcements");
-	else
-		reinforcements = getCvarInt("scr_reinforcements");
-	
-	if(!isDefined(self.pers["lives"]))
-		self.pers["lives"] = reinforcements;
-	
-	if(reinforcements == -1 || self.pers["lives"] > 0)
+	if(level.reinforcements == -1 || self.lives > 0)
 	{
-		self.pers["lives"]--;
 		self thread respawn_forced();
 	}
 	else
+	{
+		self maps\mp\uox\_uox_hud::deleteHUDLivesLeft();
+		self.lives--;
 		self spawnSpectator();
+	}
 }
 
 respawn_hq()
@@ -244,8 +237,8 @@ respawn_hq()
 
 getRespawnMode()
 {
-	gt = getCvar("g_gametype");
-	respawn_mode_override = getCvar("scr_" + gt + "_respawn_mode");
+	gt = level.gametype;
+	respawn_mode_override = level.respawn_mode;
 	
 	switch(respawn_mode_override)
 	{
@@ -363,7 +356,7 @@ spawnPlayer(farthest)
 	// make sure that the client compass is at the correct zoom specified by the level
 	self setClientCvar("cg_hudcompassMaxRange", game["compass_range"]);
 	
-	gt = getCvar("g_gametype");
+	gt = level.gametype;
 	
 	spawnpoint = getSpawn(gt, farthest);
 	
@@ -387,6 +380,19 @@ spawnPlayer(farthest)
 	
 	if(!isDefined(self.pers["roundswon"]))
 		self.pers["roundswon"] = 0;
+	
+	if(level.respawn_mode == "obj")
+	{
+		if(!isDefined(self.lives))
+		{
+			self.lives = level.reinforcements;
+			if(self.lives == 0) self.lives = 1;
+		}
+		
+		self.lives--;
+		if(level.reinforcements > 1)
+			self maps\mp\uox\_uox_hud::updateHUDLivesLeft(self.lives);
+	}
 	
 	level maps\mp\uox\_uox::updateTeamStatus();
 	if(!game["matchstarted"])
@@ -416,7 +422,7 @@ spawnPlayer(farthest)
 
 getSpawn(gt, farthest)
 {
-	spawn_type_override = getCvar("scr_" + gt + "_spawn_type");
+	spawn_type_override = level.spawn_type;
 	
 	switch(spawn_type_override)
 	{
@@ -432,7 +438,7 @@ getSpawn(gt, farthest)
 			spawn_type = getDefaultSpawnType(gt);
 	}
 	
-	spawnpoints_type = getSpawnPoints(gt);
+	spawnpoints_type = getSpawnPoints();
 	
 	switch(spawnpoints_type)
 	{
@@ -654,9 +660,9 @@ getDefaultSpawnPoints(gt)
 	return "tdm";
 }
 
-getSpawnPoints(gt)
+getSpawnPoints()
 {
-	spawnpoints_override = getCvar("scr_" + gt + "_spawnpoints");
+	spawnpoints_override = level.spawnpoints;
 	
 	switch(spawnpoints_override)
 	{
@@ -677,7 +683,7 @@ getSpawnPoints(gt)
 
 initSpawns(gt)
 {
-	spawnpoints_type = getSpawnPoints(gt);
+	spawnpoints_type = getSpawnPoints();
 	
 	switch(spawnpoints_type)
 	{

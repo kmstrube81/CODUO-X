@@ -1,6 +1,8 @@
 Callback_StartGameType()
 {
-	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(getCvar("g_gametype"));
+	level.gametype = getCvar("g_gametype");
+	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
+	
 	level.exist["allies"] = 0;
 	level.exist["axis"] = 0;
 	level.exist["teams"] = false;
@@ -46,7 +48,7 @@ Callback_StartGameType()
 		if(getCvar("scr_axis") != "")
 			game["axis"] = getCvar("scr_axis");
 
-		game["menu_serverinfo"] = "serverinfo_" + getCvar("g_gametype");
+		game["menu_serverinfo"] = "serverinfo_" + level.gametype;
 		game["menu_team"] = "team_" + game["allies"] + game["axis"];
 		game["menu_weapon_allies"] = "weapon_" + game["allies"];
 		game["menu_weapon_axis"] = "weapon_" + game["axis"];
@@ -112,6 +114,9 @@ Callback_PlayerConnect()
 	lpselfnum = self getEntityNumber();
 	lpselfguid = self getGuid();
 	logPrint("J;" + lpselfguid + ";" + lpselfnum + ";" + self.name + "\n");
+	
+	//init HUD
+	self maps\mp\uox\_uox_hud::initHUD();
 	
 	// set the cvar for the map quick bind
 	self setClientCvar("g_scriptQuickMap", game["menu_viewmap"]);

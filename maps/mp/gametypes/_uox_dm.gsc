@@ -67,8 +67,27 @@ Spectators spawn randomly at one of these positions.
 
 UOX_Main()
 {
+	if(getCvar("scr_dm_respawn_mode") != "")
+		level.respawn_mode = getCvar("scr_dm_respawn_mode");
+	else
+		level.respawn_mode = getCvar("scr_respawn_mode");
 	
-	/* init spawns */
+	if(getCvar("scr_dm_respawn_type") != "")
+		level.spawn_type = getCvar("scr_dm_spawn_type");
+	else
+		level.spawn_type = getCvar("scr_spawn_type");
+	
+	if(getCvar("scr_dm_spawnpoints") != "")
+		level.spawnpoints = getCvar("scr_dm_spawnpoints");
+	else
+		level.spawnpoints = getCvar("scr_spawnpoints");
+	
+	if(getCvar("scr_dm_reinforcements") != "")
+		level.reinforcements = getCvarInt("scr_dm_reinforcements");
+	else
+		level.reinforcements = getCvarInt("scr_reinforcements");
+	
+		/* init spawns */
 	if(!maps\mp\uox\_uox_respawns::initSpawns("dm"))
 	{
 		maps\mp\gametypes\_callbacksetup::AbortLevel();

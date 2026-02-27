@@ -30,6 +30,108 @@ precache()
 	precacheString(game["alliesSuccessText"]);
 	game["axisSuccessText"] = &"SD_AXISMISSIONACCOMPLISHED";
 	precacheString(game["axisSuccessText"]);
+	game["livesText"] = &"Lives Left";
+	precacheString(game["livesText"]);
+}
+
+initHUD()
+{
+	self.hud = [];
+}
+
+getClientHUDElement(name)
+{
+	for(i = 0; i < self.hud.size; i++)
+	{
+		hudElement = self.hud[i];
+		if(name == hudElement["name"])
+			return hudElement["element"];
+	}
+	return undefined;
+}
+
+updateClientHUDElement(name, type, value, options)
+{
+	element = getClientHUDElement(name);
+	
+	if(!isDefined(element))
+		element = createClientHUDElement(name)["element"];
+	
+	//process options
+	if(isDefined(options))
+	{
+		if(isDefined(options["x"]))
+			element.x = options["x"];
+		if(isDefined(options["y"]))
+			element.y = options["y"];
+		if(isDefined(options["alignX"]))
+			element.alignX = options["alignX"];
+		if(isDefined(options["alignY"]))
+			element.alignY = options["alignY"];
+		if(isDefined(options["font"]))
+			element.font = options["font"];
+		if(isDefined(options["color"]))
+			element.color = options["color"];
+		if(isDefined(options["fontscale"]))
+			element.fontscale = options["fontscale"];
+		if(isDefined(options["alpha"]))
+			element.alpha = options["alpha"];
+	}
+	
+	//set value
+	switch(type)
+	{
+		case "timer":
+			element setTimer(value);
+			break;
+		case "number":
+			element setValue(value);
+			break;
+		default:
+			element setText(value);
+	}
+	
+	return element;
+}
+
+createClientHUDElement(name)
+{
+	element = [];
+	element["name"] = name;
+	element["element"] = newClientHudElem(self);
+	
+	self.hud[self.hud.size] = element;
+	
+	return self.hud[self.hud.size - 1];
+}
+
+deleteClientHUDElement(name)
+{
+	temparr = [];
+	
+	for(i = 0; i < self.hud.size; i++)
+	{
+		hudElement = self.hud[i];
+		if(name != hudElement["name"])
+			temparr[temparr.size] = hudElement;
+		else
+		{
+			hudElement["element"] destroy();
+			hudElement = undefined;
+		}
+	}
+	self.hud = temparr;
+}
+
+clearClientHUD()
+{
+	for(i = 0; i < self.hud.size; i++)
+	{
+		hudElement = self.hud[i];
+		hudElement["element"] destroy();
+		hudElement = undefined;
+	}
+	initHUD();
 }
 
 updateHUDMainClock(timer)
@@ -80,6 +182,42 @@ updateHUDMainClockColor(color)
 	level.mainclock = updateHUDElementProperty(level.mainclock, "color", color);
 }
 
+deleteHUDMainClock()
+{
+	level.mainclock = deleteHUDElement(level.mainclock);
+}
+
+updateHUDLivesLeft(lives)
+{
+	options = [];
+	/* 	X
+		Y
+		AlignX
+		AlignY
+		Font
+		Color
+		Size
+		Alpha
+	*/
+	options["x"] = 620;
+	options["y"] = 420;
+	options["alignX"] = "right";
+	options["alignY"] = "middle";
+	options["fontscale"] = 0.8;
+	
+	updateClientHUDElement("livesText", "text", game["livesText"], options);
+	options["x"] = 622;
+	options["alignX"] = "left";
+	updateClientHUDElement("livesCounter", "number", lives, options);
+	
+}
+
+deleteHUDLivesLeft()
+{
+	deleteClientHUDElement("livesText");
+	deleteClientHUDElement("livesCounter");
+}
+
 updateHUDElementProperty(element, property, value)
 {
 	if(!isDefined(element))
@@ -104,8 +242,8 @@ updateHUDElementProperty(element, property, value)
 		case "font":
 			element.font = value;
 			break;
-		case "fontsize":
-			element.fontsize = value;
+		case "fontscale":
+			element.fontscale = value;
 			break;
 		case "alpha":
 			element.alpha = value;
@@ -140,8 +278,8 @@ updateHUDElement(element, type, value, options)
 			element.font = options["font"];
 		if(isDefined(options["color"]))
 			element.color = options["color"];
-		if(isDefined(options["fontsize"]))
-			element.fontsize = options["fontsize"];
+		if(isDefined(options["fontscale"]))
+			element.fontscale = options["fontscale"];
 		if(isDefined(options["alpha"]))
 			element.alpha = options["alpha"];
 	}
@@ -162,12 +300,14 @@ updateHUDElement(element, type, value, options)
 	return element;
 }
 
-deleteHUDMainClock()
+deleteHUDElement(element)
 {
-	if(isDefined(level.mainclock))
-		level.mainclock destroy();
+	if(isDefined(element))
+		element destroy();
 		
-	level.mainclock = undefined;
+	element = undefined;
+	
+	return element;
 }
 
 createHUDNextRound(time)

@@ -21,7 +21,7 @@ isTeamPlayGametype(gt)
 
 checkRoundEndPlayerKilled()
 {
-	gt = getCvar("g_gametype");
+	gt = level.gametype;
 	_roundEnd = getRoundEndPlayerKilled(gt);
 	
 	if(isDefined(_roundEnd))
@@ -81,53 +81,163 @@ endMap()
 {
 	game["state"] = "intermission";
 	level notify("intermission");
+	
+	if(isdefined(level.bombmodel))
+		level.bombmodel stopLoopSound();
 
-	players = getentarray("player", "classname");
-	for(i = 0; i < players.size; i++)
+	
+	if(!level.uox_teamplay)
 	{
-		player = players[i];
-
-		if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator")
-			continue;
-
-		if(!isDefined(highscore))
+		tied = false;
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
 		{
-			highscore = player.score;
-			playername = player;
-			name = player.name;
-			guid = player getGuid();
-			continue;
+			player = players[i];
+
+			if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator")
+				continue;
+
+			if(!isDefined(highscore))
+			{
+				if(level.scorerounds)
+					highscore = player.pers["roundswon"];
+				else
+					highscore = player.score;
+				playername = player;
+				name = player.name;
+				guid = player getGuid();
+				continue;
+			}
+			if(level.scorerounds)
+			{
+				if(player.pers["roundswon"] == highscore)
+					tied = true;
+				else if(player.pers["roundswon"] > highscore)
+				{
+					tied = false;
+					highscore = player.pers["roundswon"];
+					playername = player;
+					name = player.name;
+					guid = player getGuid();
+				}
+			}
+			else
+			{
+				if(player.score == highscore)
+					tied = true;
+				else if(player.score > highscore)
+				{
+					tied = false;
+					highscore = player.score;
+					playername = player;
+					name = player.name;
+					guid = player getGuid();
+				}
+			}
 		}
 
-		if(player.score == highscore)
-			tied = true;
-		else if(player.score > highscore)
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
 		{
-			tied = false;
-			highscore = player.score;
-			playername = player;
-			name = player.name;
-			guid = player getGuid();
+			player = players[i];
+
+			player closeMenu();
+			player setClientCvar("g_scriptMainMenu", "main");
+
+			if(isDefined(tied) && tied == true)
+				player setClientCvar("cg_objectiveText", &"MPSCRIPT_THE_GAME_IS_A_TIE");
+			else if(isDefined(playername))
+				player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", playername);
+			
+			player maps\mp\uox\_uox_respawns::spawnIntermission();
+		}
+		wait 1;
+
+		if (getCvar("g_autoscreenshot") == "1")
+		{
+			players = getentarray("player", "classname");
+			for(i = 0; i < players.size; i++)
+			{
+				player = players[i];
+			
+				player autoScreenshot();
+			}
+		}
+		if(!tied)
+			logPrint("W;;" + guid + ";" + name + "\n");
+	}
+	else
+	{
+		winners = "";
+		winner = "draw";
+
+		if(game["alliedscore"] == game["axisscore"])
+		{
+			text = &"MPSCRIPT_THE_GAME_IS_A_TIE";
+			winner = "draw";
+		}
+		else if(game["alliedscore"] > game["axisscore"])
+		{
+			text = &"MPSCRIPT_ALLIES_WIN";
+			winner = "allies";
+		}
+		else
+		{
+			text = &"MPSCRIPT_AXIS_WIN";
+			winner = "axis";
+		}
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+
+			player closeMenu();
+			player setClientCvar("g_scriptMainMenu", "main");
+			player setClientCvar("cg_objectiveText", text);
+			player maps\mp\uox\_uox_respawns::spawnIntermission();
+			
+			if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "allies"))
+			{
+				if(winner == "allies")
+					winners = (winners + ";" + lpGuid + ";" + players[i].name);
+				else if(winner == "axis")
+					losers = (losers + ";" + lpGuid + ";" + players[i].name);
+			}
+			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "axis"))
+			{
+				if(winner == "axis")
+					winners = (winners + ";" + lpGuid + ";" + players[i].name);
+				else if(winner == "allies")
+					losers = (losers + ";" + lpGuid + ";" + players[i].name);
+			}
+		}
+
+		wait 1;
+
+		if (getCvar("g_autoscreenshot") == "1")
+		{
+			players = getentarray("player", "classname");
+			for(i = 0; i < players.size; i++)
+			{
+				player = players[i];
+			
+				player autoScreenshot();
+			}
+		}
+		if(winner != "draw")
+		{
+			if(winner == "allies")
+			{
+				logPrint("W;allies;" + winners + "\n");
+				logPrint("L;axis;" + losers + "\n");
+			}
+			else
+			{
+				logPrint("W;axis;" + winners + "\n");
+				logPrint("L;allies;" + losers + "\n");
+			}
 		}
 	}
-
-	players = getentarray("player", "classname");
-	for(i = 0; i < players.size; i++)
-	{
-		player = players[i];
-
-		player closeMenu();
-		player setClientCvar("g_scriptMainMenu", "main");
-
-		if(isDefined(tied) && tied == true)
-			player setClientCvar("cg_objectiveText", &"MPSCRIPT_THE_GAME_IS_A_TIE");
-		else if(isDefined(playername))
-			player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", playername);
-		
-		player maps\mp\uox\_uox_respawns::spawnIntermission();
-	}
-	if(isDefined(name))
-		logPrint("W;;" + guid + ";" + name + "\n");
 	wait 10;
 	exitLevel(false);
 }
@@ -200,6 +310,10 @@ startGame(gt)
 
 		if ( (level.uox_teamplay) && (level.teambalance > 0) && (!game["BalanceTeamsNextRound"]) )
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
+	}
+	else
+	{
+		game["matchstarted"] = true;
 	}
 	
 	for(;;)
@@ -331,6 +445,8 @@ endRound(roundwinner, doKillcam)
 
 		player unlink();
 		player enableWeapon();
+		
+		player maps\mp\uox\_uox_hud::clearClientHUD();
 	}
 
 	objective_delete(0);
@@ -635,7 +751,7 @@ updateTeamStatus()
 	{
 		player = players[i];
 		
-		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!isDefined(player.pers["lives"]) || player.pers["lives"] > 0))
+		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && level.reinforcements == -1)))
 		{
 			if(level.uox_teamplay)
 			{
@@ -774,6 +890,7 @@ updateTeamStatus()
 		}
 		else if(oldvalue["2players"] > 0 && !level.exist["2players"])
 		{
+			level iprintlnbold("All players have been eliminated");
 			level thread endRound("deathmatch");
 			return;
 		}
