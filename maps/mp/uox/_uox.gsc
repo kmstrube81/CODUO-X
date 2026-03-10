@@ -19,13 +19,68 @@ isTeamPlayGametype(gt)
 	return false;
 }
 
-checkRoundEndPlayerKilled()
+checkPlayerKilled(victim, attacker)
 {
-	gt = level.gametype;
-	_roundEnd = getRoundEndPlayerKilled(gt);
+	addKillToTeamScore = false;
+	doCheckScoreLimit = false;
 	
-	if(isDefined(_roundEnd))
-		[[ _roundEnd ]]();
+	gt = level.gametype;
+	
+	switch(gt)
+	{
+		case "dm":
+			doCheckScoreLimit = true;
+			break;
+		case "tdm":
+			doCheckScoreLimit = true;
+			addKillToTeamScore = true;
+			break;
+	}
+	if(addKillToTeamScore)
+	{
+		if(victim.pers["team"] == attacker.pers["team"]) // killed by a friendly
+		{	
+			if (level.teamkill_penalty)
+			{
+				//penalize team as well
+				if(attacker.pers["team"] == "allies")
+				{
+					teamscore = game["alliedscore"];
+					teamscore--;
+					game["alliedscore"] = teamscore;
+					setTeamScore("allies", game["alliedscore"]);
+					
+				}
+				else
+				{
+					teamscore = game["axisscore"];
+					teamscore--;
+					game["axisscore"] = teamscore;
+					setTeamScore("axis", game["axisscore"]);
+				}
+			}
+		}
+		else
+		{
+			if(attacker.pers["team"] == "allies")
+			{
+				teamscore = game["alliedscore"];
+				teamscore++;
+				game["alliedscore"] = teamscore;
+				setTeamScore("allies", game["alliedscore"]);
+				
+			}
+			else
+			{
+				teamscore = game["axisscore"];
+				teamscore++;
+				game["axisscore"] = teamscore;
+				setTeamScore("axis", game["axisscore"]);
+			}
+		}
+	}
+	if(doCheckScoreLimit)
+		checkScoreLimit();
 }
 
 checkScoreLimit()
@@ -88,53 +143,7 @@ endMap()
 	
 	if(!level.uox_teamplay)
 	{
-		tied = false;
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-
-			if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator")
-				continue;
-
-			if(!isDefined(highscore))
-			{
-				if(level.scorerounds)
-					highscore = player.pers["roundswon"];
-				else
-					highscore = player.score;
-				playername = player;
-				name = player.name;
-				guid = player getGuid();
-				continue;
-			}
-			if(level.scorerounds)
-			{
-				if(player.pers["roundswon"] == highscore)
-					tied = true;
-				else if(player.pers["roundswon"] > highscore)
-				{
-					tied = false;
-					highscore = player.pers["roundswon"];
-					playername = player;
-					name = player.name;
-					guid = player getGuid();
-				}
-			}
-			else
-			{
-				if(player.score == highscore)
-					tied = true;
-				else if(player.score > highscore)
-				{
-					tied = false;
-					highscore = player.score;
-					playername = player;
-					name = player.name;
-					guid = player getGuid();
-				}
-			}
-		}
+		winner = getHighScore();
 
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++)
@@ -144,10 +153,10 @@ endMap()
 			player closeMenu();
 			player setClientCvar("g_scriptMainMenu", "main");
 
-			if(isDefined(tied) && tied == true)
+			if(isDefined(winner.tied) && winner.tied == true)
 				player setClientCvar("cg_objectiveText", &"MPSCRIPT_THE_GAME_IS_A_TIE");
-			else if(isDefined(playername))
-				player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", playername);
+			else if(isDefined(winner))
+				player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", winner.name);
 			
 			player maps\mp\uox\_uox_respawns::spawnIntermission();
 		}
@@ -163,8 +172,8 @@ endMap()
 				player autoScreenshot();
 			}
 		}
-		if(!tied)
-			logPrint("W;;" + guid + ";" + name + "\n");
+		if(!winner.tied)
+			logPrint("W;;" + winner.guid + ";" + winner.name + "\n");
 	}
 	else
 	{
@@ -240,27 +249,6 @@ endMap()
 	}
 	wait 10;
 	exitLevel(false);
-}
-
-getRoundEndPlayerKilled(gt)
-{
-	switch(gt)
-	{
-		//gamemodes that don't end on kills
-		case "hq":
-		case "ctf":
-		case "dom":
-		case "bas":
-		case "sd":
-		case "re":
-			return;
-		//gamemodes that can end on kills
-		case "dm":
-		case "tdm":
-			return ::checkScoreLimit;
-		default:
-			return ::checkScoreLimit;
-	}
 }
 
 doGracePeriod(gracetime)
@@ -340,7 +328,7 @@ startRound(gt)
 		return;
 				
 	maps\mp\uox\_uox_hud::updateHUDMainClock(level.roundlength * 60);
-	level thread doGracePeriod(getCvarInt("scr_" + gt + "_graceperiod"));
+	level thread doGracePeriod(level.graceperiodtime);
 	
 	wait(level.roundlength * 60);
 	
@@ -389,8 +377,21 @@ checkMatchStart()
 	// If teams previously did not exist and now they do
 	if(!oldvalue["teams"] && level.exist["teams"])
 	{
+		
+		
 		if(!game["matchstarted"])
 		{
+			if(!level.roundended)
+			{
+				if(level.warmupmode > 0)
+				{
+					if(level.warmupmode == 1)
+						maps\mp\uox\_uox_warmup::DoWarmUp();
+					else
+						maps\mp\uox\_uox_warmup::DoReadyUp();
+				}
+			}	
+			
 			announcement(&"SD_MATCHSTARTING");
 
 			level notify("kill_endround");
@@ -751,7 +752,7 @@ updateTeamStatus()
 	{
 		player = players[i];
 		
-		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && level.reinforcements == -1)))
+		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!level.roundstarted || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && level.reinforcements == -1)))
 		{
 			if(level.uox_teamplay)
 			{
@@ -890,7 +891,7 @@ updateTeamStatus()
 		}
 		else if(oldvalue["2players"] > 0 && !level.exist["2players"])
 		{
-			level iprintlnbold("All players have been eliminated");
+			iprintlnbold("All players have been eliminated");
 			level thread endRound("deathmatch");
 			return;
 		}
@@ -986,6 +987,76 @@ resetPlayerScores()
 
 }
 
+printJoinedTeam(team)
+{
+	if(team == "allies")
+		iprintln(&"MPSCRIPT_JOINED_ALLIES", self);
+	else if(team == "axis")
+		iprintln(&"MPSCRIPT_JOINED_AXIS", self);
+}
+
+getHighScore()
+{
+	tied = false;
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+
+		if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator")
+			continue;
+
+		if(!isDefined(highscore))
+		{
+			if(level.scorerounds)
+				highscore = player.pers["roundswon"];
+			else
+				highscore = player.score;
+			playername = player;
+			name = player.name;
+			guid = player getGuid();
+			continue;
+		}
+		if(level.scorerounds)
+		{
+			if(player.pers["roundswon"] == highscore)
+				tied = true;
+			else if(player.pers["roundswon"] > highscore)
+			{
+				tied = false;
+				highscore = player.pers["roundswon"];
+				playername = player;
+				name = player.name;
+				guid = player getGuid();
+			}
+		}
+		else
+		{
+			if(player.score == highscore)
+				tied = true;
+			else if(player.score > highscore)
+			{
+				tied = false;
+				highscore = player.score;
+				playername = player;
+				name = player.name;
+				guid = player getGuid();
+			}
+		}
+	}
+	
+	if(!isDefined(playername))
+		return undefined;
+	
+	winner = playername;
+	winner.guid = guid;
+	winner.tied = tied;
+	if(level.scorerounds)
+		winner.roundsWon = highscore;
+	
+	return winner;
+}
+
 addBotClients()
 {
 	wait 5;
@@ -1011,9 +1082,12 @@ addBotClients()
 	{
 		ent[i] = addtestclient();
 		wait 0.5;
+		
+		ent[i].isBot = true;
 
 		if(isPlayer(ent[i]))
 		{
+			
 			if(i & 1)
 			{
 				ent[i] notify("menuresponse", game["menu_team"], "axis");

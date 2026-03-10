@@ -16,6 +16,9 @@ Callback_StartGameType()
 	level.roundstarted = false;
 	level.roundended = false;
 	level.mapended = false;
+	level.warmup = false;
+						
+	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
 	
 	if(!isDefined(game["gamestarted"]))
 	{
@@ -84,8 +87,6 @@ Callback_StartGameType()
 		precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
 		precacheItem("item_health");
 
-		
-		maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
 		maps\mp\gametypes\_teams::precache();
 	}
 	
@@ -95,6 +96,7 @@ Callback_StartGameType()
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
 	thread maps\mp\gametypes\_teams::updateGlobalCvars();
 	thread maps\mp\gametypes\_teams::updateWeaponCvars();
+	thread maps\mp\uox\_uox_hud::updateScoreboard();
 	
 	game["gamestarted"] = true;
 	
@@ -114,6 +116,14 @@ Callback_PlayerConnect()
 	lpselfnum = self getEntityNumber();
 	lpselfguid = self getGuid();
 	logPrint("J;" + lpselfguid + ";" + lpselfnum + ";" + self.name + "\n");
+	
+	maps\mp\uox\_uox_warmup::onPlayerConnect(lpselfnum);
+	
+	//init values
+	if(!isDefined(self.pers["roundswon"]))
+		self.pers["roundswon"] = 0;
+	if ( !isDefined( self.pers["rank"] ) )
+		self.pers["rank"] = 0;
 	
 	//init HUD
 	self maps\mp\uox\_uox_hud::initHUD();
@@ -356,6 +366,8 @@ Callback_PlayerDisconnect()
 	lpselfguid = self getGuid();
 	logPrint("Q;" + lpselfguid + ";" + lpselfnum + ";" + self.name + "\n");
 	
+	maps\mp\uox\_uox_warmup::OnPlayerDisconnect(lpselfnum);
+	
 	if(game["matchstarted"])
 		level thread maps\mp\uox\_uox::updateTeamStatus();
 }
@@ -503,7 +515,8 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	obituary(self, attacker, sWeapon, sMeansOfDeath);
 
 	self.sessionstate = "dead";
-	self.statusicon = "gfx/hud/hud@status_dead.tga";
+	if(!isDefined(level.doingReadyUp))
+		self.statusicon = "gfx/hud/hud@status_dead.tga";
 	self.deaths++;
 
 	lpselfnum = self getEntityNumber();
@@ -518,20 +531,35 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		if(attacker == self) // killed himself
 		{
 			doKillcam = false;
-
-			attacker.pers["score"]--;
-			attacker.score = attacker.pers["score"];
+			
+			if (!isdefined (self.autobalance))
+			{
+				
+				attacker.score--;
+				attacker.pers["score"]--;
+				attacker.score = attacker.pers["score"];
+				
+			}
+			
 		}
 		else
 		{
 			attackerNum = attacker getEntityNumber();
 			doKillcam = true;
 
-			attacker.pers["score"]++;
-			attacker.score = attacker.pers["score"];
-			level thread maps\mp\uox\_uox::checkRoundEndPlayerKilled();
+			if(self.pers["team"] == attacker.pers["team"] && level.uox_teamplay) // killed by a friendly
+			{	
+				attacker.pers["score"]--;
+				attacker.score = attacker.pers["score"];
+			}
+			else
+			{
+				attacker.pers["score"]++;
+				attacker.score = attacker.pers["score"];
+				
+			}
 		}
-
+		
 		lpattacknum = attacker getEntityNumber();
 		lpattackguid = attacker getGuid();
 		lpattackname = attacker.name;
@@ -546,9 +574,13 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattacknum = -1;
 		lpattackguid = "";
 		lpattackname = "";
+		lpattackerteam = "world";
 	}
 	
-	logPrint("K;" + lpselfguid + ";" + lpselfnum + ";" + lpselfteam + ";" + lpselfname + ";" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + sWeapon + ";" + iDamage + ";" + sMeansOfDeath + ";" + sHitLoc + "\n");
+	level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
+	
+	if(!level.warmup)
+		logPrint("K;" + lpselfguid + ";" + lpselfnum + ";" + lpselfteam + ";" + lpselfname + ";" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + sWeapon + ";" + iDamage + ";" + sMeansOfDeath + ";" + sHitLoc + "\n");
 
 	// Stop thread if map ended on this death
 	if(level.mapended)

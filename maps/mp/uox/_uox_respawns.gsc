@@ -5,21 +5,93 @@
 // ----------------------------------------------------------------------------------
 menu_spawn(weapon)
 {
-	if(!isDefined(self.pers["weapon"]))
+	//set player lives
+	if(level.respawn_mode == "obj")
 	{
-		self.pers["weapon"] = weapon;
-		spawnPlayer();
+		if(!isDefined(self.lives))
+		{
+			self.lives = getMidRoundLives();
+		}
+	}
+	if(!game["matchstarted"])
+	{
+		if(isDefined(self.pers["weapon"]))
+		{
+			self.pers["weapon"] = weapon;
+	 		self.pers["weapon1"] = weapon;
+
+			// setup all the weapons
+			self maps\mp\gametypes\_loadout_gmi::PlayerSpawnLoadout();
+	 		self setWeaponSlotWeapon("primary", weapon);
+			self switchToWeapon(weapon);
+		}
+		else
+		{
+			self.pers["weapon"] = weapon;
+	 		self.pers["weapon1"] = weapon;
+			spawnPlayer();
+			self thread maps\mp\uox\_uox::printJoinedTeam(self.pers["team"]);
+		}
 	}
 	else
-	{
-		self.pers["weapon"] = weapon;
-		
-		weaponname = maps\mp\gametypes\_teams::getWeaponName(self.pers["weapon"]);
-		
-		if(maps\mp\gametypes\_teams::useAn(self.pers["weapon"]))
-			self iprintln(&"MPSCRIPT_YOU_WILL_RESPAWN_WITH_AN", weaponname);
+	{		
+		if(isDefined(self.pers["weapon"]))
+		{
+			if(level.graceperiod && !self.usedweapons)
+			{
+				self.pers["weapon"] = weapon;
+				self.pers["weapon1"] = weapon;
+
+				// setup all the weapons
+				self maps\mp\gametypes\_loadout_gmi::PlayerSpawnLoadout();
+				self setWeaponSlotWeapon("primary", weapon);
+				self switchToWeapon(weapon);
+			}
+			else
+			{
+				self.pers["weapon"] = weapon;
+				
+				weaponname = maps\mp\gametypes\_teams::getWeaponName(self.pers["weapon"]);
+				
+				if(maps\mp\gametypes\_teams::useAn(self.pers["weapon"]))
+					self iprintln(&"MPSCRIPT_YOU_WILL_RESPAWN_WITH_AN", weaponname);
+				else
+					self iprintln(&"MPSCRIPT_YOU_WILL_RESPAWN_WITH_A", weaponname);
+			}
+		}
 		else
-			self iprintln(&"MPSCRIPT_YOU_WILL_RESPAWN_WITH_A", weaponname);
+		{
+			if(isDefined(self.lives) && self.lives == 0)
+			{
+				self.pers["weapon"] = weapon;
+				
+				weaponname = maps\mp\gametypes\_teams::getWeaponName(self.pers["weapon"]);
+
+				if(self.pers["team"] == "allies")
+				{
+					if(maps\mp\gametypes\_teams::useAn(self.pers["weapon"]))
+						self iprintln(&"MPSCRIPT_YOU_WILL_SPAWN_ALLIED_WITH_AN_NEXT_ROUND", weaponname);
+					else
+						self iprintln(&"MPSCRIPT_YOU_WILL_SPAWN_ALLIED_WITH_A_NEXT_ROUND", weaponname);
+				}
+				else if(self.pers["team"] == "axis")
+				{
+					if(maps\mp\gametypes\_teams::useAn(self.pers["weapon"]))
+						self iprintln(&"MPSCRIPT_YOU_WILL_SPAWN_AXIS_WITH_AN_NEXT_ROUND", weaponname);
+					else
+						self iprintln(&"MPSCRIPT_YOU_WILL_SPAWN_AXIS_WITH_A_NEXT_ROUND", weaponname);
+				}
+			}
+			else
+			{
+				self.pers["weapon"] = weapon;
+				self.pers["weapon1"] = weapon;
+				respawn_mode = getRespawnMode();
+				self thread [[ respawn_mode ]]();
+				self thread maps\mp\uox\_uox::printJoinedTeam(self.pers["team"]);
+			}
+		}
+	
 	}
 }
 
@@ -230,6 +302,34 @@ respawn_obj()
 	}
 }
 
+getMidRoundLives()
+{
+	lives = level.reinforcements;
+	if(lives == 0) lives = 1;
+	
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+		
+		if(player == self)
+			continue;
+		if(!isDefined(player.pers["team"]) || (isDefined(player.pers["team"]) && player.pers["team"] == "spectator"))
+			continue;
+		if(level.uox_teamplay && players.pers["team"] != self.pers["team"])
+			continue;
+		if(!isDefined(player.lives))
+			continue;
+		
+		if(player.lives < lives)
+			lives = player.lives;
+	}
+	if((level.graceperiod || !level.roundstarted) && lives < level.reinforcements)
+		lives++;
+	
+	return lives;
+}
+
 respawn_hq()
 {
 	return;
@@ -392,6 +492,12 @@ spawnPlayer(farthest)
 		self.lives--;
 		if(level.reinforcements > 1)
 			self maps\mp\uox\_uox_hud::updateHUDLivesLeft(self.lives);
+		
+		if(self.lives < 0 && level.reinforcements > -1 && level.roundstarted)
+		{
+			self spawnSpectator();
+			return;
+		}
 	}
 	
 	level maps\mp\uox\_uox::updateTeamStatus();
@@ -407,6 +513,9 @@ spawnPlayer(farthest)
 
 	// setup all the weapons
 	self maps\mp\gametypes\_loadout_gmi::PlayerSpawnLoadout();
+	
+	self.usedweapons = false;
+	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 	
 	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
 

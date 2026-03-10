@@ -146,6 +146,26 @@ UOX_Main()
 	level.scorerounds = getCvarInt("scr_dm_score_rounds");
 	setCvar("ui_dm_score_rounds", level.scorerounds);
 	makeCvarServerInfo("ui_dm_score_rounds", 0);
+	
+	if(getCvar("scr_dm_graceperiod") != "")
+		level.graceperiodtime = getCvarInt("scr_dm_graceperiod");
+	else
+		level.graceperiodtime = getCvarInt("scr_graceperiod");
+	
+	if(getCvar("scr_dm_warmupmode") != "")
+		level.warmupmode = getCvarInt("scr_dm_warmupmode");
+	else
+		level.warmupmode = getCvarInt("scr_warmupmode");
+	
+	if(getCvar("scr_dm_autoreadycount") != "")
+		level.autoreadycount = getCvarInt("scr_dm_autoreadycount");
+	else
+		level.autoreadycount = getCvarInt("scr_autoreadycount");
+	
+	if(getCvar("scr_dm_autoreadytime") != "")
+		level.autoreadytime = getCvarInt("scr_dm_autoreadytime");
+	else
+		level.autoreadytime = getCvarInt("scr_autoreadytime");
 
 	if(getCvar("scr_forcerespawn") == "")		// Force respawning
 		setCvar("scr_forcerespawn", "0");
@@ -183,6 +203,7 @@ UOX_Main()
 	level.drawfriend = 0;
 	level.teambalance = 0;
 	level.lockteams = false;
+	level.teamkill_penalty = false;
 	
 	level.QuickMessageToAll = true;
 	level.mapended = false;

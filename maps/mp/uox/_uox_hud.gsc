@@ -32,6 +32,44 @@ precache()
 	precacheString(game["axisSuccessText"]);
 	game["livesText"] = &"Lives Left";
 	precacheString(game["livesText"]);
+	game["dividerText"] = &"/";
+	precacheString(game["dividerText"]);
+	game["waitingText"] = &"Ready-Up Mode";
+	precacheString(game["waitingText"]);
+	game["warmupText"] = &"Warm-Up Mode";
+	precacheString(game["warmupText"]);
+	game["allreadyText"] = &"All Players Ready!";
+	precacheString(game["allreadyText"]);
+	game["2ndHalfStartingText"] = &"Second Half Starting";
+	precacheString(game["2ndHalfStartingText"]);
+	game["readyText"] = &"Ready";
+	precacheString(game["readyText"]);
+	game["notReadyText"] = &"Not Ready";
+	precacheString(game["notReadyText"]);
+	game["statusText"] = &"Your Status";
+	precacheString(game["statusText"]);
+	game["waitingOnText"] = &"Waiting on";
+	precacheString(game["waitingOnText"]);
+	game["playersText"] = &"Players";
+	precacheString(game["playersText"]);
+	
+	game["objective_default"] = "gfx/hud/headicon@re_objcarrier.dds";
+	precacheShader(game["objective_default"]);
+	switch(game["allies"])
+	{
+		case "american":
+			game["headicon_allies"] = "gfx/hud/headicon@american.tga";
+			break;
+		case "british":
+			game["headicon_allies"] = "gfx/hud/headicon@british.tga";
+			break;
+		case "russian":
+			game["headicon_allies"] = "gfx/hud/headicon@russian.tga";
+			break;
+	}
+	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
+	precacheShader(game["headicon_allies"]);
+	precacheShader(game["headicon_axis"]);
 }
 
 initHUD()
@@ -76,6 +114,14 @@ updateClientHUDElement(name, type, value, options)
 			element.fontscale = options["fontscale"];
 		if(isDefined(options["alpha"]))
 			element.alpha = options["alpha"];
+		if(isDefined(options["width"]))
+			width = options["width"];
+		else
+			width = 16;
+		if(isDefined(options["height"]))
+			height = options["height"];
+		else
+			height = 16;
 	}
 	
 	//set value
@@ -86,6 +132,9 @@ updateClientHUDElement(name, type, value, options)
 			break;
 		case "number":
 			element setValue(value);
+			break;
+		case "shader":
+			element setShader(value, width, height);
 			break;
 		default:
 			element setText(value);
@@ -187,6 +236,263 @@ deleteHUDMainClock()
 	level.mainclock = deleteHUDElement(level.mainclock);
 }
 
+updateServerScoreboard()
+{
+	level.scoreboard = true;
+	//Allies Shader
+	options = [];
+	
+	options["x"] = 10;
+	options["y"] = 250;
+	options["alignX"] = "left";
+	options["alignY"] = "middle";
+	options["width"] = 24;
+	options["height"] = 24;
+	options["fontScale"] = 1.6;
+	
+	if(level.uox_teamplay)
+		shader = game["headicon_allies"];
+	else 
+		shader = game["objective_default"];
+	level.scoreboardAlliesShader = updateHUDElement(level.scoreboardAlliesShader, "shader", shader, options);
+	
+	//Allies Score
+	options["x"] = 58;
+	options["alignX"] = "right";
+	
+	if(level.uox_teamplay)
+		value = game["alliedscore"];
+	else
+	{
+		if(level.scorerounds)
+		{
+			highscore = maps\mp\uox\_uox::getHighScore();
+			if(isDefined(highscore))
+				value = highscore.roundsWon;
+			else
+				value = 0;
+		}
+		else
+		{
+			highscore = maps\mp\uox\_uox::getHighScore();
+			if(isDefined(highscore))
+				value = highscore.score;
+			else
+				value = 0;
+		}
+	}
+	level.scoreboardAlliesScore = updateHUDElement(level.scoreboardAlliesScore, "number", value, options);
+	
+	if(getCvarInt("sv_showScoreboardScoreLimit") > 0 && ((!level.scorerounds && level.scorelimit > 0) || (level.scorerounds && level.roundlimit > 0 )))
+	{
+		level.scoreboardScoreLimit = true;
+	}
+	
+	if(isDefined(level.scoreboardScoreLimit) && level.scoreboardScoreLimit)
+	{
+		//Allies Divider
+		options["x"] = 62;
+		options["alignX"] = "center";
+		level.scoreboardAlliesLimitDiv = updateHUDElement(level.scoreboardAlliesLimitDiv, "text", game["dividerText"], options);
+		
+		//Allies Limit
+		options["x"] = 66;
+		options["alignX"] = "left";
+		if(level.scorerounds)
+			value = (level.roundlimit/2) + 1;
+		else
+			value = level.scorelimit;
+		level.scoreboardAlliesLimit = updateHUDElement(level.scoreboardAlliesLimit, "number", value, options);
+	}
+	
+	if(level.uox_teamplay)
+	{
+		options["x"] = 10;
+		options["y"] = 270;
+		options["alignX"] = "left";
+		options["alignY"] = "middle";
+		
+		
+		shader = game["headicon_axis"];
+		
+		level.scoreboardAxisShader = updateHUDElement(level.scoreboardAxisShader, "shader", shader, options);
+		
+		//Axis Score
+		options["x"] = 58;
+		options["alignX"] = "right";
+		
+		value = game["axisscore"];
+		
+		level.scoreboardAxisScore = updateHUDElement(level.scoreboardAxisScore, "number", value, options);
+		
+		if(isDefined(level.scoreboardScoreLimit) && level.scoreboardScoreLimit)
+		{
+			//Axis Divider
+			options["x"] = 62;
+			options["alignX"] = "center";
+			level.scoreboardAxisLimitDiv = updateHUDElement(level.scoreboardAxisLimitDiv, "text", game["dividerText"], options);
+			
+			//Axis Limit
+			options["x"] = 66;
+			options["alignX"] = "left";
+			if(level.scorerounds)
+				value = (level.roundlimit / 2) + 1;
+			else
+				value = level.scorelimit;
+			level.scoreboardAxisLimit = updateHUDElement(level.scoreboardAxisLimit, "number", value, options);
+		}
+	}
+	else
+		updatePlayerScoreboard();
+}
+
+deleteServerScoreboard()
+{
+	level.scoreboardAlliesShader = deleteHUDElement(level.scoreboardAlliesShader);
+	level.scoreboardAlliesScore = deleteHUDElement(level.scoreboardAlliesScore);
+	if(level.uox_teamplay)
+	{
+		level.scoreboardAxisShader = deleteHUDElement(level.scoreboardAxisShader);
+		level.scoreboardAxisScore = deleteHUDElement(level.scoreboardAxisScore);
+	}
+	else
+	{
+		deletePlayerScoreboard();
+	}
+	
+	deleteServerScoreboardScoreLimit();
+	
+	level.scoreboard = undefined;
+}
+
+deleteServerScoreboardScoreLimit()
+{
+	level.scoreboardAlliesLimitDiv = deleteHUDElement(level.scoreboardAlliesLimitDiv);
+	level.scoreboardAlliesLimit = deleteHUDElement(level.scoreboardAlliesLimit);
+	
+	if(level.uox_teamplay)
+	{
+		level.scoreboardAxisLimitDiv = deleteHUDElement(level.scoreboardAxisLimitDiv);
+		level.scoreboardAxisLimit = deleteHUDElement(level.scoreboardAxisLimit);
+	}
+	else
+	{
+		deletePlayerScoreboardScoreLimit();
+	}
+	
+	level.scoreboardScoreLimit = undefined;
+}
+
+updatePlayerScoreboard()
+{
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+		
+		if(!isDefined(player.pers["team"]) || (isDefined(player.pers["team"]) && player.pers["team"] == "spectator"))
+			continue;
+		
+		//Shader
+		options["x"] = 10;
+		options["y"] = 270;
+		options["alignX"] = "left";
+		options["alignY"] = "middle";
+		options["width"] = 24;
+		options["height"] = 24;
+		options["fontScale"] = 1.6;
+		
+		if(player.pers["team"] == "allies")
+			shader = game["headicon_allies"];
+		else
+			shader = game["headicon_axis"];
+		
+		if(!isDefined(player.scoreboardShader))
+			player.scoreboardShader = newClientHudElem(player);
+		player.scoreboardShader.x = options["x"];
+		player.scoreboardShader.y = options["y"];
+		player.scoreboardShader.alignX = options["alignX"];
+		player.scoreboardShader.alignY = options["alignY"];
+		player.scoreboardShader.fontScale = options["fontScale"];
+		player.scoreboardShader setShader(shader, options["width"], options["height"]);
+		
+		//Axis Score
+		options["x"] = 58;
+		options["alignX"] = "right";
+		
+		if(level.scorerounds)
+			value = player.pers["roundswon"];
+		else
+			value = player.score;
+		
+		if(!isDefined(player.scoreboardScore))
+			player.scoreboardScore = newClientHudElem(player);
+		player.scoreboardScore.x = options["x"];
+		player.scoreboardScore.y = options["y"];
+		player.scoreboardScore.alignX = options["alignX"];
+		player.scoreboardScore.alignY = options["alignY"];
+		player.scoreboardScore.fontScale = options["fontScale"];
+		player.scoreboardScore setValue(value);
+		
+		if(isDefined(level.scoreboardScoreLimit) && level.scoreboardScoreLimit)
+		{
+			//Divider
+			options["x"] = 62;
+			options["alignX"] = "center";
+			if(!isDefined(player.scoreboardDiv))
+				player.scoreboardDiv = newClientHudElem(player);
+			player.scoreboardDiv.x = options["x"];
+			player.scoreboardDiv.y = options["y"];
+			player.scoreboardDiv.alignX = options["alignX"];
+			player.scoreboardDiv.alignY = options["alignY"];
+			player.scoreboardDiv.fontScale = options["fontScale"];
+			player.scoreboardDiv setText(game["dividerText"]);
+			
+			//Axis Limit
+			options["x"] = 66;
+			options["alignX"] = "left";
+			if(level.scorerounds)
+				value = (level.roundlimit / 2) + 1;
+			else
+				value = level.scorelimit;
+			
+			if(!isDefined(player.scoreboardLimit))
+				player.scoreboardLimit = newClientHudElem(player);
+			player.scoreboardLimit.x = options["x"];
+			player.scoreboardLimit.y = options["y"];
+			player.scoreboardLimit.alignX = options["alignX"];
+			player.scoreboardLimit.alignY = options["alignY"];
+			player.scoreboardLimit.fontScale = options["fontScale"];
+			player.scoreboardLimit setValue(value);
+		}
+				
+	}
+}
+
+deletePlayerScoreboard()
+{
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+		
+		player.scoreboardShader = deleteHUDElement(player.scoreboardShader);
+		player.scoreboardScore = deleteHUDElement(player.scoreboardScore);
+	}
+}
+
+deletePlayerScoreboardScoreLimit()
+{
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+		
+		player.scoreboardLimit = deleteHUDElement(player.scoreboardLimit);
+		player.scoreboardDiv = deleteHUDElement(player.scoreboardDiv);
+	}
+}
+
 updateHUDLivesLeft(lives)
 {
 	options = [];
@@ -282,6 +588,14 @@ updateHUDElement(element, type, value, options)
 			element.fontscale = options["fontscale"];
 		if(isDefined(options["alpha"]))
 			element.alpha = options["alpha"];
+		if(isDefined(options["width"]))
+			width = options["width"];
+		else
+			width = 16;
+		if(isDefined(options["height"]))
+			height = options["height"];
+		else
+			height = 16;
 	}
 	
 	//set value
@@ -292,6 +606,9 @@ updateHUDElement(element, type, value, options)
 			break;
 		case "number":
 			element setValue(value);
+			break;
+		case "shader":
+			element setShader(value, width, height);
 			break;
 		default:
 			element setText(value);
@@ -365,6 +682,215 @@ createHUDNextRound(time)
 		level.starting destroy();
 }
 
+createReadyUpHUD()
+{
+	if(!isDefined(level.waitingHUD))
+		level.waitingHUD = newHudElem();
+	level.waitingHUD.alignX = "center";
+	level.waitingHUD.alignY = "middle";
+	level.waitingHUD.color = (1, 0, 0);
+	level.waitingHUD.x = 575;
+	level.waitingHUD.y = 45;
+	level.waitingHUD.fontScale = 1.4;
+
+	level.waitingHUD setText(game["waitingText"]);
+	
+	if(!isDefined(level.waitingOnHUD))
+		level.waitingOnHUD = newHudElem();
+	level.waitingOnHUD.x = 575;
+	level.waitingOnHUD.y = 70;
+	level.waitingOnHUD.alignX = "center";
+	level.waitingOnHUD.alignY = "middle";
+	level.waitingOnHUD.fontScale = 1.1;
+	level.waitingOnHUD.color = (.8, 1, 1);
+	level.waitingOnHUD setText(game["waitingOnText"]);
+
+	if(!isDefined(level.playersTextHUD))
+		level.playersTextHUD = newHudElem();
+	level.playersTextHUD.x = 575;
+	level.playersTextHUD.y = 110;
+	level.playersTextHUD.alignX = "center";
+	level.playersTextHUD.alignY = "middle";
+	level.playersTextHUD.fontScale = 1.1;
+	level.playersTextHUD.color = (.8, 1, 1);
+	level.playersTextHUD setText(game["playersText"]);
+
+	if(!isDefined(level.notReadyHUD))
+		level.notReadyHUD = newHudElem();
+	level.notReadyHUD.x = 575;
+	level.notReadyHUD.y = 90;
+	level.notReadyHUD.alignX = "center";
+	level.notReadyHUD.alignY = "middle";
+	level.notReadyHUD.fontScale = 1.2;
+	level.notReadyHUD.color = (.98, .98, .60);
+	
+	level.notReadyHUD setValue(0);
+}
+
+createPlayerReadyUpHUD()
+{
+	self iprintlnbold("^7Hit the ^3-Use- ^7key to Ready-Up");
+	
+	if(!isDefined(self.waitingHUD))
+		self.waitingHUD = newClientHudElem(self);
+	self.waitingHUD.alignX = "center";
+	self.waitingHUD.alignY = "middle";
+	self.waitingHUD.color = (1, 0, 0);
+	self.waitingHUD.x = 320;
+	self.waitingHUD.y = 265;
+	self.waitingHUD.fontScale = 2;
+
+	self.waitingHUD setText(game["waitingText"]);
+	
+	if(!isDefined(self.readyStatusHUD))
+		self.readyStatusHUD = newClientHudElem(self);
+	self.readyStatusHUD.x = 575;
+	self.readyStatusHUD.y = 170;
+	self.readyStatusHUD.alignX = "center";
+	self.readyStatusHUD.alignY = "middle";
+	self.readyStatusHUD.fontScale = 1.1;
+	self.readyStatusHUD.color = (.8, 1, 1);
+	self.readyStatusHUD setText(game["statusText"]);
+
+	if(!isDefined(self.readyHUD))
+		self.readyHUD = newClientHudElem(self);
+	self.readyHUD.x = 575;
+	self.readyHUD.y = 190;
+	self.readyHUD.alignX = "center";
+	self.readyHUD.alignY = "middle";
+	self.readyHUD.fontScale = 1.2;
+	self.readyHUD.color = (1, .66, .66);
+	self.readyHUD setText(game["notReadyText"]);
+	
+	wait 8;
+	
+	self.waitingHUD = deleteHUDElement(self.waitingHUD);
+}
+
+deleteReadyUpHUD()
+{
+	
+	level.waitingHUD = deleteHUDElement(level.waitingHUD);
+	level.waitingOnHUD = deleteHUDElement(level.waitingOnHUD);
+	level.playersTextHUD = deleteHUDElement(level.playersTextHUD);
+	level.notReadyHUD = deleteHUDElement(level.notReadyHUD);
+	
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+		
+		player deletePlayerReadyUpHUD();
+		
+	}
+	
+}
+
+deletePlayerReadyUpHUD()
+{
+	self.readyStatusHUD = deleteHUDElement(self.readyStatusHUD);
+	self.readyHUD = deleteHUDElement(self.readyHUD);
+}
+
+createWarmUpHUD(playercount, timer)
+{
+	
+	if(!isDefined(level.waitingHUD))
+		level.waitingHUD = newHudElem();
+	level.waitingHUD.alignX = "center";
+	level.waitingHUD.alignY = "middle";
+	level.waitingHUD.color = (1, 0, 0);
+	level.waitingHUD.x = 575;
+	level.waitingHUD.y = 45;
+	level.waitingHUD.fontScale = 1.4;
+
+	level.waitingHUD setText(game["warmupText"]);
+	
+	if(playercount > 0)
+	{
+		if(!isDefined(level.waitingOnHUD))
+			level.waitingOnHUD = newHudElem();
+		level.waitingOnHUD.x = 575;
+		level.waitingOnHUD.y = 70;
+		level.waitingOnHUD.alignX = "center";
+		level.waitingOnHUD.alignY = "middle";
+		level.waitingOnHUD.fontScale = 1.1;
+		level.waitingOnHUD.color = (.8, 1, 1);
+		level.waitingOnHUD setText(game["waitingOnText"]);
+
+		if(!isDefined(level.playersTextHUD))
+			level.playersTextHUD = newHudElem();
+		level.playersTextHUD.x = 575;
+		level.playersTextHUD.y = 110;
+		level.playersTextHUD.alignX = "center";
+		level.playersTextHUD.alignY = "middle";
+		level.playersTextHUD.fontScale = 1.1;
+		level.playersTextHUD.color = (.8, 1, 1);
+		level.playersTextHUD setText(game["playersText"]);
+
+		if(!isDefined(level.notReadyHUD))
+			level.notReadyHUD = newHudElem();
+		level.notReadyHUD.x = 573;
+		level.notReadyHUD.y = 90;
+		level.notReadyHUD.alignX = "right";
+		level.notReadyHUD.alignY = "middle";
+		level.notReadyHUD.fontScale = 1.2;
+		level.notReadyHUD.color = (.98, .98, .60);
+		
+		level.notReadyHUD setValue(0);
+		
+		if(!isDefined(level.notReadyDivHUD))
+			level.notReadyDivHUD = newHudElem();
+		level.notReadyDivHUD.x = 575;
+		level.notReadyDivHUD.y = 90;
+		level.notReadyDivHUD.alignX = "center";
+		level.notReadyDivHUD.alignY = "middle";
+		level.notReadyDivHUD.fontScale = 1.2;
+		level.notReadyDivHUD.color = (.98, .98, .60);
+		
+		level.notReadyDivHUD setText(game["dividerText"]);
+		
+		if(!isDefined(level.allReadyHUD))
+			level.allReadyHUD = newHudElem();
+		level.allReadyHUD.x = 577;
+		level.allReadyHUD.y = 90;
+		level.allReadyHUD.alignX = "left";
+		level.allReadyHUD.alignY = "middle";
+		level.allReadyHUD.fontScale = 1.2;
+		level.allReadyHUD.color = (.98, .98, .60);
+		
+		level.allReadyHUD setValue(playercount);
+	}
+}
+
+createPlayerWarmUpHUD()
+{
+	
+	if(!isDefined(self.waitingHUD))
+		self.waitingHUD = newClientHudElem(self);
+	self.waitingHUD.alignX = "center";
+	self.waitingHUD.alignY = "middle";
+	self.waitingHUD.color = (1, 0, 0);
+	self.waitingHUD.x = 320;
+	self.waitingHUD.y = 265;
+	self.waitingHUD.fontScale = 2;
+
+	self.waitingHUD setText(game["warmupText"]);
+	
+	wait 8;
+	
+	self.waitingHUD = deleteHUDElement(self.waitingHUD);
+}
+
+deleteWarmupHUD()
+{
+	level.waitingHUD = deleteHUDElement(level.waitingHUD);
+	level.waitingOnHUD = deleteHUDElement(level.waitingOnHUD);
+	level.playersTextHUD = deleteHUDElement(level.playersTextHUD);
+	level.notReadyHUD = deleteHUDElement(level.notReadyHUD);
+	level.notReadyDivHUD = deleteHUDElement(level.notReadyDivHUD);
+	level.allReadyHUD = deleteHUDElement(level.allReadyHUD);
+}
 // ----------------------------------------------------------------------------------
 //	clock_start
 //
@@ -449,4 +975,23 @@ stopwatch_waittill_killrestart(reason)
 	level waittill("kill_startround");
 
 	stopwatch_delete(reason);
+}
+//------------------------------------------------------------------------------------
+
+updateScoreboard()
+{
+	level endon("intermission");
+	for(;;)
+	{
+		
+		if(getCvarInt("sv_showScoreboard") > 0)
+			updateServerScoreboard();
+		else if(isDefined(level.scoreboard))
+			deleteServerScoreboard();
+		
+		if(isDefined(level.scoreboardScoreLimit) && (getCvarInt("sv_showScoreboardScoreLimit") == 0 || ((!level.scorerounds && level.scorelimit <= 0) || (level.scorerounds && level.roundlimit <= 0 ))))
+			deleteServerScoreboardScoreLimit();
+		
+		wait 0.25;
+	}
 }
