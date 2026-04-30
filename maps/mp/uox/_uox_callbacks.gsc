@@ -17,6 +17,18 @@ Callback_StartGameType()
 	level.roundended = false;
 	level.mapended = false;
 	level.warmup = false;
+	level.doingReadyUp = false;
+	level.playersready = false;
+	level.playerLock = false;
+	
+	if(level.roundlimit % 2)
+		level.halfround = (level.roundlimit / 2) + 1;
+	else
+		level.halfround = level.roundlimit / 2;
+	if(level.scorelimit % 2)
+		level.halfscore = (level.scorelimit/2) + 1;
+	else
+		level.halfscore = level.scorelimit / 2;
 						
 	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
 	
@@ -31,12 +43,58 @@ Callback_StartGameType()
 			game["roundsplayed"] = 0;
 		if(!isDefined(game["matchstarted"]))
 			game["matchstarted"] = false;
+		if(!isDefined(game["suddendeath"]))
+			game["suddendeath"] = false;
+		if(!isDefined(game["g_speed"]))
+			game["g_speed"] = getCvar("g_speed");
 		
+		game["roundbased"] = false;
+		if(level.roundlimit != 1)
+			game["roundbased"] = true;
+		else if(level.warmupmode > 0)
+			game["roundbased"] = true;
+		else if(level.halftime > 0)
+			game["roundbased"] = true;
+		
+		if(!isDefined(game["half"]))
+		{
+			game["half"] = 1;
+			/* if(game["roundbased"])
+				game["half"] = 1;
+			else
+				game["half"] = 0;
+			*/
+		}
+		
+		if(!isDefined(game["round1team1score"]))
+			game["round1team1score"] = 0;
+		if(!isDefined(game["round2team1score"]))
+			game["round2team1score"] = 0;
+		if(!isDefined(game["round1team2score"]))
+			game["round1team2score"] = 0;
+		if(!isDefined(game["round2team2score"]))
+			game["round2team2score"] = 0;
+		
+		if(!isDefined(game["alliedkills"]))
+			game["alliedkills"] = 0;
+		if(!isDefined(game["axiskills"]))
+			game["axiskills"] = 0;
+				
 		// defaults if not defined in level script
 		if(!isDefined(game["allies"]))
 			game["allies"] = "american";
 		if(!isDefined(game["axis"]))
 			game["axis"] = "german";
+		
+		//set up team1/team2
+		if(!isDefined(game["attackers"]))
+			game["team1"] = "allies";
+		else
+			game["team1"] = game["attackers"];
+		if(!isDefined(game["defenders"]))
+			game["team2"] = "axis";
+		else
+			game["team2"] = game["defenders"];
 	
 		if(!isDefined(game["layoutimage"]))
 			game["layoutimage"] = "default";
@@ -122,11 +180,24 @@ Callback_PlayerConnect()
 	//init values
 	if(!isDefined(self.pers["roundswon"]))
 		self.pers["roundswon"] = 0;
-	if ( !isDefined( self.pers["rank"] ) )
+	if (!isDefined(self.pers["rank"]))
 		self.pers["rank"] = 0;
+	if(!isDefined(self.pers["score"]))
+		self.pers["score"] = 0;
+	if(!isDefined(self.pers["kills"]))
+		self.pers["kills"] = 0;
+	self.score = self.pers["score"];
+	if(!isDefined(self.pers["1HScore"]))
+		self.pers["1HScore"] = 0;
+	if(!isDefined(self.pers["2HScore"]))
+		self.pers["2HScore"] = 0;
+	self.sessionspawned = false;
 	
 	//init HUD
 	self maps\mp\uox\_uox_hud::initHUD();
+	
+	if(level.playerlock)
+		self maps\mp\uox\_uox::lockInPlace();
 	
 	// set the cvar for the map quick bind
 	self setClientCvar("g_scriptQuickMap", game["menu_viewmap"]);
@@ -381,6 +452,9 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 	// but still take damage from ambient damage (water, minefields, fire)
 	if(level.ceasefire && sMeansOfDeath != "MOD_EXPLOSIVE" && sMeansOfDeath != "MOD_WATER" && sMeansOfDeath != "MOD_TRIGGER_HURT")
 		return;
+	
+	if(level.roundended)
+		return;
 
 	// Don't do knockback if the damage direction was not specified
 	if(!isDefined(vDir))
@@ -496,6 +570,9 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
 	if(self.sessionteam == "spectator")
 		return;
+	
+	if(level.roundended)
+		return;
 
 	// If the player was killed by a head shot, let players know it was a head shot kill
 	if(sHitLoc == "head" && sMeansOfDeath != "MOD_MELEE")
@@ -515,7 +592,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	obituary(self, attacker, sWeapon, sMeansOfDeath);
 
 	self.sessionstate = "dead";
-	if(!isDefined(level.doingReadyUp))
+	if(!level.doingReadyUp)
 		self.statusicon = "gfx/hud/hud@status_dead.tga";
 	self.deaths++;
 
@@ -530,36 +607,13 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	{
 		if(attacker == self) // killed himself
 		{
-			doKillcam = false;
-			
-			if (!isdefined (self.autobalance))
-			{
-				
-				attacker.score--;
-				attacker.pers["score"]--;
-				attacker.score = attacker.pers["score"];
-				
-			}
-			
+			doKillcam = false;	
 		}
 		else
 		{
 			attackerNum = attacker getEntityNumber();
 			doKillcam = true;
-
-			if(self.pers["team"] == attacker.pers["team"] && level.uox_teamplay) // killed by a friendly
-			{	
-				attacker.pers["score"]--;
-				attacker.score = attacker.pers["score"];
-			}
-			else
-			{
-				attacker.pers["score"]++;
-				attacker.score = attacker.pers["score"];
-				
-			}
 		}
-		
 		lpattacknum = attacker getEntityNumber();
 		lpattackguid = attacker getGuid();
 		lpattackname = attacker.name;
@@ -567,9 +621,6 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	else // If you weren't killed by a player, you were in the wrong place at the wrong time
 	{
 		doKillcam = false;
-
-		self.pers["score"]--;
-		self.score = self.pers["score"];
 
 		lpattacknum = -1;
 		lpattackguid = "";

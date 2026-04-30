@@ -127,6 +127,10 @@ UOX_Main()
 	setCvar("ui_dm_roundlimit", level.roundlimit);
 	makeCvarServerInfo("ui_dm_roundlimit", 1);
 	
+	if(getCvar("scr_dm_ot_roundlimit") == "")		//Round limit
+		setCvar("scr_dm_ot_roundlimit", 1);
+	level.ot_roundlimit = getCvarInt("scr_dm_ot_roundlimit");
+	
 	if(getCvar("scr_dm_roundlength") == "")		// Time limit per map
 		setCvar("scr_dm_roundlength", "30");
 	else if(getCvarFloat("scr_dm_roundlength") > 60)
@@ -166,6 +170,16 @@ UOX_Main()
 		level.autoreadytime = getCvarInt("scr_dm_autoreadytime");
 	else
 		level.autoreadytime = getCvarInt("scr_autoreadytime");
+	
+	if(getCvar("scr_dm_halftime") != "")
+		level.halftime = getCvarInt("scr_dm_halftime");
+	else
+		level.halftime = getCvarInt("scr_halftime");
+	
+	if(getCvar("scr_dm_overtime") != "")
+		level.overtime = getCvarInt("scr_dm_overtime");
+	else
+		level.overtime = getCvarInt("scr_overtime");
 
 	if(getCvar("scr_forcerespawn") == "")		// Force respawning
 		setCvar("scr_forcerespawn", "0");
@@ -217,7 +231,7 @@ UOX_Main()
 Callback_StartGameType()
 {
 	maps\mp\uox\_uox_callbacks::Callback_StartGameType();
-	thread maps\mp\uox\_uox::startGame("dm");
+	thread maps\mp\uox\_uox::startGame();
 	thread updateGametypeCvars();
 }
 

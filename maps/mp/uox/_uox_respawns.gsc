@@ -5,6 +5,9 @@
 // ----------------------------------------------------------------------------------
 menu_spawn(weapon)
 {
+	
+	wait 0; //trying this to allow threads to process
+	
 	//set player lives
 	if(level.respawn_mode == "obj")
 	{
@@ -103,6 +106,7 @@ spawnIntermission()
 	resettimeout();
 
 	self.sessionstate = "intermission";
+	self.sessionspawned = false;
 	self.spectatorclient = -1;
 	self.archivetime = 0;
 
@@ -124,6 +128,7 @@ spawnSpectator(origin, angles)
 	resettimeout();
 
 	self.sessionstate = "spectator";
+	self.sessionspawned = false;
 	self.spectatorclient = -1;
 	self.archivetime = 0;
 
@@ -146,7 +151,7 @@ spawnSpectator(origin, angles)
 
 	level maps\mp\uox\_uox::updateTeamStatus();
 	if(!game["matchstarted"])
-		level maps\mp\uox\_uox::checkMatchStart();
+		level thread maps\mp\uox\_uox::checkMatchStart();
 	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
 }
 
@@ -400,24 +405,27 @@ waitRespawnButton()
 
 	if ( getcvar("scr_forcerespawn") == "1" )
 		return;
-		
-	self.respawntext = newClientHudElem(self);
-	self.respawntext.alignX = "center";
-	self.respawntext.alignY = "middle";
-	self.respawntext.x = 320;
-	self.respawntext.y = 70;
-	self.respawntext.archived = false;
-	self.respawntext setText(&"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN");
+	
+	//if you haven't spawned since session started (or last went spec), skip the respawn text
+	if(self.sessionspawned) 
+	{
+		self.respawntext = newClientHudElem(self);
+		self.respawntext.alignX = "center";
+		self.respawntext.alignY = "middle";
+		self.respawntext.x = 320;
+		self.respawntext.y = 70;
+		self.respawntext.archived = false;
+		self.respawntext setText(&"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN");
 
-	thread removeRespawnText();
-	thread waitRemoveRespawnText("end_respawn");
-	thread waitRemoveRespawnText("respawn");
+		thread removeRespawnText();
+		thread waitRemoveRespawnText("end_respawn");
+		thread waitRemoveRespawnText("respawn");
 
-	while(self useButtonPressed() != true)
-		wait .05;
-
-	self notify("remove_respawntext");
-
+		while(self useButtonPressed() != true)
+			wait .05;
+	}
+	self notify("remove_respawntext");	
+	
 	self notify("respawn");
 }
 
@@ -441,6 +449,8 @@ spawnPlayer(farthest)
 {
 	self notify("spawned");
 	self notify("end_respawn");
+	
+	wait 0; //trying this to allow threads to process
 
 	resettimeout();
 
@@ -452,7 +462,8 @@ spawnPlayer(farthest)
 	self.spectatorclient = -1;
 	self.archivetime = 0;
 	self.friendlydamage = undefined;
-		
+	self.sessionspawned = true;
+	
 	// make sure that the client compass is at the correct zoom specified by the level
 	self setClientCvar("cg_hudcompassMaxRange", game["compass_range"]);
 	
@@ -473,14 +484,7 @@ spawnPlayer(farthest)
 	self.statusicon = "";
 	self.maxhealth = 100;
 	self.health = self.maxhealth;
-	
-	if(!isDefined(self.pers["score"]))
-		self.pers["score"] = 0;
-	self.score = self.pers["score"];
-	
-	if(!isDefined(self.pers["roundswon"]))
-		self.pers["roundswon"] = 0;
-	
+		
 	if(level.respawn_mode == "obj")
 	{
 		if(!isDefined(self.lives))
@@ -502,7 +506,7 @@ spawnPlayer(farthest)
 	
 	level maps\mp\uox\_uox::updateTeamStatus();
 	if(!game["matchstarted"])
-		level maps\mp\uox\_uox::checkMatchStart();
+		level thread maps\mp\uox\_uox::checkMatchStart();
 	self.pers["rank"] = maps\mp\gametypes\_rank_gmi::DetermineBattleRank(self);
 	self.rank = self.pers["rank"];
 	
@@ -784,7 +788,7 @@ getSpawnPoints()
 			spawnpoints_type = spawnpoints_override;
 			break;
 		default:
-			spawnpoints_type = getDefaultSpawnPoints(gt);
+			spawnpoints_type = getDefaultSpawnPoints(level.gametype);
 	}
 	
 	return spawnpoints_type;
@@ -932,4 +936,61 @@ initSpawns(gt)
 				spawnpoints[i] placeSpawnpoint();
 	}
 	return true;
+}
+
+halftimeSpawn()
+{
+	if (self.pers["team"] == "spectator")
+		return;
+
+	myteam = self.pers["team"];
+
+	self closeMenu();
+
+	if(isDefined(self.pers["weapon"]))
+		spawnPlayer();
+	else
+	{
+		//self.sessionteam = "spectator";
+
+		spawnSpectator();
+		
+		wait 1;
+
+		if(self.pers["team"] == "allies")
+		{
+			self setClientCvar("g_scriptMainMenu", game["menu_weapon_allies"]);
+			self openMenu(game["menu_weapon_allies"]);
+		}
+		else
+		{
+			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
+			self openMenu(game["menu_weapon_axis"]);
+		}
+	}
+	
+	if(isDefined(self.pers["isBot"]))
+	{
+		maps\mp\uox\_uox::giveBotWeapon();
+	}
+
+	while (!isdefined(self.pers["weapon"]) )
+	{
+		if(self.pers["team"] != myteam && self.pers["team"] != "spectator")
+		{
+			self.pers["team"] = myteam;
+			if(self.pers["team"] == "allies")
+				self openMenu(game["menu_weapon_allies"]);
+			else
+				self openMenu(game["menu_weapon_axis"]);
+		}
+
+		if (self.pers["team"] == "spectator")
+			return;
+
+		wait .1;
+	}
+
+	if (isdefined(self.pers["weapon"]) )
+		spawnPlayer();
 }

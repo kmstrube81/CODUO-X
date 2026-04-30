@@ -1,6 +1,6 @@
 onPlayerConnect(entity)
 {
-	if(!isDefined(level.doingReadyUp))
+	if(!level.doingReadyUp)
 		return;
 	
 	self.readyState = "notready";
@@ -18,14 +18,15 @@ onPlayerDisconnect(entity)
 	self.readyState = "disconnected";
 	self.doingReadyUp = false;
 
-	if(isDefined(level.doingReadyUp))
+	if(level.doingReadyUp)
 		thread CheckServerReady();
 }
 
-doReadyUp()
+doReadyUp(switchingSides)
 {
-	wait 0; //required to make sure any notify's resolve before
-	
+	if(level.doingReadyUp)
+		return;
+		
 	level.warmup = true;
 	
 	level.doingReadyUp = true; //mark the ready up as in progress
@@ -33,7 +34,7 @@ doReadyUp()
 	level.playersready = false; //mark all players as not ready
 	
 	//create ready up hud
-	maps\mp\uox\_uox_hud::createReadyUpHUD();
+	maps\mp\uox\_uox_hud::createReadyUpHUD(switchingSides);
 	//level.readyQueue = [];
 	
 	players = getentarray("player", "classname");
@@ -48,7 +49,7 @@ doReadyUp()
 		player.readyState = "notready";
 		player.doingReadyUp = false;
 
-		player thread readyup(lpselfnum);
+		player thread readyup(lpselfnum, switchingSides);
 	}
 	
 	waitUntilReady();
@@ -66,13 +67,14 @@ doReadyUp()
 			player.statusicon = "";
 	}
 	
-	level.doingReadyUp = undefined;
-	level.warmup = false;
+	level.doingReadyUp = false;
+	//level.warmup = false; //let round end reset warmup flag
 }
 
-doWarmUp()
+doWarmUp(switchingSides)
 {
-	wait 0; //required to make sure any notify's resolve before
+	if(level.doingReadyUp)
+		return;
 	
 	level.warmup = true;
 	
@@ -86,7 +88,7 @@ doWarmUp()
 		readycount = level.autoreadycount;
 	
 	//create ready up hud
-	maps\mp\uox\_uox_hud::createWarmUpHUD(readycount, level.autoreadytime);
+	maps\mp\uox\_uox_hud::createWarmUpHUD(readycount, level.autoreadytime, switchingSides);
 	//level.readyQueue = [];
 	
 	players = getentarray("player", "classname");
@@ -101,7 +103,7 @@ doWarmUp()
 		player.readyState = "notready";
 		player.doingReadyUp = false;
 
-		player thread readyup(lpselfnum);
+		player thread readyup(lpselfnum, switchingSides);
 	}
 	
 	waitUntilWarmup();
@@ -109,9 +111,9 @@ doWarmUp()
 	//ready up finished
 	maps\mp\uox\_uox_hud::deleteWarmUpHUD();
 
-	level.doingReadyUp = undefined;
+	level.doingReadyUp = false;
 	
-	level.warmup = false;
+	//level.warmup = false; //let round reset reset warmup flag
 }
 
 waitUntilReady()
@@ -166,7 +168,7 @@ waitUntilWarmup()
 	wait 0;
 	
 	if(level.autoreadytime)
-	{
+	{	
 		maps\mp\uox\_uox_hud::updateHUDMainClock(level.autoreadytime);
 		startTime = getTime();
 	}
@@ -205,11 +207,14 @@ waitUntilWarmup()
 	maps\mp\uox\_uox_hud::deleteWarmUpHUD();
 }
 
-readyup(entity)
+readyup(entity, switchingSides)
 {
 	wait 0; // required to let any notify happen before this happens
 	
-	if(isDefined(self.isBot))
+	if(!isDefined(switchingSides))
+		switchingSides = false;
+	
+	if(isDefined(self.pers["isBot"]))
 	{
 		self.doingReadyUp = true;
 		self.statusicon = game["br_hudicons_allies_4"];
@@ -218,10 +223,10 @@ readyup(entity)
 	}
 	
 	if(level.warmupmode == 2)
-		self thread maps\mp\uox\_uox_hud::createPlayerReadyUpHUD();
+		self thread maps\mp\uox\_uox_hud::createPlayerReadyUpHUD(switchingSides);
 	else
 	{
-		self thread maps\mp\uox\_uox_hud::createPlayerWarmUpHUD();
+		self thread maps\mp\uox\_uox_hud::createPlayerWarmUpHUD(switchingSides);
 		return;
 	}
 	//playername = level.readyQueue[entity].name;
