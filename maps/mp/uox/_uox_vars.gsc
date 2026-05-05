@@ -30,11 +30,14 @@ varDef(prefix, varname, type, shouldMonitor, defValue, minVal, maxVal, hrName, c
 	var["cvarname"] = cvarname;
 	var["type"] = type;
 	var["value"] = value;
+	var["defaultvalue"] = defValue;
 	var["callback"] = callback;
 	
+	/*
 	level.vars = maps\mp\uox\_uox_arrays::updateObjArrayByProperty(
 		level.vars, var, "cvarname", cvarname );
-		
+	*/
+		level.vars[cvarname] = var;
 	return value;
 }
 
@@ -164,25 +167,27 @@ updateVars()
 			
 			_val = getVar(var["prefix"], var["varname"], var["type"]);
 			
-			if(!isDefined(_val))
-				_val = "";
-			
-			_index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(
-				level.vars, "cvarname", var["cvarname"]);
+		/*	_index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(
+				level.vars, "cvarname", var["cvarname"]); */
 				
-			_var = level.vars[_index];
+		//	_var = level.vars[_index];
+			_var = level.vars[var["cvarname"]];
+			
+			if(!isDefined(_val))
+				_val = _var["defaultvalue"];
 				
 			if(_val != _var["value"])
 			{
 				oldval = _var["value"];
 				//update var
 				
-				level.vars[_index]["value"] = _val;
+				//level.vars[_index]["value"] = _val;
+				level.vars[var["cvarname"]]["value"] = _val;
 				//announce var change
 				switch(_var["type"])
 				{
 					case "bool":
-						if(_var["value"])
+						if(_val)
 							setting = "ON";
 						else
 							setting = "OFF";
@@ -214,5 +219,6 @@ updateVars()
 ************************************************************************************************* */
 getVars(cvarname)
 {
-	return level.vars[maps\mp\uox\_uox_arrays::searchObjArrayByProperty(level.vars, "cvarname", cvarname)]["value"];
+	//return level.vars[maps\mp\uox\_uox_arrays::searchObjArrayByProperty(level.vars, "cvarname", cvarname)]["value"];
+	return level.vars[cvarname]["value"];
 }
