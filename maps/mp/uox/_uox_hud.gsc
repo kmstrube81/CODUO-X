@@ -131,15 +131,23 @@ initHUD()
 	self.hud = [];
 }
 
+/* ****************************************************************************************************
+**** getClientHUDElement( string name)
+****
+**** gets element from clientHudArray with specified name value
+****
+**** returns matched HUD element if one exists or undefined if no matches are found
+****
+***************************************************************************************************** */
 getClientHUDElement(name)
 {
-	for(i = 0; i < self.hud.size; i++)
-	{
-		hudElement = self.hud[i];
-		if(name == hudElement["name"])
-			return hudElement["element"];
-	}
-	return undefined;
+	//find element
+	index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(self.hud, "name", name);
+	//if element exists
+	if(isDefined(index))
+		return self.hud[index]["element"]; //return element
+	
+	return undefined; //otherwise return undefined
 }
 
 updateClientHUDElement(name, type, value, options)
@@ -340,8 +348,15 @@ deleteHUDElement(element)
 	return element;
 }
 
+/* ****************************************************************************************************
+**** updateHUDMainClock( int timer )
+****
+**** creates HUD clock in bottom center of screen
+****
+***************************************************************************************************** */
 updateHUDMainClock(timer)
 {
+	//UI Element Options array
 	options = [];
 	/* 	X
 		Y
@@ -352,18 +367,25 @@ updateHUDMainClock(timer)
 		Size
 		Alpha
 	*/
-	options["x"] = 320;
-	options["y"] = 460;
-	options["alignX"] = "center";
-	options["alignY"] = "middle";
-	options["font"] = "bigfixed";
-	options["color"] = (1, 1, 1 );
-	if(timer > 0)
-		level.mainclock = updateHUDElement(level.mainclock, "timer", timer, options); 
+	options["x"] = 320; //center of screen x
+	options["y"] = 460; //20 px above bottom of screen y
+	options["alignX"] = "center"; //align text horizontally
+	options["alignY"] = "middle"; //align text vertically
+	options["font"] = "bigfixed"; //font option
+	options["color"] = (1, 1, 1 ); // white
+	if(timer > 0) //if timer
+		level.mainclock = updateHUDElement(level.mainclock, "timer", timer, options); //update hud elem
 }
 
+/* ****************************************************************************************************
+**** updateHUDCompassClock( int timer )
+****
+**** creates HUD clock above compass
+****
+***************************************************************************************************** */
 updateHUDCompassClock(timer)
 {
+	//UI Element Options array
 	options = [];
 	/* 	X
 		Y
@@ -374,25 +396,48 @@ updateHUDCompassClock(timer)
 		Size
 		Alpha
 	*/
-	options["x"] = 56;
-	options["y"] = 365;
-	options["alignX"] = "center";
-	options["alignY"] = "middle";
-	options["font"] = "bigfixed";
-	options["alpha"] = 0.6;
-	options["color"] = (1, 1, 1 );
-	if(timer > 0)
-		level.compassclock = updateHUDElement(level.compassclock, "timer", timer, options);
+	options["x"] = 56; //56 pixels from left side of screen x
+	options["y"] = 365; //just above compass y
+	options["alignX"] = "center"; //align text horizontally
+	options["alignY"] = "middle"; //align text vertically
+	options["font"] = "bigfixed"; //font option
+	options["alpha"] = 0.6; //make text slightly transparent
+	options["color"] = (1, 1, 1 ); //white
+	if(timer > 0) //if timer
+		level.compassclock = updateHUDElement(level.compassclock, "timer", timer, options); //create elem
 }
 
+/* ****************************************************************************************************
+**** updateHUDMainClockColor( vector color )
+****
+**** changes color of the main clock
+****
+***************************************************************************************************** */
 updateHUDMainClockColor(color)
 {
 	level.mainclock = updateHUDElementProperty(level.mainclock, "color", color);
 }
 
+/* ****************************************************************************************************
+**** deleteHUDMainClock()
+****
+**** deletes the main clock
+****
+***************************************************************************************************** */
 deleteHUDMainClock()
 {
 	level.mainclock = deleteHUDElement(level.mainclock);
+}
+
+/* ****************************************************************************************************
+**** deleteHUDCompassClock()
+****
+**** deletes the compass clock
+****
+***************************************************************************************************** */
+deleteHUDCompassClock()
+{
+	level.compassclock = deleteHUDElement(level.compassclock);
 }
 
 updateServerScoreboard()
@@ -423,7 +468,7 @@ updateServerScoreboard()
 		value = game["alliedscore"];
 	else
 	{
-		if(level.scorerounds)
+		if([[level.getVars]]("scr_score_rounds"))
 		{
 			highscore = maps\mp\uox\_uox::getHighScore(true);
 			if(isDefined(highscore))
@@ -442,7 +487,7 @@ updateServerScoreboard()
 	}
 	level.scoreboardAlliesScore = updateHUDElement(level.scoreboardAlliesScore, "number", value, options);
 	
-	if(getCvarInt("sv_showScoreboardScoreLimit") > 0 && ((!level.scorerounds && level.scorelimit > 0) || (level.scorerounds && level.roundlimit > 0 )))
+	if(getCvarInt("sv_showScoreboardScoreLimit") > 0 && ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") > 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") > 0 )))
 	{
 		level.scoreboardScoreLimit = true;
 	}
@@ -457,23 +502,23 @@ updateServerScoreboard()
 		//Allies Limit
 		options["x"] = 66;
 		options["alignX"] = "left";
-		if(level.scorerounds)
+		if([[level.getVars]]("scr_score_rounds"))
 		{
 			if(level.uox_teamplay)
-				value = (level.roundlimit/2) + 1;
+				value = ([[level.getVars]]("scr_roundlimit")/2) + 1;
 			else
 			{	//if in OT
-				if(game["roundsplayed"] > level.roundlimit)
+				if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
 				{
-					if((game["roundsplayed"] - level.roundlimit) % level.ot_roundlimit)
-						OT = ((game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit) + 1;
+					if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
+						OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
 					else
-						OT = (game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit;
+						OT = (game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit");
 				
-					roundlimit = level.roundlimit + (level.ot_roundlimit * OT);
+					roundlimit = [[level.getVars]]("scr_roundlimit") + ([[level.getVars]]("scr_ot_roundlimit") * OT);
 				} //otherwise
 				else
-					roundlimit = level.roundlimit;
+					roundlimit = [[level.getVars]]("scr_roundlimit");
 				roundsRemaining = roundlimit - game["roundsplayed"];
 				firstplace = maps\mp\uox\_uox::getHighScore(true);
 				secondplace = maps\mp\uox\_uox::getSecondPlace(firstplace, true);
@@ -484,7 +529,7 @@ updateServerScoreboard()
 			}
 		}
 		else
-			value = level.scorelimit;
+			value = [[level.getVars]]("scr_scorelimit");
 		level.scoreboardAlliesLimit = updateHUDElement(level.scoreboardAlliesLimit, "number", value, options);
 	}
 	
@@ -518,12 +563,12 @@ updateServerScoreboard()
 			//Axis Limit
 			options["x"] = 66;
 			options["alignX"] = "left";
-			if(level.scorerounds)
+			if([[level.getVars]]("scr_score_rounds"))
 			{
-				value = (level.roundlimit/2) + 1;
+				value = ([[level.getVars]]("scr_roundlimit")/2) + 1;
 			}
 			else
-				value = level.scorelimit;
+				value = [[level.getVars]]("scr_scorelimit");
 			level.scoreboardAxisLimit = updateHUDElement(level.scoreboardAxisLimit, "number", value, options);
 		}
 	}
@@ -605,7 +650,7 @@ updatePlayerScoreboard()
 		options["x"] = 58;
 		options["alignX"] = "right";
 		
-		if(level.scorerounds)
+		if([[level.getVars]]("scr_score_rounds"))
 			value = player.pers["roundswon"];
 		else
 			value = player.score;
@@ -636,20 +681,20 @@ updatePlayerScoreboard()
 			//Axis Limit
 			options["x"] = 66;
 			options["alignX"] = "left";
-			if(level.scorerounds)
+			if([[level.getVars]]("scr_score_rounds"))
 			{
 				//if in OT
-				if(game["roundsplayed"] > level.roundlimit)
+				if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
 				{
-					if((game["roundsplayed"] - level.roundlimit) % level.ot_roundlimit)
-						OT = ((game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit) + 1;
+					if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
+						OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
 					else
-						OT = (game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit;
+						OT = (game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit");
 				
-					roundlimit = level.roundlimit + (level.ot_roundlimit * OT);
+					roundlimit = [[level.getVars]]("scr_roundlimit") + ([[level.getVars]]("scr_ot_roundlimit") * OT);
 				} //otherwise
 				else
-					roundlimit = level.roundlimit;
+					roundlimit = [[level.getVars]]("scr_roundlimit");
 				roundsRemaining = roundlimit - game["roundsplayed"];
 				firstplace = maps\mp\uox\_uox::getHighScore(true);
 				secondplace = maps\mp\uox\_uox::getSecondPlace(firstplace, true);
@@ -659,7 +704,7 @@ updatePlayerScoreboard()
 				value = ((roundsRemaining + scores)/2) + 1;
 			}
 			else
-				value = level.scorelimit;
+				value = [[level.getVars]]("scr_scorelimit");
 			
 			if(!isDefined(player.scoreboardLimit))
 				player.scoreboardLimit = newClientHudElem(player);
@@ -747,10 +792,10 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	level.round.alignY = "middle";
 	level.round.fontScale = 1;
 	level.round.color = (1, 1, 0);
-	if(game["roundsplayed"] >= level.roundlimit)
+	if(game["roundsplayed"] >= [[level.getVars]]("scr_roundlimit"))
 	{
 		level.round setText(game["OTroundText"]);
-		round = game["roundsplayed"] + 1 - level.roundlimit;
+		round = game["roundsplayed"] + 1 - [[level.getVars]]("scr_roundlimit");
 	}
 	else
 	{
@@ -818,24 +863,24 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	level.ersHeaderHUD.color = (0, 1, 0);
 	
 	//if in OT
-	if(game["roundsplayed"] > level.roundlimit)
+	if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
 	{
 		//get OT number
-		if((game["roundsplayed"] - level.roundlimit) % level.ot_roundlimit)
-			OT = ((game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit) + 1;
+		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
+			OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
 		else
-			OT = (game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit;
+			OT = (game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit");
 		//get the round limit for the current overtime
-		roundlimit = level.roundlimit + (level.ot_roundlimit * OT);
+		roundlimit = [[level.getVars]]("scr_roundlimit") + ([[level.getVars]]("scr_ot_roundlimit") * OT);
 		//get the halftime round number for current overtime
-		if(level.ot_roundlimit % 2)
-			halfround = (roundlimit - level.ot_roundlimit) + ((level.ot_roundlimit / 2) + 1);
+		if([[level.getVars]]("scr_ot_roundlimit") % 2)
+			halfround = (roundlimit - [[level.getVars]]("scr_ot_roundlimit")) + (([[level.getVars]]("scr_ot_roundlimit") / 2) + 1);
 		else
-			halfround = (roundlimit - level.ot_roundlimit) + (level.ot_roundlimit / 2);
+			halfround = (roundlimit - [[level.getVars]]("scr_ot_roundlimit")) + ([[level.getVars]]("scr_ot_roundlimit") / 2);
 	}
 	else // if game isn't in OT
 	{
-		roundlimit = level.roundlimit; //round limit
+		roundlimit = [[level.getVars]]("scr_roundlimit"); //round limit
 		halfround = level.halfround; //halftime round
 	}
 	round = game["roundsplayed"]; //current round
@@ -844,7 +889,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	if(round == 0)
 	{
 		//if halftime is disabled
-		if(level.halftime == 0)
+		if([[level.getVars]]("scr_halftime") == 0)
 			//display Match Starting Header
 			headerText = game["matchStartingText"];
 		//if halftime is enabled
@@ -884,7 +929,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			headerText = game["matchoverText"]; //set header to Match Over
 		}
 	}
-	else if(level.halftime == 0) //if halftime is disabled.
+	else if([[level.getVars]]("scr_halftime") == 0) //if halftime is disabled.
 	{
 		headerText = game["matchText"]; //set header to Match
 	}
@@ -954,14 +999,14 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 		{	//set Leader/You Texts and Score
 			level.ersTeam1HUD setText(game["leaderText"]);
 			level.ersTeam2HUD setText(game["youText"]);	
-			leader = maps\mp\uox\_uox::getHighScore(level.scorerounds);
-			if(level.scorerounds)
+			leader = maps\mp\uox\_uox::getHighScore([[level.getVars]]("scr_score_rounds"));
+			if([[level.getVars]]("scr_score_rounds"))
 				matchScoreTeam1 = leader.roundsWon;
 			else
 				matchScoreTeam1 = leader.score;
 		}
 		
-		if(level.halftime > 0) //if halftime is enabled
+		if([[level.getVars]]("scr_halftime")) //if halftime is enabled
 		{
 			// First Half Score Display
 			if(!isDefined(level.ers1HScoreHUD))
@@ -972,7 +1017,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			level.ers1HScoreHUD.alignY = "middle";
 			level.ers1HScoreHUD.fontScale = .75;
 			level.ers1HScoreHUD.color = (.99, .99, .75);
-			if(round <= level.roundlimit) //if game is in regulation set 1st Half text
+			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 1st Half text
 				level.ers1HScoreHUD setText(game["1HText"]);
 			else //if game is in OT set OT 1H text
 				level.ers1HScoreHUD setText(game["OT1HText"]);
@@ -996,7 +1041,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			level.ers2HScoreHUD.alignY = "middle";
 			level.ers2HScoreHUD.fontScale = .75;
 			level.ers2HScoreHUD.color = (.99, .99, .75);
-			if(round <= level.roundlimit) //if game is in regulation set 2nd Half text
+			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 2nd Half text
 				level.ers2HScoreHUD setText(game["2HText"]);
 			else //if game is in OT set OT 2H text
 				level.ers2HScoreHUD setText(game["OT2HText"]);
@@ -1200,7 +1245,7 @@ createPlayerHUDEndRoundScore()
 	for(i = 0; i < players.size; i++)
 	{
 		player = players[i];
-		if(level.halftime > 0)
+		if([[level.getVars]]("scr_halftime") > 0)
 		{
 			if(!isDefined(player.ers1HScoreHUD))
 					player.ers1HScoreHUD = newClientHudElem(player);
@@ -1232,7 +1277,7 @@ createPlayerHUDEndRoundScore()
 				player.ersMatchScoreHUD.alignX = "center";
 				player.ersMatchScoreHUD.alignY = "middle";
 				player.ersMatchScoreHUD.fontScale = 1;
-				if(level.scorerounds)
+				if([[level.getVars]]("scr_score_rounds"))
 					player.ersMatchScoreHUD setValue(player.pers["roundswon"]);
 				else
 					player.ersMatchScoreHUD setValue(player.pers["score"]);
@@ -1247,7 +1292,7 @@ createPlayerHUDEndRoundScore()
 			player.ersMatchScoreHUD.alignY = "middle";
 			player.ersMatchScoreHUD.fontScale = .75;
 			player.ersMatchScoreHUD.color = (.85, .99, .99);
-			if(level.scorerounds)
+			if([[level.getVars]]("scr_score_rounds"))
 				player.ersMatchScoreHUD setValue(player.pers["roundswon"]);
 			else
 				player.ersMatchScoreHUD setValue(player.pers["score"]);
@@ -1607,7 +1652,7 @@ updateScoreboard()
 		else if(isDefined(level.scoreboard))
 			deleteServerScoreboard();
 		
-		if(isDefined(level.scoreboardScoreLimit) && (getCvarInt("sv_showScoreboardScoreLimit") == 0 || ((!level.scorerounds && level.scorelimit <= 0) || (level.scorerounds && level.roundlimit <= 0 ))))
+		if(isDefined(level.scoreboardScoreLimit) && (getCvarInt("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
 			deleteServerScoreboardScoreLimit();
 		
 		wait 0.25;

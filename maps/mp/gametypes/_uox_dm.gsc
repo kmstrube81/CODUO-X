@@ -67,34 +67,45 @@ Spectators spawn randomly at one of these positions.
 
 UOX_Main()
 {
+	level.getVars = maps\mp\uox\_uox_vars::getVars;
+	
+	maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "dm", "", "", "Respawn Mode");
+	/*
 	if(getCvar("scr_dm_respawn_mode") != "")
 		level.respawn_mode = getCvar("scr_dm_respawn_mode");
 	else
 		level.respawn_mode = getCvar("scr_respawn_mode");
-	
-	if(getCvar("scr_dm_respawn_type") != "")
+	*/
+	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false, "deathmatch", "", "", "Respawn Type");
+	/*
+	if(getCvar("scr_dm_spawn_type") != "")
 		level.spawn_type = getCvar("scr_dm_spawn_type");
 	else
 		level.spawn_type = getCvar("scr_spawn_type");
-	
+	*/
+	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "dm", "", "", "Spawnpoints");
+	/*
 	if(getCvar("scr_dm_spawnpoints") != "")
 		level.spawnpoints = getCvar("scr_dm_spawnpoints");
 	else
 		level.spawnpoints = getCvar("scr_spawnpoints");
+	*/
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, -1, -1, 999, "Reinforcements");
+	/*
 	if(getCvar("scr_dm_reinforcements") != "")
 		level.reinforcements = getCvarInt("scr_dm_reinforcements");
 	else
 		level.reinforcements = getCvarInt("scr_reinforcements");
-	
-		/* init spawns */
+	*/
+	/* init spawns */
 	if(!maps\mp\uox\_uox_respawns::initSpawns("dm"))
 	{
 		maps\mp\gametypes\_callbacksetup::AbortLevel();
 		return;
 	}
 	
-	level.callbackStartGameType = ::Callback_StartGameType;
+	level.callbackStartGameType = maps\mp\uox\_uox_callbacks::Callback_StartGameType;
 	level.callbackPlayerConnect = maps\mp\uox\_uox_callbacks::Callback_PlayerConnect;
 	level.callbackPlayerDisconnect = maps\mp\uox\_uox_callbacks::Callback_PlayerDisconnect;
 	level.callbackPlayerDamage = maps\mp\uox\_uox_callbacks::Callback_PlayerDamage;
@@ -107,92 +118,152 @@ UOX_Main()
 	
 	maps\mp\gametypes\_secondary_gmi::Initialize();
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "timelimit", "float", true,
+									30, 0, 1440, "Time Limit", maps\mp\uox\_uox::updateTimeLimit);
+	/*
 	if(getCvar("scr_dm_timelimit") == "")		// Time limit per map
 		setCvar("scr_dm_timelimit", "30");
 	else if(getCvarFloat("scr_dm_timelimit") > 1440)
 		setCvar("scr_dm_timelimit", "1440");
 	level.timelimit = getCvarFloat("scr_dm_timelimit");
-	setCvar("ui_dm_timelimit", level.timelimit);
+	*/
+	setCvar("ui_dm_timelimit", [[level.getVars]]("scr_timelimit"));
 	makeCvarServerInfo("ui_dm_timelimit", "30");
 
+	maps\mp\uox\_uox_vars::varDef("scr", "scorelimit", "int", true,
+									50, 0, undefined, "Score Limit", maps\mp\uox\_uox::updateScoreLimit);
+	/*
 	if(getCvar("scr_dm_scorelimit") == "")		// Score limit per map
 		setCvar("scr_dm_scorelimit", "50");
 	level.scorelimit = getCvarInt("scr_dm_scorelimit");
-	setCvar("ui_dm_scorelimit", level.scorelimit);
+	*/
+	setCvar("ui_dm_scorelimit", [[level.getVars]]("scr_scorelimit"));
 	makeCvarServerInfo("ui_dm_scorelimit", "50");
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "roundlimit", "int", true, 1, 0, undefined, "Round Limit");
+	/*
 	if(getCvar("scr_dm_roundlimit") == "")		//Round limit
 		setCvar("scr_dm_roundlimit", 1);
 	level.roundlimit = getCvarInt("scr_dm_roundlimit");
-	setCvar("ui_dm_roundlimit", level.roundlimit);
+	*/
+	setCvar("ui_dm_roundlimit", [[level.getVars]]("scr_roundlimit"));
 	makeCvarServerInfo("ui_dm_roundlimit", 1);
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "ot_roundlimit", "int", true, 1, 0, undefined, "Overtime Rounds");
+	/* 
 	if(getCvar("scr_dm_ot_roundlimit") == "")		//Round limit
 		setCvar("scr_dm_ot_roundlimit", 1);
 	level.ot_roundlimit = getCvarInt("scr_dm_ot_roundlimit");
-	
+	*/
+	maps\mp\uox\_uox_vars::varDef("scr", "roundlength", "float", true, 2.5, 0, 60, "Round Length");
+	/*
 	if(getCvar("scr_dm_roundlength") == "")		// Time limit per map
 		setCvar("scr_dm_roundlength", "30");
 	else if(getCvarFloat("scr_dm_roundlength") > 60)
 		setCvar("scr_dm_roundlength", "0");
 	level.roundlength = getCvarFloat("scr_dm_roundlength");
-	setCvar("ui_dm_roundlength", level.roundlength);
+	*/
+	setCvar("ui_dm_roundlength", [[level.getVars]]("scr_roundlength"));
 	makeCvarServerInfo("ui_dm_roundlength", "30");
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "roundreset", "bool",
+								true, true, undefined, undefined, "Round Reset");
+	/*
 	if(getCvar("scr_dm_roundreset") == "")		//Round limit
 		setCvar("scr_dm_roundreset", 0);
 	level.roundreset = getCvarInt("scr_dm_roundreset");
-	setCvar("ui_dm_roundreset", level.roundreset);
+	*/
+	setCvar("ui_dm_roundreset", [[level.getVars]]("scr_roundreset"));
 	makeCvarServerInfo("ui_dm_roundreset", 0);
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "score_rounds", "bool",
+								true, true, undefined, undefined, "Score Round Wins");
+	/*
 	if(getCvar("scr_dm_score_rounds") == "")		//Round limit
 		setCvar("scr_dm_score_rounds", 0);
 	level.scorerounds = getCvarInt("scr_dm_score_rounds");
-	setCvar("ui_dm_score_rounds", level.scorerounds);
+	*/
+	setCvar("ui_dm_score_rounds", [[level.getVars]]("scr_score_rounds"));
 	makeCvarServerInfo("ui_dm_score_rounds", 0);
-	
+
+	maps\mp\uox\_uox_vars::varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
+	/*
 	if(getCvar("scr_dm_graceperiod") != "")
 		level.graceperiodtime = getCvarInt("scr_dm_graceperiod");
 	else
 		level.graceperiodtime = getCvarInt("scr_graceperiod");
+	*/
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "warmupmode", "int", true, 0, 0, 2, "Warmup Mode");
+	/*
 	if(getCvar("scr_dm_warmupmode") != "")
 		level.warmupmode = getCvarInt("scr_dm_warmupmode");
 	else
 		level.warmupmode = getCvarInt("scr_warmupmode");
+	*/
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "autoreadycount", "int", true,
+								0, 0, undefined, "Auto-Ready Player Count");
+	/*
 	if(getCvar("scr_dm_autoreadycount") != "")
 		level.autoreadycount = getCvarInt("scr_dm_autoreadycount");
 	else
 		level.autoreadycount = getCvarInt("scr_autoreadycount");
+	*/
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "autoreadytime", "int", true,
+								0, 0, undefined, "Auto-Ready Timer");
+	/*
 	if(getCvar("scr_dm_autoreadytime") != "")
 		level.autoreadytime = getCvarInt("scr_dm_autoreadytime");
 	else
 		level.autoreadytime = getCvarInt("scr_autoreadytime");
+	*/
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "halftime", "bool", true,
+								false, undefined, undefined, "Halftime");
+	/*
 	if(getCvar("scr_dm_halftime") != "")
 		level.halftime = getCvarInt("scr_dm_halftime");
 	else
 		level.halftime = getCvarInt("scr_halftime");
+	*/
 	
+	maps\mp\uox\_uox_vars::varDef("scr", "overtime", "bool", true,
+								false, undefined, undefined, "Overtime");
+	/*
 	if(getCvar("scr_dm_overtime") != "")
 		level.overtime = getCvarInt("scr_dm_overtime");
 	else
 		level.overtime = getCvarInt("scr_overtime");
-
+	*/
+	
+	maps\mp\uox\_uox_vars::varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
+	/*
 	if(getCvar("scr_forcerespawn") == "")		// Force respawning
 		setCvar("scr_forcerespawn", "0");
-
+	*/
+	
+	maps\mp\uox\_uox_vars::varDef("scr", "battlerank", "int", true,
+									1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
+	/*
 	if(getCvar("scr_battlerank") == "")		
 		setCvar("scr_battlerank", "1");	//default is ON
 	level.battlerank = getCvarint("scr_battlerank");
-	setCvar("ui_battlerank", level.battlerank);
+	*/
+	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
 	makeCvarServerInfo("ui_battlerank", "0");
-
+	
+	//needed for compatibility with built in UO battlerank
+	level.battlerank = [[level.getVars]]("scr_battlerank");
+	
+	maps\mp\uox\_uox_vars::varDef("scr", "shellshock", "bool", true,
+								true, undefined, undefined, "Shellshock");
+	/*
 	if(getCvar("scr_shellshock") == "")		// controls whether or not players get shellshocked from grenades or rockets
 		setCvar("scr_shellshock", "1");
-	setCvar("ui_shellshock", getCvar("scr_shellshock"));
+	*/
+	setCvar("ui_shellshock", [[level.getVars]]("scr_shellshock"));
 	makeCvarServerInfo("ui_shellshock", "0");
 			
 	if(!isDefined(game["compass_range"]))		// set up the compass range.
@@ -200,19 +271,28 @@ UOX_Main()
 	setCvar("cg_hudcompassMaxRange", game["compass_range"]);
 	makeCvarServerInfo("cg_hudcompassMaxRange", "0");
 
+	maps\mp\uox\_uox_vars::varDef("scr", "drophealth", "bool", true,
+								true, undefined, undefined, "Drop Health");
+	/*
 	if(getCvar("scr_drophealth") == "")		// Free look spectator
 		setCvar("scr_drophealth", "1");
-
+	*/
+	
 	// turn off ceasefire
-	level.ceasefire = 0;
-	setCvar("scr_ceasefire", "0");
+	//level.ceasefire = 0;
+	setCvar("scr_ceasefire", false);
+	maps\mp\uox\_uox_vars::varDef("scr", "ceasefire", "bool", true,
+								false, undefined, undefined, "Cease Fire", maps\mp\uox\_uox::updateCeaseFire);
 
+	maps\mp\uox\_uox_vars::varDef("scr", "killcam", "bool", true,
+								true, undefined, undefined, "Killcam", maps\mp\uox\_uox::updateKillcam);
+	/*
 	killcam = getCvar("scr_killcam");
 	if(killcam == "")				// Kill cam
 		killcam = "1";
 	setCvar("scr_killcam", killcam, true);
 	level.killcam = getCvarInt("scr_killcam");
-	
+	*/
 	// this is just to define this variable to other scripts that use it dont crash
 	level.drawfriend = 0;
 	level.teambalance = 0;
@@ -224,17 +304,17 @@ UOX_Main()
 	level.healthqueue = [];
 	level.healthqueuecurrent = 0;
 	
-	if(level.killcam >= 1)
+	if([[level.getVars]]("scr_killcam"))
 		setarchive(true);
 }
-
+/*
 Callback_StartGameType()
 {
 	maps\mp\uox\_uox_callbacks::Callback_StartGameType();
 	thread maps\mp\uox\_uox::startGame();
 	thread updateGametypeCvars();
 }
-
+*/
 updateDeathArray()
 {
 	if(!isDefined(level.deatharray))
@@ -282,7 +362,7 @@ updateGametypeCvars()
 		// check all the players for rank changes
 		if ( getCvarint("scr_battlerank") )
 			maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges();
-
+		
 		timelimit = getCvarFloat("scr_dm_timelimit");
 		if(level.timelimit != timelimit)
 		{

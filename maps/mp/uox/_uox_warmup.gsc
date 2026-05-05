@@ -61,7 +61,7 @@ doReadyUp(switchingSides)
 	for(i = 0; i < players.size; i++)
 	{
 		player = players[i];
-		if (level.battlerank)
+		if ([[level.getVars]]("scr_battlerank"))
 			player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
 		else
 			player.statusicon = "";
@@ -83,12 +83,12 @@ doWarmUp(switchingSides)
 	level.playersready = false; //mark all players as not ready
 	
 	if(level.uox_teamplay)
-		readycount = level.autoreadycount * 2;
+		readycount = [[level.getVars]]("scr_autoreadycount") * 2;
 	else
-		readycount = level.autoreadycount;
+		readycount = [[level.getVars]]("scr_autoreadycount");
 	
 	//create ready up hud
-	maps\mp\uox\_uox_hud::createWarmUpHUD(readycount, level.autoreadytime, switchingSides);
+	maps\mp\uox\_uox_hud::createWarmUpHUD(readycount, [[level.getVars]]("scr_autoreadytime"), switchingSides);
 	//level.readyQueue = [];
 	
 	players = getentarray("player", "classname");
@@ -120,9 +120,9 @@ waitUntilReady()
 {
 	wait 0;
 	
-	if(level.autoreadytime)
+	if([[level.getVars]]("scr_autoreadytime"))
 	{
-		maps\mp\uox\_uox_hud::updateHUDMainClock(level.autoreadytime);
+		maps\mp\uox\_uox_hud::updateHUDMainClock([[level.getVars]]("scr_autoreadytime"));
 		startTime = getTime();
 	}
 
@@ -147,14 +147,14 @@ waitUntilReady()
 
 		wait 1;
 		
-		if(level.autoreadycount)
+		if([[level.getVars]]("scr_autoreadycount"))
 		{
-			if((level.exist["allies"] >= level.autoreadycount && level.exist["axis"] >= level.autoreadycount) || (level.exist["2players"] >= level.autoreadycount))
+			if((level.exist["allies"] >= [[level.getVars]]("scr_autoreadycount") && level.exist["axis"] >= [[level.getVars]]("scr_autoreadycount")) || (level.exist["2players"] >= [[level.getVars]]("scr_autoreadycount")))
 				level.playersready = 1;
 		}
 		if(isDefined(startTime))
 		{
-			if((getTime() - startTime) / 1000.0 > level.autoreadytime)
+			if((getTime() - startTime) / 1000.0 > [[level.getVars]]("scr_autoreadytime"))
 				level.playersready = 1;
 		}
 		
@@ -167,9 +167,9 @@ waitUntilWarmup()
 {
 	wait 0;
 	
-	if(level.autoreadytime)
+	if([[level.getVars]]("scr_autoreadytime"))
 	{	
-		maps\mp\uox\_uox_hud::updateHUDMainClock(level.autoreadytime);
+		maps\mp\uox\_uox_hud::updateHUDMainClock([[level.getVars]]("scr_autoreadytime"));
 		startTime = getTime();
 	}
 
@@ -177,9 +177,9 @@ waitUntilWarmup()
 	{
 		if(level.uox_teamplay)
 		{
-			alliesLeftToReady = level.autoreadycount - level.exist["allies"];
+			alliesLeftToReady = [[level.getVars]]("scr_autoreadycount") - level.exist["allies"];
 			if(alliesLeftToReady < 0) alliesLeftToReady = 0;
-			axisLeftToReady = level.autoreadycount - level.exist["axis"];
+			axisLeftToReady = [[level.getVars]]("scr_autoreadycount") - level.exist["axis"];
 			if(axisLeftToReady < 0) axisLeftToReady = 0;
 			players = alliesLeftToReady + axisLeftToReady;
 		}
@@ -190,17 +190,17 @@ waitUntilWarmup()
 
 		wait 1;
 		
-		if(level.autoreadycount)
+		if([[level.getVars]]("scr_autoreadycount"))
 		{
-			if((level.exist["allies"] >= level.autoreadycount && level.exist["axis"] >= level.autoreadycount) || (level.exist["2players"] >= level.autoreadycount))
+			if((level.exist["allies"] >= [[level.getVars]]("scr_autoreadycount") && level.exist["axis"] >= [[level.getVars]]("scr_autoreadycount")) || (level.exist["2players"] >= [[level.getVars]]("scr_autoreadycount")))
 				level.playersready = true;
 		}
 		if(isDefined(startTime))
 		{
-			if((getTime() - startTime) / 1000.0 > level.autoreadytime)
+			if((getTime() - startTime) / 1000.0 > [[level.getVars]]("scr_autoreadytime"))
 				level.playersready = true;
 		}
-		if(!level.autoreadycount && level.autoreadytime <= 0)
+		if(![[level.getVars]]("scr_autoreadycount") && [[level.getVars]]("scr_autoreadytime") <= 0)
 			level.playersready = true;
 	}
 
@@ -222,7 +222,7 @@ readyup(entity, switchingSides)
 		return;
 	}
 	
-	if(level.warmupmode == 2)
+	if([[level.getVars]]("scr_warmupmode") == 2)
 		self thread maps\mp\uox\_uox_hud::createPlayerReadyUpHUD(switchingSides);
 	else
 	{

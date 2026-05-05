@@ -1,6 +1,7 @@
 Callback_StartGameType()
 {
 	level.gametype = getCvar("g_gametype");
+	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
 	
 	level.exist["allies"] = 0;
@@ -21,14 +22,14 @@ Callback_StartGameType()
 	level.playersready = false;
 	level.playerLock = false;
 	
-	if(level.roundlimit % 2)
-		level.halfround = (level.roundlimit / 2) + 1;
+	if([[level.getVars]]("scr_roundlimit") % 2)
+		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
 	else
-		level.halfround = level.roundlimit / 2;
-	if(level.scorelimit % 2)
-		level.halfscore = (level.scorelimit/2) + 1;
+		level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
+	if([[level.getVars]]("scr_scorelimit") % 2)
+		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
 	else
-		level.halfscore = level.scorelimit / 2;
+		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
 						
 	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
 	
@@ -49,11 +50,11 @@ Callback_StartGameType()
 			game["g_speed"] = getCvar("g_speed");
 		
 		game["roundbased"] = false;
-		if(level.roundlimit != 1)
+		if([[level.getVars]]("scr_roundlimit") != 1)
 			game["roundbased"] = true;
-		else if(level.warmupmode > 0)
+		else if([[level.getVars]]("scr_warmupmode") > 0)
 			game["roundbased"] = true;
-		else if(level.halftime > 0)
+		else if([[level.getVars]]("scr_halftime") > 0)
 			game["roundbased"] = true;
 		
 		if(!isDefined(game["half"]))
@@ -161,6 +162,9 @@ Callback_StartGameType()
 	setClientNameMode("auto_change");
 
 	thread maps\mp\uox\_uox::addBotClients(); // For development testing
+	
+	thread maps\mp\uox\_uox::startGame();
+	thread maps\mp\uox\_uox_vars::updateVars();
 }
 
 Callback_PlayerConnect()
@@ -450,7 +454,7 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 
 	// dont take damage during ceasefire mode
 	// but still take damage from ambient damage (water, minefields, fire)
-	if(level.ceasefire && sMeansOfDeath != "MOD_EXPLOSIVE" && sMeansOfDeath != "MOD_WATER" && sMeansOfDeath != "MOD_TRIGGER_HURT")
+	if([[level.getVars]]("scr_ceasefire") && sMeansOfDeath != "MOD_EXPLOSIVE" && sMeansOfDeath != "MOD_WATER" && sMeansOfDeath != "MOD_TRIGGER_HURT")
 		return;
 	
 	if(level.roundended)
@@ -652,7 +656,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	delay = 2;	// Delay the player becoming a spectator till after he's done dying
 	wait delay;	// ?? Also required for Callback_PlayerKilled to complete before respawn/killcam can execute
 	
-	if((getCvarInt("scr_killcam") <= 0) || (getCvarInt("scr_forcerespawn") > 0))
+	if(([[level.getVars]]("scr_killcam") <= 0) || ([[level.getVars]]("scr_forcerespawn") > 0))
 		doKillcam = false;
 	
 	if(doKillcam)
@@ -663,7 +667,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
 dropHealth()
 {
-	if ( !getcvarint("scr_drophealth") )
+	if ( ![[level.getVars]]("scr_drophealth") )
 		return;
 		
 	if(isDefined(level.healthqueue[level.healthqueuecurrent]))

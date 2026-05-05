@@ -137,14 +137,14 @@ checkScoreLimit()
 	if(!game["matchstarted"]) //if match isn't started
 		return; //then nothing to do
 	
-	if(level.scorelimit <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
+	if([[level.getVars]]("scr_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
 		return; //nothing to do in that case
 		
 	doHalftime = false; //init doHalftime flag 
 	
 	if(game["suddendeath"]) //if suddendeath overtime
 	{
-		if(checkTie(level.scorerounds)) //if game tied
+		if(checkTie([[level.getVars]]("scr_score_rounds"))) //if game tied
 		{
 			return; //if game tied, nothing to do yet
 		}
@@ -153,15 +153,15 @@ checkScoreLimit()
 	{
 		if(level.uox_teamplay) //if team game
 		{	//if one team has reached the halfscore and game is in the first half
-			if(level.halftime
+			if([[level.getVars]]("scr_halftime")
 			   && (getTeamScore("allies") >= level.halfscore || getTeamScore("axis") >= level.halfscore) 
 			   && game["half"] == 1)
 			{	//if game is roundbased and both teams are less than the scorelimit and not scoring rounds
-				if(game["roundbased"] && getTeamScore("allies") < level.scorelimit && getTeamScore("axis") < level.scorelimit && !level.scorerounds)
+				if(game["roundbased"] && getTeamScore("allies") < [[level.getVars]]("scr_scorelimit") && getTeamScore("axis") < [[level.getVars]]("scr_scorelimit") && ![[level.getVars]]("scr_score_rounds"))
 					doHalftime(true);	//doHalftime
 			}
 			//if both teams or below the scorelimit
-			if(getTeamScore("allies") < level.scorelimit && getTeamScore("axis") < level.scorelimit)
+			if(getTeamScore("allies") < [[level.getVars]]("scr_scorelimit") && getTeamScore("axis") < [[level.getVars]]("scr_scorelimit"))
 				return; //nothing to do
 		}
 		else //if free for all game
@@ -169,14 +169,14 @@ checkScoreLimit()
 			players = getentarray("player", "classname"); //get players
 			for(i = 0; i < players.size; i++) //loop players
 			{	//if current player score is greater than halfscore and game is in the first half
-				if(level.halftime && players[i].score >= level.halfscore 
-				&& game["half"] == 1 && players[i].score < level.scorelimit)
+				if([[level.getVars]]("scr_halftime") && players[i].score >= level.halfscore 
+				&& game["half"] == 1 && players[i].score < [[level.getVars]]("scr_scorelimit"))
 				{	//if not scoring rounds and game is round based
-					if(!level.scorerounds && game["roundbased"])
+					if(![[level.getVars]]("scr_score_rounds") && game["roundbased"])
 						doHalftime = true; //set doHalftime flag
 				}
 				
-				if(players[i].score >= level.scorelimit) //if current player is over the scorelimit
+				if(players[i].score >= [[level.getVars]]("scr_scorelimit")) //if current player is over the scorelimit
 					break; //exit the loop
 			}
 
@@ -198,7 +198,7 @@ checkScoreLimit()
 		if(!level.roundended) //and round hasn't ended
 			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
 			
-		if(!level.roundreset && !level.uox_teamplay) //if not reseting scores and a free for all game 
+		if(![[level.getVars]]("scr_roundreset") && !level.uox_teamplay) //if not reseting scores and a free for all game 
 		{	//free for all kills are the score so the game ends when score limit is reached
 			level.mapended = true; //set map as ended
 			level.roundended = true; //set round as ended
@@ -212,7 +212,7 @@ checkScoreLimit()
 		}	//if resetting scores do regular end round shenanigans.
 		if(level.uox_teamplay) //if team game
 		{	//if allies are over the score limit
-			if(getTeamScore("allies") >= level.scorelimit)
+			if(getTeamScore("allies") >= [[level.getVars]]("scr_scorelimit"))
 				endRound("allies"); //end round in allies favor
 			else //if allies didn't end the round, then axis must have
 				endRound("axis"); //end round in axis favor
@@ -277,7 +277,7 @@ endMap()
 		if(!winningPlayer.tied)
 			winner = winningPlayer.name;
 		
-		if(level.scorerounds && level.roundreset)
+		if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundreset"))
 		{	//if scoring rounds over kills
 			resetPlayerScores(); //reset scores
 
@@ -403,7 +403,7 @@ doGracePeriod(gracetime)
 	
 	wait gracetime; //wait for end of grace period
 	//if multiple rounds and there is a timer or a single round with a timer 
-	if((level.roundlimit !=1 && level.roundlength) || (level.timelimit > 0 && level.roundlimit == 1))
+	if(([[level.getVars]]("scr_roundlimit") !=1 && [[level.getVars]]("scr_roundlength")) || ([[level.getVars]]("scr_timelimit") > 0 && [[level.getVars]]("scr_roundlimit") == 1))
 		maps\mp\uox\_uox_hud::updateHUDMainClockColor( ( 1, 1, 1 ) ); //change clock color back
 	else //otherwise
 		maps\mp\uox\_uox_hud::deleteHUDMainClock(); //delete the clock altogether
@@ -428,12 +428,12 @@ startGame()
 	level.graceperiod = false;
 	
 	//if timelimit is set
-	if(level.timelimit > 0)
+	if([[level.getVars]]("scr_timelimit") > 0)
 	{
-		//int game timer level.timelimit is in minutes, so is game["timepassed"] convert to seconds; 
+		//int game timer [[level.getVars]]("scr_timelimit") is in minutes, so is game["timepassed"] convert to seconds; 
 		//subtract timed pass from time limit to get correct time instead of re-initing the timer after
-		gameTimer = (level.timelimit * 60) - (game["timepassed"] * 60); //each round
-		if(level.roundlimit == 1) //if game is a single round, set game clock in bottom center
+		gameTimer = ([[level.getVars]]("scr_timelimit") * 60) - (game["timepassed"] * 60); //each round
+		if([[level.getVars]]("scr_roundlimit") == 1) //if game is a single round, set game clock in bottom center
 			maps\mp\uox\_uox_hud::updateHUDMainClock(gameTimer);
 		else //if game will last multiple rounds then set game clock above the compass
 			maps\mp\uox\_uox_hud::updateHUDCompassClock(gameTimer);
@@ -450,7 +450,7 @@ startGame()
 		if ( (level.uox_teamplay) && (level.teambalance > 0) && (!game["BalanceTeamsNextRound"]) )
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
 		//if its a single round game 
-		if(level.roundlimit == 1)
+		if([[level.getVars]]("scr_roundlimit") == 1)
 			return; //then let the round hand the timelimit check
 	}
 	
@@ -472,7 +472,7 @@ startGame()
 ************************************************************************************************* */
 checkTimeLimit()
 {
-	if(level.timelimit <= 0) //if no timelimit
+	if([[level.getVars]]("scr_timelimit") <= 0) //if no timelimit
 		return; //nothing to check
 	if(game["suddendeath"]) //in sudden death overtime
 		return; //ignore timelimit
@@ -483,12 +483,12 @@ checkTimeLimit()
 	//determine time passed since start of round
 	timepassed = game["timepassed"] + ((getTime() - level.starttime) / 1000) / 60.0;
 	
-	if(timepassed < level.timelimit) //if less time than the timelimit has passed
+	if(timepassed < [[level.getVars]]("scr_timelimit")) //if less time than the timelimit has passed
 		return; //exit
 		
 	if(!game["roundbased"]) //if game is not round based 
 	{
-		if(level.overtime) //if overtime
+		if([[level.getVars]]("scr_overtime")) //if overtime
 		{
 			thread doOvertime(); //do overtime
 			return;
@@ -502,9 +502,9 @@ checkTimeLimit()
 	else //if round based game, end round.
 	{
 		iprintln(&"MPSCRIPT_TIME_LIMIT_REACHED"); //announce time is over
-		if(level.overtime) //if overtime is enabled
+		if([[level.getVars]]("scr_overtime")) //if overtime is enabled
 		{ 	//check if game is tied
-			if(checkTie(level.scorerounds))
+			if(checkTie([[level.getVars]]("scr_score_rounds")))
 			{
 				game["suddendeath"] = true;
 			}
@@ -547,22 +547,22 @@ startRound()
 	level.roundstarttime = getTime();
 	
 	// if the round length is zero (or less) then no clock or timer
-	if ( level.roundlength <= 0 )
+	if ( [[level.getVars]]("scr_roundlength") <= 0 )
 		return;	
 	
 	//if game is a single round (but uses warm up or OT)
-	if(level.roundlimit == 1)
+	if([[level.getVars]]("scr_roundlimit") == 1)
 	{	//set timer to the game time limit
-		timer = (level.timelimit * 60) - (game["timepassed"] * 60);
+		timer = ([[level.getVars]]("scr_timelimit") * 60) - (game["timepassed"] * 60);
 	}
 	else//otherwise
 	{	//set time to the round time limit
-		timer = level.roundlength * 60;
+		timer = [[level.getVars]]("scr_roundlength") * 60;
 	}
 	//update main clock
 	maps\mp\uox\_uox_hud::updateHUDMainClock(timer);
 	//run grace period
-	level thread doGracePeriod(level.graceperiodtime);
+	level thread doGracePeriod([[level.getVars]]("scr_graceperiod"));
 		
 	//wait for round timer
 	wait(timer);
@@ -630,10 +630,10 @@ checkMatchStart()
 		{
 			if(!level.roundended) //and game isn't over
 			{
-				if(level.warmupmode > 0) //and warm up or ready up is enabled
+				if([[level.getVars]]("scr_warmupmode") > 0) //and warm up or ready up is enabled
 				{
 					
-					if(level.warmupmode == 1) //if warmup mode is set to warm up
+					if([[level.getVars]]("scr_warmupmode") == 1) //if warmup mode is set to warm up
 						maps\mp\uox\_uox_warmup::DoWarmUp();
 					else	//if warmup mode is set to ready up
 						maps\mp\uox\_uox_warmup::DoReadyUp();
@@ -673,8 +673,8 @@ checkMatchStart()
 endRound(roundwinner, doKillcam)
 {
 	//overtime check for single round games
-	if(roundwinner == "deathmatch" && level.roundlimit == 1
-		&& level.overtime && checkTie(false)) //if tied and a single round game
+	if(roundwinner == "deathmatch" && [[level.getVars]]("scr_roundlimit") == 1
+		&& [[level.getVars]]("scr_overtime") && checkTie(false)) //if tied and a single round game
 	{ 
 		thread doOvertime();
 		return;
@@ -748,7 +748,7 @@ endRound(roundwinner, doKillcam)
 			players[i] playLocalSound("MP_announcer_round_draw"); //make audio announcement
 	}
 	
-//	if(!isDefined(level.killcamFailsafe))
+//	if(!isDefined([[level.getVars]]("scr_killcam")Failsafe))
 //		level thread maps\mp\uox\_uox_killcam::killcam_failsafe();
 
 	wait 5; //wait five seconds before ending round
@@ -873,7 +873,7 @@ endRound(roundwinner, doKillcam)
 			winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
 			winner.pers["roundswon"]++; //increment rounds won
 			
-			if(level.scorerounds) //if score rounds is set
+			if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
 			{
 				if(game["half"] % 2) //if game is in 1st Half
 					winner.pers["1HScore"]++; //increment 1st half score rounds won
@@ -973,7 +973,7 @@ endRound(roundwinner, doKillcam)
 		if(roundwinner != "draw" && roundwinner != "half") //if game was not a draw
 			game["roundsplayed"]++; //increment number of rounds played
 				
-		if(game["suddendeath"] && !checkTie(level.scorerounds)) //if in sudden death and game in not tied
+		if(game["suddendeath"] && !checkTie([[level.getVars]]("scr_score_rounds"))) //if in sudden death and game in not tied
 		{
 			if(level.mapended) //if map already ended
 				return;	//nothing to do
@@ -1015,7 +1015,7 @@ endRound(roundwinner, doKillcam)
 	/* Next Round Timer */
 	maps\mp\uox\_uox_hud::createHUDNextRound(3, false, doHalftime);
 	
-	if(level.roundreset) //if scores are set to reset each round
+	if([[level.getVars]]("scr_roundreset")) //if scores are set to reset each round
 	{
 		resetPlayerScores(); //reset the player scores
 	}
@@ -1062,7 +1062,7 @@ updateTeamStatus()
 		//if player is on a team and team isn't spectator and round isn't started or player lives aren't 
 		//defined or player has lives left or player doesn't have lives left but it doesn't matter 
 		//because reinforcements are set to unlimited
-		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!level.roundstarted || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && level.reinforcements == -1)))
+		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!level.roundstarted || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && [[level.getVars]]("scr_reinforcements") == -1)))
 		{
 			if(level.uox_teamplay) //if team game
 			{
@@ -1226,38 +1226,38 @@ updateTeamStatus()
 checkRoundLimit()
 {
 	//if roundlimit is set to 0 or less, interpret that as no round limit
-	if(level.roundlimit <= 0)
+	if([[level.getVars]]("scr_roundlimit") <= 0)
 		return; //nothing to check if no round limit
 	
 	//if rounds played is greater than the round limit, we are in OT
-	if(game["roundsplayed"] > level.roundlimit)
+	if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
 	{
 		//if the number of rounds over regulation divided by the rounds per OT has a remainder
-		if((game["roundsplayed"] - level.roundlimit) % level.ot_roundlimit)
+		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
 			//then the next OT is in progress (rounds played over limit divided by round per OT plus 1)
-			OT = ((game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit) + 1;
+			OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
 		else //if the number over rounds over regulation divided by rounds per OT divides cleanly
 			//then the OT that we are in is that number
-			OT = (game["roundsplayed"] - level.roundlimit) / level.ot_roundlimit;
+			OT = (game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit");
 		//get the round limit for the current overtime
-		roundlimit = level.roundlimit + (level.ot_roundlimit * OT);
+		roundlimit = [[level.getVars]]("scr_roundlimit") + ([[level.getVars]]("scr_ot_roundlimit") * OT);
 		//get the halftime round number for current overtime
 		//if number of OT rounds is odd
-		if(level.ot_roundlimit % 2) 
+		if([[level.getVars]]("scr_ot_roundlimit") % 2) 
 			//then half round is rounded up to the nearest whole number
-			halfround = (roundlimit - level.ot_roundlimit) + ((level.ot_roundlimit / 2) + 1);
+			halfround = (roundlimit - [[level.getVars]]("scr_ot_roundlimit")) + (([[level.getVars]]("scr_ot_roundlimit") / 2) + 1);
 		else //if the number of OT rounds is even
 			//then half round is half the number of rounds per OT
-			halfround = (roundlimit - level.ot_roundlimit) + (level.ot_roundlimit / 2);
+			halfround = (roundlimit - [[level.getVars]]("scr_ot_roundlimit")) + ([[level.getVars]]("scr_ot_roundlimit") / 2);
 	}
 	else // if rounds play is equal to the limit or below, game isn't in OT
 	{
-		roundlimit = level.roundlimit; //round limit
+		roundlimit = [[level.getVars]]("scr_roundlimit"); //round limit
 		halfround = level.halfround; //halftime round
 	}
 	round = game["roundsplayed"]; //current round
 	
-	if(level.scorerounds) //if scoring rounds
+	if([[level.getVars]]("scr_score_rounds")) //if scoring rounds
 	{
 		//check if someone won game
 		if(!checkGameWon( true, round, roundlimit ))
@@ -1269,7 +1269,7 @@ checkRoundLimit()
 			return; //nobody won so don't end the game
 		}
 	}
-	else if(round < roundlimit || (checkTie(false) && level.overtime))
+	else if(round < roundlimit || (checkTie(false) && [[level.getVars]]("scr_overtime")))
 	{ //just check roundlimit hasn't been reached (or that its not tied if it has) if not scoring rounds
 		return;
 	}
@@ -1297,7 +1297,7 @@ checkRoundLimit()
 checkHalfTime(checkRounds, roundScore, roundScoreHalf, roundScoreLimit)
 {
 	//if halftime is not enabled, nothing to do
-	if(!level.halftime)
+	if(![[level.getVars]]("scr_halftime"))
 		return false;
 	
 	//if round/score is less than designated half then return false
@@ -1310,7 +1310,7 @@ checkHalfTime(checkRounds, roundScore, roundScoreHalf, roundScoreLimit)
 	else if(roundScore < roundScoreLimit)
 		return false;
 	//if match should be over but still tied then run halftime and start a new OT
-	else if(level.overtime && roundScore == roundScoreLimit && checkTie(checkRounds))
+	else if([[level.getVars]]("scr_overtime") && roundScore == roundScoreLimit && checkTie(checkRounds))
 		return true;
 	
 	//match will end in tie
@@ -1601,35 +1601,35 @@ doHalftime(midRound)
 	}
 	
 	//do warmup - readyup
-	if(level.warmupmode > 0)
+	if([[level.getVars]]("scr_warmupmode") > 0)
 	{
-		if(level.warmupmode == 1)
+		if([[level.getVars]]("scr_warmupmode") == 1)
 			maps\mp\uox\_uox_warmup::DoWarmUp(switchSides);
 		else
 			maps\mp\uox\_uox_warmup::DoReadyUp(switchSides);
 	}
 	else
 	{
-		iprintlnbold("Halftime");
-		iprintlnbold("Switching Sides");
+		if(!game["half"] % 2)
+		{
+			if(switchSides)
+				iprintlnbold("Overtime - Switching Sides");
+			else
+				iprintlnbold("Overtime");
+		}
+		else
+		{
+			if(switchSides)
+				iprintlnbold("Halftime - Switching Sides");
+			else
+				iprintlnbold("Halftime");
+		}
+	
 		wait 7;
 	}
 	//if a mid round switch
 	if(midRound)
 	{
-		/*
-		//set game timer
-		if(level.timelimit > 0)
-		{
-			gameTimer = (level.timelimit * 60) - (game["timepassed"] * 60);
-			maps\mp\uox\_uox_hud::updateHUDMainClock(gameTimer);
-		}
-		else
-			maps\mp\uox\_uox_hud::deleteHUDMainClock();
-		//unlock player movement
-		unlockPlayersMovement();
-		level.warmup = false;
-		*/
 		announcement(&"SD_MATCHRESUMING");
 		endRound("half");
 	}
@@ -1651,7 +1651,7 @@ doOvertime()
 	for(;;) //loop while checking if game is still tied
 	{
 		
-		if(!checkTie(level.scorerounds))
+		if(!checkTie([[level.getVars]]("scr_score_rounds")))
 			break;
 		
 		wait 0.2;
@@ -1725,7 +1725,7 @@ resetPlayerScores()
 		player.deaths = 0;
 	}
 	
-	if (level.battlerank)
+	if ([[level.getVars]]("scr_battlerank"))
 	{
 		maps\mp\gametypes\_rank_gmi::ResetPlayerRank();
 	}
@@ -1807,7 +1807,7 @@ setPlayerScore(victim, attacker)
 				attacker.score--;
 				attacker.pers["score"]--;
 				attacker.score = attacker.pers["score"];
-				if(!level.scorerounds) //if not scoring rounds
+				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
 					//test half
 					if(game["half"] % 2) //if 1st half
@@ -1823,7 +1823,7 @@ setPlayerScore(victim, attacker)
 			{	
 				attacker.pers["score"]--;
 				attacker.score = attacker.pers["score"];
-				if(!level.scorerounds) //if not scoring rounds
+				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
 					//test half
 					if(game["half"] % 2) //if 1st half
@@ -1836,7 +1836,7 @@ setPlayerScore(victim, attacker)
 			{
 				attacker.pers["score"]++;
 				attacker.score = attacker.pers["score"];
-				if(!level.scorerounds) //if not scoring rounds
+				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
 					//test half
 					if(game["half"] % 2) //if 1st half
@@ -1851,7 +1851,7 @@ setPlayerScore(victim, attacker)
 	{
 		victim.pers["score"]--;
 		victim.score = attacker.pers["score"];
-		if(!level.scorerounds) //if not scoring rounds
+		if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 		{
 			//test half
 			if(game["half"] % 2) //if 1st half
@@ -2220,4 +2220,265 @@ getNumBots()
 			numBots++;
 	}
 	return numBots;
+}
+
+/* **************************************************************************************************
+**** updateTimeLimit(float timer)
+****
+**** var callback
+**** updates the game timer
+****
+*************************************************************************************************** */
+updateTimeLimit(timer)
+{
+	gt = level.gametype;
+	setCvar("ui_" + gt + "_timelimit", timer);
+	game["timepassed"] = 0;
+	if(timer > 0)
+	{
+		//int game timer [[level.getVars]]("scr_timelimit") is in minutes, so is game["timepassed"] convert to seconds; 
+		//subtract timed pass from time limit to get correct time instead of re-initing the timer after
+		gameTimer = (timer * 60) - (game["timepassed"] * 60); //each round
+		if([[level.getVars]]("scr_roundlimit") == 1) //if game is a single round, set game clock in bottom center
+			maps\mp\uox\_uox_hud::updateHUDMainClock(gameTimer);
+		else //if game will last multiple rounds then set game clock above the compass
+			maps\mp\uox\_uox_hud::updateHUDCompassClock(gameTimer);
+	}
+	else
+	{
+		if([[level.getVars]]("scr_roundlimit") == 1) //if game is a single round, set game clock in bottom center
+			maps\mp\uox\_uox_hud::deleteHUDMainClock();
+		else //if game will last multiple rounds then set game clock above the compass
+			maps\mp\uox\_uox_hud::deleteHUDCompassClock();
+	}
+	level.starttime = getTime();
+
+	checkTimeLimit();
+}
+
+/* **************************************************************************************************
+**** updateScoreLimit(int scorelimit)
+****
+**** var callback
+**** updates the game scorelimit
+****
+*************************************************************************************************** */
+updateScoreLimit(scorelimit)
+{
+	gt = level.gametype;
+	setCvar("ui_" + gt +"_scorelimit", scorelimit);
+
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+		players[i] maps\mp\uox\_uox::checkScoreLimit();
+}
+
+/* **************************************************************************************************
+**** updateKillCam(bool enableKillcam)
+****
+**** var callback
+**** updates the killcam mode
+****
+*************************************************************************************************** */
+updateKillcam(enableKillcam)
+{
+	setarchive(enableKillcam);
+}
+
+/* **************************************************************************************************
+**** updateBattleRank(int battlerank)
+****
+**** var callback
+**** updates the battlerank mode (0 off, 1 per game, 2 persistent)
+****
+*************************************************************************************************** */
+updateBattleRank(battlerank)
+{
+	//needed for compatibility with built in UO battlerank
+	level.battlerank = battlerank;
+	
+	if(level.uox_teamplay)
+		drawfriend = [[level.getVars]]("scr_drawfriend");
+	else
+		drawfriend = false;
+	
+	// battle rank has precidence over draw friend
+	if(battlerank > 0)
+	{
+		// for all living players, show the appropriate headicon
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+			
+			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+			{
+				// setup the hud rank indicator
+				player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
+
+				player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
+				if ( drawfriend )
+				{
+					player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
+					player.headiconteam = player.pers["team"];
+				}
+				else
+				{
+					player.headicon = "";
+				}
+			}
+		}
+	}
+	else if(drawfriend)
+	{
+		// for all living players, show the appropriate headicon
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+			
+			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+			{
+				if(player.pers["team"] == "allies")
+				{
+					player.headicon = game["headicon_allies"];
+					player.headiconteam = "allies";
+				}
+				else
+				{
+					player.headicon = game["headicon_axis"];
+					player.headiconteam = "axis";
+				}
+			}
+		}
+	}
+	else
+	{
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+			
+			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+				player.headicon = "";
+				player.statusicon = "";
+		}
+	}
+}
+
+/* **************************************************************************************************
+**** updateDrawFriend(bool drawfriend)
+****
+**** var callback
+**** updates the whether team headicons should be drawn
+****
+*************************************************************************************************** */
+updateDrawFriend(drawfriend)
+{
+	if(!level.uox_teamplay)
+		return;
+	else
+		battlerank = [[level.getVars]]("scr_battlerank");
+	
+	// battle rank has precidence over draw friend
+	if(battlerank > 0)
+	{
+		// for all living players, show the appropriate headicon
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+			
+			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+			{
+				// setup the hud rank indicator
+				player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
+
+				player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
+				if ( drawfriend )
+				{
+					player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
+					player.headiconteam = player.pers["team"];
+				}
+				else
+				{
+					player.headicon = "";
+				}
+			}
+		}
+	}
+	else if(drawfriend)
+	{
+		// for all living players, show the appropriate headicon
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+			
+			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+			{
+				if(player.pers["team"] == "allies")
+				{
+					player.headicon = game["headicon_allies"];
+					player.headiconteam = "allies";
+				}
+				else
+				{
+					player.headicon = game["headicon_axis"];
+					player.headiconteam = "axis";
+				}
+			}
+		}
+	}
+	else
+	{
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+			
+			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+				player.headicon = "";
+				player.statusicon = "";
+		}
+	}
+}
+
+/* **************************************************************************************************
+**** updateCeaseFire(bool ceasefire)
+****
+**** var callback
+**** updates whether game is in ceasefire mode
+****
+*************************************************************************************************** */
+updateCeaseFire(ceasefire)
+{
+	if ( ceasefire )
+	{
+		level thread maps\mp\_util_mp_gmi::make_permanent_announcement(&"GMI_MP_CEASEFIRE", "end ceasefire", 220, (1.0,0.0,0.0));			
+	}
+	else
+	{
+		level notify("end ceasefire");
+	}
+}
+
+/* **************************************************************************************************
+**** updateTeamBalance(bool teamBalance)
+****
+**** var callback
+**** updates whether game teams should be balanced
+****
+*************************************************************************************************** */
+updateTeamBalance(teamBalance)
+{
+	if(!level.uox_teamplay)
+		return;
+	if(teamBalance)
+	{
+		if(game["roundbased"])
+			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
+		else
+			level thread maps\mp\gametypes\_teams::TeamBalance_Check();
+	}
 }

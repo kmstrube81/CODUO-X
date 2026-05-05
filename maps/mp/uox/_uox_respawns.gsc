@@ -9,7 +9,7 @@ menu_spawn(weapon)
 	wait 0; //trying this to allow threads to process
 	
 	//set player lives
-	if(level.respawn_mode == "obj")
+	if([[level.getVars]]("scr_respawn_mode") == "obj")
 	{
 		if(!isDefined(self.lives))
 		{
@@ -295,7 +295,7 @@ respawn_obj()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	if(level.reinforcements == -1 || self.lives > 0)
+	if([[level.getVars]]("scr_reinforcements") == -1 || self.lives > 0)
 	{
 		self thread respawn_forced();
 	}
@@ -309,7 +309,7 @@ respawn_obj()
 
 getMidRoundLives()
 {
-	lives = level.reinforcements;
+	lives = [[level.getVars]]("scr_reinforcements");
 	if(lives == 0) lives = 1;
 	
 	players = getentarray("player", "classname");
@@ -329,7 +329,7 @@ getMidRoundLives()
 		if(player.lives < lives)
 			lives = player.lives;
 	}
-	if((level.graceperiod || !level.roundstarted) && lives < level.reinforcements)
+	if((level.graceperiod || !level.roundstarted) && lives < [[level.getVars]]("scr_reinforcements"))
 		lives++;
 	
 	return lives;
@@ -343,7 +343,7 @@ respawn_hq()
 getRespawnMode()
 {
 	gt = level.gametype;
-	respawn_mode_override = level.respawn_mode;
+	respawn_mode_override = [[level.getVars]]("scr_respawn_mode");
 	
 	switch(respawn_mode_override)
 	{
@@ -485,19 +485,19 @@ spawnPlayer(farthest)
 	self.maxhealth = 100;
 	self.health = self.maxhealth;
 		
-	if(level.respawn_mode == "obj")
+	if([[level.getVars]]("scr_respawn_mode") == "obj")
 	{
 		if(!isDefined(self.lives))
 		{
-			self.lives = level.reinforcements;
+			self.lives = [[level.getVars]]("scr_reinforcements");
 			if(self.lives == 0) self.lives = 1;
 		}
 		
 		self.lives--;
-		if(level.reinforcements > 1)
+		if([[level.getVars]]("scr_reinforcements") > 1)
 			self maps\mp\uox\_uox_hud::updateHUDLivesLeft(self.lives);
 		
-		if(self.lives < 0 && level.reinforcements > -1 && level.roundstarted)
+		if(self.lives < 0 && [[level.getVars]]("scr_reinforcements") > -1 && level.roundstarted)
 		{
 			self spawnSpectator();
 			return;
@@ -524,7 +524,7 @@ spawnPlayer(farthest)
 	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
 
 	// set the status icon if battlerank is turned on
-	if(level.battlerank)
+	if([[level.getVars]]("scr_battlerank"))
 	{
 		self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
 	}	
@@ -535,7 +535,7 @@ spawnPlayer(farthest)
 
 getSpawn(gt, farthest)
 {
-	spawn_type_override = level.spawn_type;
+	spawn_type_override = [[level.getVars]]("scr_spawn_type");
 	
 	switch(spawn_type_override)
 	{
@@ -775,7 +775,7 @@ getDefaultSpawnPoints(gt)
 
 getSpawnPoints()
 {
-	spawnpoints_override = level.spawnpoints;
+	spawnpoints_override = [[level.getVars]]("scr_spawnpoints");
 	
 	switch(spawnpoints_override)
 	{
