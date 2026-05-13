@@ -1,18 +1,18 @@
 /*
-	Deathmatch
-	Objective: 	Score points by eliminating other players
-	Map ends:	When one player reaches the score limit, or time limit is reached
-	Respawning:	No wait / Away from other players
+	Team Deathmatch
+	Objective: 	Score points for your team by eliminating players on the opposing team
+	Map ends:	When one team reaches the score limit, or time limit is reached
+	Respawning:	No wait / Near teammates
 
 	Level requirements
 	------------------
 		Spawnpoints:
-			classname		mp_deathmatch_spawn
-			All players spawn from these. The spawnpoint chosen is dependent on the current locations of enemies at the time of spawn.
-			Players generally spawn away from enemies.
+			classname		mp_teamdeathmatch_spawn
+			All players spawn from these. The spawnpoint chosen is dependent on the current locations of teammates and enemies
+			at the time of spawn. Players generally spawn behind their teammates relative to the direction of enemies. 
 
 		Spectator Spawnpoints:
-			classname		mp_deathmatch_intermission
+			classname		mp_teamdeathmatch_intermission
 			Spectators spawn from these and intermission is viewed from these positions.
 			Atleast one is required, any more and they are randomly chosen between.
 
@@ -21,7 +21,7 @@
 		Team Definitions:
 			game["allies"] = "american";
 			game["axis"] = "german";
-			Because Deathmatch doesn't have teams with regard to gameplay or scoring, this effectively sets the available weapons.
+			This sets the nationalities of the teams. Allies can be american, british, or russian. Axis can be german.
 	
 		If using minefields or exploders:
 			maps\mp\_load::main();
@@ -56,27 +56,26 @@
 			Use the outsideMapEnts console command to keep models such as trees from vanishing when noclipping outside of the map.
 */
 
-/*QUAKED mp_deathmatch_spawn (1.0 0.5 0.0) (-16 -16 0) (16 16 72)
-Players spawn away from enemies at one of these positions.
+/*QUAKED mp_teamdeathmatch_spawn (0.0 0.0 1.0) (-16 -16 0) (16 16 72)
+Players spawn away from enemies and near their team at one of these positions.
 */
 
-/*QUAKED mp_deathmatch_intermission (1.0 0.0 1.0) (-16 -16 -16) (16 16 16)
+/*QUAKED mp_teamdeathmatch_intermission (1.0 0.0 1.0) (-16 -16 -16) (16 16 16)
 Intermission is randomly viewed from one of these positions.
 Spectators spawn randomly at one of these positions.
 */
-
 UOX_Main()
 {
 	level.getVars = maps\mp\uox\_uox_vars::getVars;
 	
 	maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "dm", "", "", "Respawn Mode");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false,
-											"deathmatch", "", "", "Respawn Type");
-	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "dm", "", "", "Spawnpoints");
+											"near_team", "", "", "Respawn Type");
+	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "tdm", "", "", "Spawnpoints");
 	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, -1, -1, 999, "Reinforcements");
 
 	/* init spawns */
-	if(!maps\mp\uox\_uox_respawns::initSpawns("dm"))
+	if(!maps\mp\uox\_uox_respawns::initSpawns("tdm"))
 	{
 		maps\mp\gametypes\_callbacksetup::AbortLevel();
 		return;
@@ -90,8 +89,9 @@ UOX_Main()
 
 	maps\mp\gametypes\_callbacksetup::SetupCallbacks();
 
-	allowed[0] = "dm";
+	allowed[0] = "tdm";
 	maps\mp\gametypes\_gameobjects::main(allowed);
 	maps\mp\gametypes\_secondary_gmi::Initialize();
 	maps\mp\uox\_uox::initObjectives();
+	
 }

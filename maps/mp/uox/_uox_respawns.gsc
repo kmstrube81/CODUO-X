@@ -110,7 +110,7 @@ spawnIntermission()
 	self.spectatorclient = -1;
 	self.archivetime = 0;
 
-	spawnpointname = "mp_deathmatch_intermission";
+	spawnpointname = getSpawnPointsIntermission(level.gametype);
 	spawnpoints = getentarray(spawnpointname, "classname");
 	spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
 
@@ -139,7 +139,7 @@ spawnSpectator(origin, angles)
 		self spawn(origin, angles);
 	else
 	{
-		spawnpointname = "mp_deathmatch_intermission";
+		spawnpointname = getSpawnPointsIntermission(level.gametype);
 		spawnpoints = getentarray(spawnpointname, "classname");
 		spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Random(spawnpoints);
 
@@ -521,16 +521,38 @@ spawnPlayer(farthest)
 	self.usedweapons = false;
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 	
-	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
+	self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText());
 
-	// set the status icon if battlerank is turned on
-	if([[level.getVars]]("scr_battlerank"))
+	if([[level.getVars]]("scr_drawfriend"))
+	{
+		if([[level.getVars]]("scr_battlerank"))
+		{
+			self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+			self.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(self);
+			self.headiconteam = self.pers["team"];
+		}
+		else
+		{
+			if(self.pers["team"] == "allies")
+			{
+				self.headicon = game["headicon_allies"];
+				self.headiconteam = "allies";
+			}
+			else
+			{
+				self.headicon = game["headicon_axis"];
+				self.headiconteam = "axis";
+			}
+		}
+	}
+	else if([[level.getVars]]("scr_battlerank"))
 	{
 		self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
 	}	
 
 	// setup the hud rank indicator
-	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();
+	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();	
+
 }
 
 getSpawn(gt, farthest)
@@ -768,9 +790,9 @@ getDefaultSpawnPoints(gt)
 		case "re":
 			return "re";
 		default:
-			return "tdm";
+			return "dm";
 	}
-	return "tdm";
+	return "dm";
 }
 
 getSpawnPoints()
@@ -792,6 +814,20 @@ getSpawnPoints()
 	}
 	
 	return spawnpoints_type;
+}
+
+getSpawnPointsIntermission(gt)
+{
+	switch(gt)
+	{
+		case "dm":
+			return "mp_deathmatch_intermission";
+		case "tdm":
+			return "mp_teamdeathmatch_intermission";
+		default:
+			return "mp_deathmatch_intermission";
+	}	
+	return "mp_deathmatch_intermission";
 }
 
 initSpawns(gt)

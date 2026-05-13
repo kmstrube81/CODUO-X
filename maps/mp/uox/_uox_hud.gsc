@@ -126,9 +126,17 @@ precache()
 	precacheShader(game["headicon_axis"]);
 }
 
-initHUD()
+initClientHUD()
 {
 	self.hud = [];
+}
+
+initServerHUD()
+{
+	level.scoreboardKillsRounds = false; //false = kills, true = rounds
+	
+	if( [[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") != 1 )
+		level.scoreboardKillsRounds = true;
 }
 
 /* ****************************************************************************************************
@@ -242,7 +250,7 @@ clearClientHUD()
 		hudElement["element"] destroy();
 		hudElement = undefined;
 	}
-	initHUD();
+	initClientHUD();
 }
 
 updateHUDElementProperty(element, property, value)
@@ -455,17 +463,17 @@ updateServerScoreboard()
 	options["fontScale"] = 1.6;
 	
 	if(level.uox_teamplay)
-		shader = game["headicon_allies"];
+		shader = game["headicon_" + game["team1"]];
 	else 
 		shader = game["objective_default"];
-	level.scoreboardAlliesShader = updateHUDElement(level.scoreboardAlliesShader, "shader", shader, options);
+	level.scoreboardTeam1Shader = updateHUDElement(level.scoreboardTeam1Shader, "shader", shader, options);
 	
-	//Allies Score
+	//Team1 Score
 	options["x"] = 58;
 	options["alignX"] = "right";
 	
 	if(level.uox_teamplay)
-		value = game["alliedscore"];
+		value = maps\mp\uox\_uox::getTeam1Score();
 	else
 	{
 		if([[level.getVars]]("scr_score_rounds"))
@@ -485,7 +493,7 @@ updateServerScoreboard()
 				value = 0;
 		}
 	}
-	level.scoreboardAlliesScore = updateHUDElement(level.scoreboardAlliesScore, "number", value, options);
+	level.scoreboardTeam1Score = updateHUDElement(level.scoreboardTeam1Score, "number", value, options);
 	
 	if(getCvarInt("sv_showScoreboardScoreLimit") > 0 && ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") > 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") > 0 )))
 	{
@@ -497,40 +505,30 @@ updateServerScoreboard()
 		//Allies Divider
 		options["x"] = 62;
 		options["alignX"] = "center";
-		level.scoreboardAlliesLimitDiv = updateHUDElement(level.scoreboardAlliesLimitDiv, "text", game["dividerText"], options);
+		level.scoreboardTeam1LimitDiv = updateHUDElement(level.scoreboardTeam1LimitDiv, "text", game["dividerText"], options);
 		
 		//Allies Limit
 		options["x"] = 66;
 		options["alignX"] = "left";
-		if([[level.getVars]]("scr_score_rounds"))
+		if(level.scoreboardKillsRounds)
 		{
-			if(level.uox_teamplay)
-				value = ([[level.getVars]]("scr_roundlimit")/2) + 1;
-			else
-			{	//if in OT
-				if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
-				{
-					if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
-						OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
-					else
-						OT = (game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit");
-				
-					roundlimit = [[level.getVars]]("scr_roundlimit") + ([[level.getVars]]("scr_ot_roundlimit") * OT);
-				} //otherwise
+			//if in OT
+			if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+			{
+				if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
+					OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
 				else
-					roundlimit = [[level.getVars]]("scr_roundlimit");
-				roundsRemaining = roundlimit - game["roundsplayed"];
-				firstplace = maps\mp\uox\_uox::getHighScore(true);
-				secondplace = maps\mp\uox\_uox::getSecondPlace(firstplace, true);
-				if(!isDefined(firstplace)) rw1p = 0; else rw1p = firstplace.roundsWon;
-				if(!isDefined(secondplace)) rw2p = 0; else rw2p = secondplace.roundsWon;
-				scores = rw1p + rw2p;
-				value = ((roundsRemaining + scores)/2) + 1;
-			}
+					OT = (game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit");
+			
+				roundlimit = [[level.getVars]]("scr_roundlimit") + ([[level.getVars]]("scr_ot_roundlimit") * OT);
+			} //otherwise
+			else
+				roundlimit = [[level.getVars]]("scr_roundlimit");
+			value = maps\mp\uox\_uox::getWinningRoundNum(game["roundsplayed"], roundlimit);	
 		}
 		else
 			value = [[level.getVars]]("scr_scorelimit");
-		level.scoreboardAlliesLimit = updateHUDElement(level.scoreboardAlliesLimit, "number", value, options);
+		level.scoreboardTeam1Limit = updateHUDElement(level.scoreboardTeam1Limit, "number", value, options);
 	}
 	
 	if(level.uox_teamplay)
@@ -541,35 +539,35 @@ updateServerScoreboard()
 		options["alignY"] = "middle";
 		
 		
-		shader = game["headicon_axis"];
+		shader = game["headicon_" + game["team2"]];
 		
-		level.scoreboardAxisShader = updateHUDElement(level.scoreboardAxisShader, "shader", shader, options);
+		level.scoreboardTeam2Shader = updateHUDElement(level.scoreboardTeam2Shader, "shader", shader, options);
 		
 		//Axis Score
 		options["x"] = 58;
 		options["alignX"] = "right";
 		
-		value = game["axisscore"];
+		value = maps\mp\uox\_uox::getTeam2Score();
 		
-		level.scoreboardAxisScore = updateHUDElement(level.scoreboardAxisScore, "number", value, options);
+		level.scoreboardTeam2Score = updateHUDElement(level.scoreboardTeam2Score, "number", value, options);
 		
 		if(isDefined(level.scoreboardScoreLimit) && level.scoreboardScoreLimit)
 		{
 			//Axis Divider
 			options["x"] = 62;
 			options["alignX"] = "center";
-			level.scoreboardAxisLimitDiv = updateHUDElement(level.scoreboardAxisLimitDiv, "text", game["dividerText"], options);
+			level.scoreboardTeam2LimitDiv = updateHUDElement(level.scoreboardTeam2LimitDiv, "text", game["dividerText"], options);
 			
 			//Axis Limit
 			options["x"] = 66;
 			options["alignX"] = "left";
-			if([[level.getVars]]("scr_score_rounds"))
+			if(level.scoreboardKillsRounds)
 			{
-				value = ([[level.getVars]]("scr_roundlimit")/2) + 1;
+				value = maps\mp\uox\_uox::getWinningRoundNum(game["roundsplayed"], roundlimit);	
 			}
 			else
 				value = [[level.getVars]]("scr_scorelimit");
-			level.scoreboardAxisLimit = updateHUDElement(level.scoreboardAxisLimit, "number", value, options);
+			level.scoreboardTeam2Limit = updateHUDElement(level.scoreboardTeam2Limit, "number", value, options);
 		}
 	}
 	else
@@ -578,12 +576,12 @@ updateServerScoreboard()
 
 deleteServerScoreboard()
 {
-	level.scoreboardAlliesShader = deleteHUDElement(level.scoreboardAlliesShader);
-	level.scoreboardAlliesScore = deleteHUDElement(level.scoreboardAlliesScore);
+	level.scoreboardTeam1Shader = deleteHUDElement(level.scoreboardTeam1Shader);
+	level.scoreboardTeam1Score = deleteHUDElement(level.scoreboardTeam1Score);
 	if(level.uox_teamplay)
 	{
-		level.scoreboardAxisShader = deleteHUDElement(level.scoreboardAxisShader);
-		level.scoreboardAxisScore = deleteHUDElement(level.scoreboardAxisScore);
+		level.scoreboardTeam2Shader = deleteHUDElement(level.scoreboardTeam2Shader);
+		level.scoreboardTeam2Score = deleteHUDElement(level.scoreboardTeam2Score);
 	}
 	else
 	{
@@ -597,13 +595,13 @@ deleteServerScoreboard()
 
 deleteServerScoreboardScoreLimit()
 {
-	level.scoreboardAlliesLimitDiv = deleteHUDElement(level.scoreboardAlliesLimitDiv);
-	level.scoreboardAlliesLimit = deleteHUDElement(level.scoreboardAlliesLimit);
+	level.scoreboardTeam1LimitDiv = deleteHUDElement(level.scoreboardTeam1LimitDiv);
+	level.scoreboardTeam1Limit = deleteHUDElement(level.scoreboardTeam1Limit);
 	
 	if(level.uox_teamplay)
 	{
-		level.scoreboardAxisLimitDiv = deleteHUDElement(level.scoreboardAxisLimitDiv);
-		level.scoreboardAxisLimit = deleteHUDElement(level.scoreboardAxisLimit);
+		level.scoreboardTeam2LimitDiv = deleteHUDElement(level.scoreboardTeam2LimitDiv);
+		level.scoreboardTeam2Limit = deleteHUDElement(level.scoreboardTeam2Limit);
 	}
 	else
 	{
@@ -695,13 +693,7 @@ updatePlayerScoreboard()
 				} //otherwise
 				else
 					roundlimit = [[level.getVars]]("scr_roundlimit");
-				roundsRemaining = roundlimit - game["roundsplayed"];
-				firstplace = maps\mp\uox\_uox::getHighScore(true);
-				secondplace = maps\mp\uox\_uox::getSecondPlace(firstplace, true);
-				if(!isDefined(firstplace)) rw1p = 0; else rw1p = firstplace.roundsWon;
-				if(!isDefined(secondplace)) rw2p = 0; else rw2p = secondplace.roundsWon;
-				scores = rw1p + rw2p;
-				value = ((roundsRemaining + scores)/2) + 1;
+				value = maps\mp\uox\_uox::getWinningRoundNum(game["roundsplayed"], roundlimit);	
 			}
 			else
 				value = [[level.getVars]]("scr_scorelimit");
@@ -1103,7 +1095,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 				//2nd Half Team 2 score
 				if(!isDefined(level.ers2HAlliesScoreHUD))
 					level.ers2HAlliesScoreHUD = newHudElem();
-				level.ers2HAlliesScoreHUD.x = 532;
+				level.ers2HAlliesScoreHUD.x = 618;
 				level.ers2HAlliesScoreHUD.y = 307;
 				level.ers2HAlliesScoreHUD.alignX = "center";
 				level.ers2HAlliesScoreHUD.alignY = "middle";

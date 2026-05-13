@@ -4,6 +4,12 @@ Callback_StartGameType()
 	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
 	
+	maps\mp\uox\_uox::initObjectives();
+	//init vars
+	maps\mp\uox\_uox_vars::initGameTypeVars();
+	maps\mp\gametypes\_teams::initGlobalCvars();
+	maps\mp\gametypes\_teams::initWeaponCvars();
+	
 	level.exist["allies"] = 0;
 	level.exist["axis"] = 0;
 	level.exist["teams"] = false;
@@ -21,6 +27,14 @@ Callback_StartGameType()
 	level.doingReadyUp = false;
 	level.playersready = false;
 	level.playerLock = false;
+	level.lockteams = false;
+	level.healthqueue = [];
+	level.healthqueuecurrent = 0;
+	level.alliedscore = 0;
+	level.axisscore = 0;
+	
+	if (!isdefined (game["BalanceTeamsNextRound"]))
+		game["BalanceTeamsNextRound"] = false;
 	
 	if([[level.getVars]]("scr_roundlimit") % 2)
 		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
@@ -32,7 +46,8 @@ Callback_StartGameType()
 		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
 						
 	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
-	
+	maps\mp\uox\_uox_hud::initServerHUD();
+		
 	if(!isDefined(game["gamestarted"]))
 	{
 	
@@ -80,7 +95,14 @@ Callback_StartGameType()
 			game["alliedkills"] = 0;
 		if(!isDefined(game["axiskills"]))
 			game["axiskills"] = 0;
-				
+		if(!isDefined(game["alliedscore"]))
+			game["alliedscore"] = 0;
+		if(!isDefined(game["axisscore"]))
+			game["axisscore"] = 0;
+		if(!isDefined(game["alliesRoundsWon"]))
+			game["alliesRoundsWon"] = 0;
+		if(!isDefined(game["axisRoundsWon"]))
+			game["axisRoundsWon"] = 0;
 		// defaults if not defined in level script
 		if(!isDefined(game["allies"]))
 			game["allies"] = "american";
@@ -123,7 +145,7 @@ Callback_StartGameType()
 		game["menu_quickrequests"] = "quickrequests";
 
 		maps\mp\uox\_uox_hud::precache();
-
+		
 		precacheMenu(game["menu_serverinfo"]);
 		precacheMenu(game["menu_team"]);
 		precacheMenu(game["menu_weapon_allies"]);
@@ -147,11 +169,10 @@ Callback_StartGameType()
 		precacheItem("item_health");
 
 		maps\mp\gametypes\_teams::precache();
+		maps\mp\gametypes\_teams::scoreboard();
 	}
 	
 	maps\mp\gametypes\_teams::modeltype();
-	maps\mp\gametypes\_teams::initGlobalCvars();
-	maps\mp\gametypes\_teams::initWeaponCvars();
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
 	thread maps\mp\gametypes\_teams::updateGlobalCvars();
 	thread maps\mp\gametypes\_teams::updateWeaponCvars();
@@ -198,7 +219,7 @@ Callback_PlayerConnect()
 	self.sessionspawned = false;
 	
 	//init HUD
-	self maps\mp\uox\_uox_hud::initHUD();
+	self maps\mp\uox\_uox_hud::initClientHUD();
 	
 	if(level.playerlock)
 		self maps\mp\uox\_uox::lockInPlace();
@@ -477,18 +498,18 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 	{
 		if(isPlayer(eAttacker) && (self != eAttacker) && (self.pers["team"] == eAttacker.pers["team"]))
 		{
-			if(level.friendlyfire == "1")
+			if([[level.getVars]]("scr_friendlyfire") == "1")
 			{
 				// Make sure at least one point of damage is done
 				if(iDamage < 1)
 					iDamage = 1;
 				self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
 			}
-			else if(level.friendlyfire == "0" )
+			else if([[level.getVars]]("scr_friendlyfire") == "0" )
 			{
 				return;
 			}
-			else if(level.friendlyfire == "2")
+			else if([[level.getVars]]("scr_friendlyfire") == "2")
 			{
 				eAttacker.friendlydamage = true;
 		
@@ -503,7 +524,7 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 				
 				friendly = true;
 			}
-			else if(level.friendlyfire == "3")
+			else if([[level.getVars]]("scr_friendlyfire") == "3")
 			{
 				eAttacker.friendlydamage = true;
 

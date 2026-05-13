@@ -45,12 +45,12 @@ checkPlayerKilled(victim, attacker)
 	{
 		if(victim.pers["team"] == attacker.pers["team"]) // killed by a friendly
 		{	//if teamkill penalty flag is true
-			if (level.teamkill_penalty)
+			if ([[level.getVars]]("scr_teamscorepenalty"))
 			{
 				if(attacker.pers["team"] == "allies")
-				game["alliedkills"]--; //subtract a kill from running total
-			else if(attacker.pers["team"] == "axis")
-				game["axiskills"]--;  //subtract a kill from running total
+					game["alliedkills"]--; //subtract a kill from running total
+				else if(attacker.pers["team"] == "axis")
+					game["axiskills"]--;  //subtract a kill from running total
 			}
 		}
 		else //normal non-team kill
@@ -82,23 +82,42 @@ checkPlayerKilled(victim, attacker)
 	{
 		if(victim.pers["team"] == attacker.pers["team"]) // killed by a friendly
 		{	
-			if (level.teamkill_penalty) //if teamkill penalty flag set to true
+			if ([[level.getVars]]("scr_teamscorepenalty")) //if teamkill penalty flag set to true
 			{
 				//penalize team as well
 				if(attacker.pers["team"] == "allies")
 				{	//subtract a kill from allies team score
-					teamscore = game["alliedscore"];
-					teamscore--;
-					game["alliedscore"] = teamscore;
-					setTeamScore("allies", game["alliedscore"]);
+					if([[level.getVars]]("scr_score_rounds"))
+					{
+						teamscore = level.alliedscore;
+						teamscore--;
+						level.alliedscore = teamscore;
+						setTeamScore("allies", level.alliedscore);
+					}
+					else
+					{
+						teamscore = game["alliedscore"];
+						teamscore--;
+						game["alliedscore"] = teamscore;
+						setTeamScore("allies", game["alliedscore"]);
+					}
 					
 				}
 				else 
 				{	//subtract a kill from axis team score
-					teamscore = game["axisscore"];
-					teamscore--;
-					game["axisscore"] = teamscore;
-					setTeamScore("axis", game["axisscore"]);
+					if([[level.getVars]]("scr_score_rounds"))
+					{
+						teamscore = level.axisscore;
+						teamscore--;
+						setTeamScore("axis", level.axisscore);
+					}
+					else
+					{
+						teamscore = game["axisscore"];
+						teamscore--;
+						game["axisscore"] = teamscore;
+						setTeamScore("axis", game["axisscore"]);
+					}
 				}
 			}
 		}
@@ -106,18 +125,37 @@ checkPlayerKilled(victim, attacker)
 		{
 			if(attacker.pers["team"] == "allies")
 			{	//give a kill to allies team score
-				teamscore = game["alliedscore"];
-				teamscore++;
-				game["alliedscore"] = teamscore;
-				setTeamScore("allies", game["alliedscore"]);
-				
+				if([[level.getVars]]("scr_score_rounds"))
+				{
+					teamscore = level.alliedscore;
+					teamscore++;
+					level.alliedscore = teamscore;
+					setTeamScore("allies", level.alliedscore);
+				}
+				else
+				{
+					teamscore = game["alliedscore"];
+					teamscore++;
+					game["alliedscore"] = teamscore;
+					setTeamScore("allies", game["alliedscore"]);
+				}
 			}
-			else
+			else if(attacker.pers["team"] == "axis")
 			{	//give a kill to axis team score
-				teamscore = game["axisscore"];
-				teamscore++;
-				game["axisscore"] = teamscore;
-				setTeamScore("axis", game["axisscore"]);
+				if([[level.getVars]]("scr_score_rounds"))
+				{
+					teamscore = level.axisscore;
+					teamscore++;
+					level.axisscore = teamscore;
+					setTeamScore("axis", level.axisscore);
+				}
+				else
+				{
+					teamscore = game["axisscore"];
+					teamscore++;
+					game["axisscore"] = teamscore;
+					setTeamScore("axis", game["axisscore"]);
+				}
 			}
 		}
 	}
@@ -140,6 +178,16 @@ checkScoreLimit()
 	if([[level.getVars]]("scr_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
 		return; //nothing to do in that case
 		
+	if([[level.getVars]]("scr_score_rounds"))
+	{ //init team scores if scoring rounds
+		alliedscore = level.alliedscore;
+		axisscore = level.axiscore;
+	}
+	else
+	{ //init teamscores if not scoring rounds
+		alliedscore = game["alliedscore"];
+		axisscore = game["axisscore"];
+	}	
 	doHalftime = false; //init doHalftime flag 
 	
 	if(game["suddendeath"]) //if suddendeath overtime
@@ -154,14 +202,17 @@ checkScoreLimit()
 		if(level.uox_teamplay) //if team game
 		{	//if one team has reached the halfscore and game is in the first half
 			if([[level.getVars]]("scr_halftime")
-			   && (getTeamScore("allies") >= level.halfscore || getTeamScore("axis") >= level.halfscore) 
+			   && (alliedscore >= level.halfscore || axisscore >= level.halfscore) 
 			   && game["half"] == 1)
 			{	//if game is roundbased and both teams are less than the scorelimit and not scoring rounds
-				if(game["roundbased"] && getTeamScore("allies") < [[level.getVars]]("scr_scorelimit") && getTeamScore("axis") < [[level.getVars]]("scr_scorelimit") && ![[level.getVars]]("scr_score_rounds"))
-					doHalftime(true);	//doHalftime
+				if(game["roundbased"] && alliedscore < [[level.getVars]]("scr_scorelimit")
+					&& axisscore < [[level.getVars]]("scr_scorelimit") 
+					&& ![[level.getVars]]("scr_score_rounds"))
+						doHalftime(true);	//doHalftime
 			}
 			//if both teams or below the scorelimit
-			if(getTeamScore("allies") < [[level.getVars]]("scr_scorelimit") && getTeamScore("axis") < [[level.getVars]]("scr_scorelimit"))
+			if(alliedscore < [[level.getVars]]("scr_scorelimit")
+				&& axisscore < [[level.getVars]]("scr_scorelimit"))
 				return; //nothing to do
 		}
 		else //if free for all game
@@ -212,7 +263,7 @@ checkScoreLimit()
 		}	//if resetting scores do regular end round shenanigans.
 		if(level.uox_teamplay) //if team game
 		{	//if allies are over the score limit
-			if(getTeamScore("allies") >= [[level.getVars]]("scr_scorelimit"))
+			if(level.alliedscore >= [[level.getVars]]("scr_scorelimit"))
 				endRound("allies"); //end round in allies favor
 			else //if allies didn't end the round, then axis must have
 				endRound("axis"); //end round in axis favor
@@ -511,14 +562,23 @@ checkTimeLimit()
 		}
 		if(level.uox_teamplay)
 		{	//if tie
-			if(getTeamScore("allies") == getTeamScore("axis"))
-				endRound("draw");
+			if(level.alliedscore == level.axisscore)
+			{
+				//round was a tie
+				// defenders win round if a tie
+				if(isDefined(game["defenders"]))
+					endRound(game["defenders"]);
+				else
+					endRound("draw");
+			}
 			//if allies have more points than axis
-			else if(getTeamScore("allies") >= getTeamScore("axis"))
+			else if(level.alliedscore > level.axisscore)
 				endRound("allies"); //end round in allies favor
-			else //if allies didn't end the round, then axis must have
-				endRound("axis"); //end round in axis favor
-		}
+			else
+			{	//axis had the higher score
+				endRound("xis");
+			}
+ 		}
 		else //free for all game
 			endRound("deathmatch");
 	}
@@ -575,11 +635,15 @@ startRound()
 	announcement(&"GMI_CTF_TIMEEXPIRED");
 	 
 	if(level.uox_teamplay) //if team game
-	{
+	{ 
 		//if scores are equal
 		if(level.alliedscore == level.axisscore)
 		{	//round was a tie
-			endRound("draw");
+			// defenders win round if a tie
+			if(isDefined(game["defenders"]))
+				endRound(game["defenders"]);
+			else
+				endRound("draw");
 		} //if allies have more score than axis
 		else if(level.alliedscore > level.axisscore)
 		{	//allies won the round
@@ -734,31 +798,49 @@ endRound(roundwinner, doKillcam)
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_allies_win"); //make audio announcement
+		game["alliesRoundsWon"]++;
+		//increment allied score
+		if([[level.getVars]]("scr_score_rounds"))
+		{
+			game["alliedscore"] = game["alliesRoundsWon"];
+		}
+		setTeamScore("axis", game["axisscore"]);
+		setTeamScore("allies", game["alliedscore"]); //set team score
 	}
 	else if(roundwinner == "axis") //if roundwinner was axis
 	{	//get players
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_axis_win"); //make audio announcement
+		//increment axis score
+		game["axisRoundsWon"]++;
+		if([[level.getVars]]("scr_score_rounds"))
+		{
+			game["axisscore"] = game["axisRoundsWon"];
+		}
+		setTeamScore("axis", game["axisscore"]);
+		setTeamScore("allies", game["alliedscore"]); //set team score
 	}
 	else if(roundwinner == "draw") //if game was a tie
 	{ 	//get players
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_round_draw"); //make audio announcement
+		setTeamScore("axis", game["axisscore"]);
+		setTeamScore("allies", game["alliedscore"]); //set team score
 	}
 	
 //	if(!isDefined([[level.getVars]]("scr_killcam")Failsafe))
 //		level thread maps\mp\uox\_uox_killcam::killcam_failsafe();
 
+	maps\mp\uox\_uox_hud::updateServerScoreboard();
 	wait 5; //wait five seconds before ending round
 
 	winners = ""; //init winners log string
 	losers = "";  //init losers log string
+	tied = false; //init tied flag
 	if(roundwinner == "allies") //if allies win
-	{ 
-		game["alliedscore"]++; //increment ally score
-		setTeamScore("allies", game["alliedscore"]); //set team score
+	{		
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "allies") //if team 1 are the allies
@@ -809,9 +891,7 @@ endRound(roundwinner, doKillcam)
 		logPrint("RL;axis;" + losers + "\n");	 //print round loss to log
 	}
 	else if(roundwinner == "axis") //if round was won by axis
-	{ 	//increment axis score
-		game["axisscore"]++;
-		setTeamScore("axis", game["axisscore"]);
+	{ 			
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "axis") //if team 1 are the axis
@@ -967,10 +1047,9 @@ endRound(roundwinner, doKillcam)
 */
 	if(game["matchstarted"]) //if game is in progress (not pregame)
 	{
-	//	if (level.countdraws == 1)
-	//		game["roundsplayed"]++;
-		//else if(roundwinner != "draw")
-		if(roundwinner != "draw" && roundwinner != "half") //if game was not a draw
+		if( ([[level.getVars]]("scr_countdraws") && (roundwinner == "draw" || tied) )
+			|| (roundwinner != "draw" && roundwinner != "half"))
+			//if draws count or game was not a draw
 			game["roundsplayed"]++; //increment number of rounds played
 				
 		if(game["suddendeath"] && !checkTie([[level.getVars]]("scr_score_rounds"))) //if in sudden death and game in not tied
@@ -1329,21 +1408,10 @@ checkTie(checkRounds)
 	//if team game
 	if(level.uox_teamplay)
 	{
-		if(checkRounds) //if checking rounds won
-		{
-			// if allies and axis have won same # of rounds
-			if(game["axisRoundsWon"] == game["alliesRoundsWon"])
-				return true; //game is currently tied
-			else //if allies and axis have not won same # of rounds
-				return false; //game is not tied
-		}
-		else //if checking teamscore
-		{
-			if(getTeamScore("allies") == getTeamScore("axis")) //if allies and axis score is the same
-				return true; //game is currently tied
-			else //if allies and axis do not have same score
-				return false; //game is not tied
-		}
+		if(game["alliedscore"] == game["axisscore"]) //if allies and axis score is the same
+			return true; //game is currently tied
+		else //if allies and axis do not have same score
+			return false; //game is not tied	
 	}
 	//if free for all game
 	if(checkRounds) //if checking rounds won
@@ -1383,15 +1451,17 @@ checkGameWon(checkRounds, roundScore, roundScoreLimit)
 	{
 		if(checkRounds) //if checking rounds won
 		{
-			fiftyplus1 = (roundScoreLimit / 2) + 1; //get majority score number
+			fiftyplus1 = getWinningRoundNum(roundScore, roundScoreLimit);
+			//get majority score number
+			
 			//if both teams have less than a majority then neither have won.
-			if(game["alliesRoundsWon"] < fiftyplus1 && game["axisRoundsWon"] < fiftyplus1)
+			if(game["alliedscore"] < fiftyplus1 && game["axisscore"] < fiftyplus1)
 				return false; //no winner yet
 		}
 		else //if checking score
 		{
 			//if both teams have less than the score limit then neither have won
-			if(getTeamScore("allies") < roundScoreLimit && getTeamScore("axis") < roundScoreLimit)
+			if(game["alliedscore"] < roundScoreLimit && game["axisscore"] < roundScoreLimit)
 				return false; //no winner yet
 		}
 		return true; //if one team breached the round/score limit then the game is over (i think)
@@ -1400,20 +1470,10 @@ checkGameWon(checkRounds, roundScore, roundScoreLimit)
 	{
 		if(checkRounds) //if checking rounds won
 		{
-			roundsRemaining = roundScoreLimit - roundScore; //determine rounds left
-
-			firstplace = getHighScore(true); //get first place player
-			secondplace = getSecondPlace(firstplace, true); //get second place player
-			//set rw1p to the # of rounds won by first place player
-			if(!isDefined(firstplace)) rw1p = 0; else rw1p = firstplace.roundsWon;
-			//set rw2p to the # of rounds won by the second place player
-			if(!isDefined(secondplace)) rw2p = 0; else rw2p = secondplace.roundsWon;
-			//determine the number of rounds needs to secure a plurality
-			//The first place player must have a big enough lead on second place
-			//that the number of rounds remaining can not result in second place
-			//taking the lead
-			lead = rw1p - rw2p; //number of rounds first place has over second.
-			if(roundsRemaining >= lead) //if there are enough rounds for 2nd to at least tie
+			fiftyplus1 = getWinningRoundNum(roundScore, roundScoreLimit);
+			//if highscore is less than the winning round number then no one has won the game
+			leader = getHighScore(true); //number of rounds first place has over second.
+			if(leader.roundsWon < fiftyplus1 && !leader.tied) //if there are enough rounds for 2nd to at least tie
 				return false; //then game is not won yet
 			else //the lead is greater than the number of roundsRemaining
 				return true;
@@ -1432,6 +1492,36 @@ checkGameWon(checkRounds, roundScore, roundScoreLimit)
 			return false;
 		}
 	}
+}
+
+getWinningRoundNum(round, roundLimit)
+{
+	roundsRemaining = roundLimit - round;
+	
+	if(level.uox_teamplay)
+	{
+		if(getTeam2Score() > getTeam1Score())
+		{
+			rwA = getTeam2Score();
+			rwB = getTeam1Score();
+		}
+		else
+		{
+			rwA = getTeam1Score();
+			rwB = getTeam2Score();
+		}
+	}
+	else
+	{
+		firstplace = getHighScore(true); //get first place player
+		secondplace = getSecondPlace(firstplace, true); //get second place player
+		//set rw1p to the # of rounds won by first place player
+		if(!isDefined(firstplace)) rwA = 0; else rwA = firstplace.roundsWon;
+		//set rw2p to the # of rounds won by the second place player
+		if(!isDefined(secondplace)) rwB = 0; else rwB = secondplace.roundsWon;
+	}
+	scores = rwA + rwB;
+	return ((roundsRemaining + scores)/2) + 1;
 }
 
 /* *************************************************************************************************
@@ -1500,10 +1590,16 @@ doHalftime(midRound)
 		//switch scores
 		axistempkills = game["axiskills"];
 		axistempscore = game["axisscore"];
+		axistemplscore = level.axisscore;
+		axistemproundswon = game["axisRoundsWon"];
 		game["axisscore"] = game["alliedscore"];
+		level.axisscore = level.alliedscore;
+		game["axisRoundsWon"] = game["alliesRoundsWon"];
 		setTeamScore("axis", game["alliedscore"]);
 		game["alliedkills"] = axistempkills;
 		game["alliedscore"] = axistempscore;
+		level.alliedscore = axistemplscore;
+		game["alliesRoundsWon"] = axistemproundswon;
 		setTeamScore("allies", game["alliedscore"]);
 		team1storage = game["team1"];
 		game["team1"] = game["team2"];
@@ -1533,21 +1629,70 @@ doHalftime(midRound)
 				player.pers["savedmodel"] = alliedsavedmodel;
 
 			//change headicons
-			if(level.drawfriend)
+			battlerank = [[level.getVars]]("scr_battlerank");
+			drawfriend = [[level.getVars]]("scr_drawfriend");
+			
+			if( battlerank > 0)
 			{
-				if(player.pers["team"] == "allies")
+				// for all living players, show the appropriate headicon
+				players = getentarray("player", "classname");
+				for(i = 0; i < players.size; i++)
 				{
-					player.headicon = game["headicon_allies"];
-					player.headiconteam = "allies";
-				}
-				else
-				{
-					player.headicon = game["headicon_axis"];
-					player.headiconteam = "axis";
+					player = players[i];
+					
+					if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+					{
+						// setup the hud rank indicator
+						player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
+
+						player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
+						if ( drawfriend )
+						{
+							player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
+							player.headiconteam = player.pers["team"];
+						}
+						else
+						{
+							player.headicon = "";
+						}
+					}
 				}
 			}
-			
-			
+			else if(drawfriend)
+			{
+				// for all living players, show the appropriate headicon
+				players = getentarray("player", "classname");
+				for(i = 0; i < players.size; i++)
+				{
+					player = players[i];
+					
+					if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+					{
+						if(player.pers["team"] == "allies")
+						{
+							player.headicon = game["headicon_allies"];
+							player.headiconteam = "allies";
+						}
+						else
+						{
+							player.headicon = game["headicon_axis"];
+							player.headiconteam = "axis";
+						}
+					}
+				}
+			}
+			else
+			{
+				players = getentarray("player", "classname");
+				for(i = 0; i < players.size; i++)
+				{
+					player = players[i];
+					
+					if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+						player.headicon = "";
+						player.statusicon = "";
+				}
+			}
 		}
 	}
 	
@@ -1580,7 +1725,7 @@ doHalftime(midRound)
 	//maps\mp\uox\_uox_hud::createHUDNextRound(3, false, switchSides);
 	
 	//reset half scores
-	if(!game["half"] % 2) //reset scores during start of OT
+	if(game["half"] % 2) //reset scores during start of OT
 	{
 		if(level.uox_teamplay)  //if team game
 		{						//reset team half scores
@@ -1610,7 +1755,7 @@ doHalftime(midRound)
 	}
 	else
 	{
-		if(!game["half"] % 2)
+		if(game["half"] % 2)
 		{
 			if(switchSides)
 				iprintlnbold("Overtime - Switching Sides");
@@ -1742,9 +1887,9 @@ resetPlayerScores()
 getTeam1Score()
 {
 	if(game["team1"] == "allies")
-		return getTeamScore("allies");
+		return game["alliedscore"];
 	else
-		return getTeamScore("axis");
+		return game["axisscore"];
 }
 
 /* *************************************************************************************************
@@ -1757,9 +1902,9 @@ getTeam1Score()
 getTeam2Score()
 {
 	if(game["team2"] == "allies")
-		return getTeamScore("allies");
+		return game["alliedscore"];
 	else
-		return getTeamScore("axis");
+		return game["axisscore"];
 }
 
 /* *************************************************************************************************
@@ -2223,6 +2368,66 @@ getNumBots()
 }
 
 /* **************************************************************************************************
+**** initObjectives(string AttackDefend)
+****
+**** sets up objectives for gametype. AttackDefend is team to set as attacker if not defined by map
+****
+*************************************************************************************************** */
+initObjectives(AttackDefend)
+{
+	if(!isDefined(AttackDefend))
+		AttackDefendFlag = false;
+	else
+		AttackDefendFlag = true;
+	
+	//set up attackers/defenders
+	if(AttackDefendFlag) //game should have attackers/defenders
+	{
+		if(!isDefined(game["attackers"]))
+		{
+			if(AttackDefend == "axis")
+			{
+				game["attackers"] = "axis";
+				game["defenders"] = "allies";
+			}
+			else
+			{
+				game["attackers"] = "allies";
+				game["defenders"] = "axis";
+			}
+		}
+	}
+	else //game should not have attackers/defenders
+	{
+		game["attackers"] = undefined;
+		game["defenders"] = undefined;
+	}
+}
+
+/* **************************************************************************************************
+**** getObjectiveText()
+****
+**** returns objective text for scoreboard
+****
+*************************************************************************************************** */
+getObjectiveText()
+{
+	switch(level.gametype)
+	{
+		case "dm":
+			return &"DM_KILL_OTHER_PLAYERS";
+		case "tdm":
+			if(self.pers["team"] == "allies")
+				return &"TDM_KILL_AXIS_PLAYERS";
+			else if(self.pers["team"] == "axis")
+				return &"TDM_KILL_ALLIED_PLAYERS";
+			else
+				return &"TDM_ALLIES_KILL_AXIS_PLAYERS";
+	}
+	return &"DM_KILL_OTHER_PLAYERS";
+}
+
+/* **************************************************************************************************
 **** updateTimeLimit(float timer)
 ****
 **** var callback
@@ -2380,6 +2585,8 @@ updateDrawFriend(drawfriend)
 	else
 		battlerank = [[level.getVars]]("scr_battlerank");
 	
+	level.drawfriend = drawfriend;
+	
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
 	{
@@ -2474,11 +2681,28 @@ updateTeamBalance(teamBalance)
 {
 	if(!level.uox_teamplay)
 		return;
+	
+	level.teambalance = teamBalance;
 	if(teamBalance)
 	{
 		if(game["roundbased"])
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
 		else
+		{
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check();
+			level.teambalancetimer = 0;
+		}
 	}
+}
+
+/* **************************************************************************************************
+**** updateFriendlyFire(int friendlyfire)
+****
+**** var callback
+**** updates the whether team headicons should be drawn
+****
+*************************************************************************************************** */
+updateFriendlyFire(friendlyfire)
+{
+	level.friendlyfire = friendlyfire;
 }

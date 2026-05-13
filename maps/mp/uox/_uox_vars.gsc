@@ -222,3 +222,89 @@ getVars(cvarname)
 	//return level.vars[maps\mp\uox\_uox_arrays::searchObjArrayByProperty(level.vars, "cvarname", cvarname)]["value"];
 	return level.vars[cvarname]["value"];
 }
+
+/* *************************************************************************************************
+**** initGameTypeVars()
+****
+**** defines vars common to all gametypes
+****  
+************************************************************************************************* */
+initGameTypeVars()
+{
+	gt = level.gametype;
+	
+	varDef("scr", "timelimit", "float", true,
+								30, 0, 1440, "Time Limit", maps\mp\uox\_uox::updateTimeLimit);
+	setCvar("ui_" + gt + "_timelimit", [[level.getVars]]("scr_timelimit"));
+	makeCvarServerInfo("ui_" + gt + "_timelimit", "30");								
+
+	varDef("scr", "scorelimit", "int", true,
+								50, 0, undefined, "Score Limit", maps\mp\uox\_uox::updateScoreLimit);
+	setCvar("ui_" + gt + "_scorelimit", [[level.getVars]]("scr_scorelimit"));
+	makeCvarServerInfo("ui_" + gt + "_scorelimit", "50");
+	
+	varDef("scr", "roundlimit", "int", true, 1, 0, undefined, "Round Limit");
+	setCvar("ui_" + gt + "_roundlimit", [[level.getVars]]("scr_roundlimit"));
+	makeCvarServerInfo("ui_" + gt + "_roundlimit", 1);
+	
+	varDef("scr", "roundlength", "float", true, 2.5, 0, 60, "Round Length");
+	setCvar("ui_dm_roundlength", [[level.getVars]]("scr_roundlength"));
+	makeCvarServerInfo("ui_dm_roundlength", "30");
+	
+	varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
+
+	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset");
+	varDef("scr", "score_rounds", "bool", true, true, undefined, undefined, "Score Round Wins");
+	varDef("scr", "countdraws", "bool", true, true, undefined, undefined, "Count Draws");
+
+	varDef("scr", "warmupmode", "int", true, 0, 0, 2, "Warmup Mode");
+	varDef("scr", "autoreadycount", "int", true, 0, 0, undefined, "Auto-Ready Player Count");
+	varDef("scr", "autoreadytime", "int", true, 0, 0, undefined, "Auto-Ready Timer");
+	varDef("scr", "halftime", "bool", true, false, undefined, undefined, "Halftime");
+	varDef("scr", "overtime", "bool", true, false, undefined, undefined, "Overtime");
+	varDef("scr", "ot_roundlimit", "int", true, 1, 0, undefined, "Overtime Rounds");
+	
+	varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
+	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
+	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
+	makeCvarServerInfo("ui_battlerank", "0");
+	//needed for compatibility with built in UO battlerank
+	level.battlerank = [[level.getVars]]("scr_battlerank");
+	varDef("scr", "shellshock", "bool", true, true, undefined, undefined, "Shellshock");
+	setCvar("ui_shellshock", [[level.getVars]]("scr_shellshock"));
+	makeCvarServerInfo("ui_shellshock", "0");
+	varDef("scr", "drophealth", "bool", true, true, undefined, undefined, "Drop Health");
+	setCvar("scr_ceasefire", false);
+	varDef("scr", "ceasefire", "bool", true,
+					false, undefined, undefined, "Cease Fire", maps\mp\uox\_uox::updateCeaseFire);
+	varDef("scr", "killcam", "bool", true,
+					true, undefined, undefined, "Killcam", maps\mp\uox\_uox::updateKillcam);
+	if([[level.getVars]]("scr_killcam"))
+		setarchive(true);
+	
+	if(!isDefined(game["compass_range"]))		// set up the compass range.
+		game["compass_range"] = 1024;		
+	setCvar("cg_hudcompassMaxRange", game["compass_range"]);
+	makeCvarServerInfo("cg_hudcompassMaxRange", "0");
+	
+	if(!level.uox_teamplay)
+	{
+		level.drawfriend = 0;
+		level.teambalance = 0;
+		level.teamkill_penalty = false;
+		level.QuickMessageToAll = true;
+	}
+	else
+	{
+		level.drawfriend = varDef("scr", "drawfriend", "bool", true,
+										true, undefined, undefined, "Draw Teams Icons",
+										maps\mp\uox\_uox::updateDrawFriend);
+		level.friendlyfire = varDef("scr", "friendlyfire", "int", true,
+										0, 0, 3, "Friendly Fire Mode",
+										maps\mp\uox\_uox::updateFriendlyFire);
+		level.teambalance = varDef("scr", "teambalance", "bool", true,
+										true, undefined, undefined, "Team Balance", 
+										maps\mp\uox\_uox::updateTeamBalance);
+		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");
+	}
+}

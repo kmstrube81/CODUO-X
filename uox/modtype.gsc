@@ -9,8 +9,9 @@ modtype(gt)
 		//UOX DEATHMATCH
 		case "dm":
 			return maps\mp\gametypes\_uox_dm::UOX_Main;
+		//UOX TEAM DEATHMATCH
 		case "tdm":
-			return;
+			return maps\mp\gametypes\_uox_tdm::UOX_Main;
 		case "bel":
 			return;
 		case "re":
