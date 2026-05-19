@@ -186,6 +186,8 @@ Callback_StartGameType()
 Callback_PlayerConnect()
 {
 	self thread maps\mp\uox\_uox_loops::initPlayerLoop();
+	self.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(self.slowLoop,
+		maps\mp\uox\_uox_vars::enforceClientCvars); 
 	self.statusicon = "gfx/hud/hud@status_connecting.tga";
 	self waittill("begin");
 	self.statusicon = "";

@@ -335,4 +335,26 @@ initGameTypeVars()
 	varDef("sv", "showScoreboardScoreLimit", "bool", true, true);
 	varDef("sv", "showPlayersLeft", "bool", true, true);
 	varDef("sv", "endRoundScoreboardTime", "int", true, 7, 3, 15);
+	
+	//define enforce client cvars
+	varDef("sv", "enforcedClientCvars", "string", false, "");
+	
+}
+
+enforceClientCvars()
+{
+	if([[level.getVars]]("sv_enforcedClientCvars") == "")
+		return;
+	
+	cvars = maps\mp\uox\_uox_utils::stringSplit([[level.getVars]]("sv_enforcedClientCvars"), ";");
+	
+	for(i = 0; i < cvars.size; i++)
+	{
+		cvar = cvars[i];
+		if(cvar == "")
+			continue;
+		
+		serverCvar = getcvar(cvar);
+		self setClientCvar(cvar, serverCvar);
+	}
 }
