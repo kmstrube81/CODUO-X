@@ -403,19 +403,20 @@ waitRespawnButton()
 
 	wait 0; // Required or the "respawn" notify could happen before it's waittill has begun
 
-	if ( getcvar("scr_forcerespawn") == "1" )
+	if ( [[level.getVars]]("scr_forcerespawn") == "1" )
 		return;
 	
 	//if you haven't spawned since session started (or last went spec), skip the respawn text
 	if(self.sessionspawned) 
 	{
-		self.respawntext = newClientHudElem(self);
-		self.respawntext.alignX = "center";
-		self.respawntext.alignY = "middle";
-		self.respawntext.x = 320;
-		self.respawntext.y = 70;
-		self.respawntext.archived = false;
-		self.respawntext setText(&"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN");
+		options = [];
+		options["alignX"] = "center";
+		options["alignY"] = "middle";
+		options["x"] = 320;
+		options["y"] = 70;
+		options["archived"] = false;
+		maps\mp\uox\_uox_hud::updateClientHUDElement("respawntext", "text",
+			game["respawnText"], options);
 
 		thread removeRespawnText();
 		thread waitRemoveRespawnText("end_respawn");
@@ -433,8 +434,7 @@ removeRespawnText()
 {
 	self waittill("remove_respawntext");
 
-	if(isDefined(self.respawntext))
-		self.respawntext destroy();
+	maps\mp\uox\_uox_hud::deleteClientHUDElement("respawntext");
 }
 
 waitRemoveRespawnText(message)

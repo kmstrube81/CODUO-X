@@ -159,6 +159,7 @@ monitorVar(prefix, varname, type, hrName)
 ************************************************************************************************* */
 updateVars()
 {
+		
 	for(;;)
 	{
 		for(i = 0; i < level.monitoredVars.size; i++)
@@ -183,22 +184,25 @@ updateVars()
 				
 				//level.vars[_index]["value"] = _val;
 				level.vars[var["cvarname"]]["value"] = _val;
-				//announce var change
-				switch(_var["type"])
+				//announce var change if hrname is defined
+				if(isDefined(_var["hrname"]))
 				{
-					case "bool":
-						if(_val)
-							setting = "ON";
-						else
-							setting = "OFF";
-						iprintln("SERVER: ^1" + var["hrname"] + " ^7has been turned ^1" + setting);
-						break;
-					case "int":
-					case "float":
-					case "string":
-						setting = _val;
-						iprintln("SERVER: ^1" + var["hrname"] + " ^7has been updated to ^1" + setting + "^7 from ^1" + oldval);
-						break;
+					switch(_var["type"])
+					{
+						case "bool":
+							if(_val)
+								setting = "ON";
+							else
+								setting = "OFF";
+							iprintln("SERVER: ^1" + var["hrname"] + " ^7has been turned ^1" + setting);
+							break;
+						case "int":
+						case "float":
+						case "string":
+							setting = _val;
+							iprintln("SERVER: ^1" + var["hrname"] + " ^7has been updated to ^1" + setting + "^7 from ^1" + oldval);
+							break;
+					}
 				}
 				//run callback, the var value is the first parameter
 				if(isDefined(_var["callback"]))
@@ -264,12 +268,24 @@ initGameTypeVars()
 	varDef("scr", "overtime", "bool", true, false, undefined, undefined, "Overtime");
 	varDef("scr", "ot_roundlimit", "int", true, 1, 0, undefined, "Overtime Rounds");
 	
+	game["roundbased"] = false;
+	if([[level.getVars]]("scr_roundlimit") != 1)
+		game["roundbased"] = true;
+	else if([[level.getVars]]("scr_warmupmode") > 0)
+		game["roundbased"] = true;
+	else if([[level.getVars]]("scr_halftime") > 0)
+		game["roundbased"] = true;
+	
 	varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
 	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
 	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
 	makeCvarServerInfo("ui_battlerank", "0");
 	//needed for compatibility with built in UO battlerank
 	level.battlerank = [[level.getVars]]("scr_battlerank");
+	if(level.battlerank > 0)
+		level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop,
+				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
+				
 	varDef("scr", "shellshock", "bool", true, true, undefined, undefined, "Shellshock");
 	setCvar("ui_shellshock", [[level.getVars]]("scr_shellshock"));
 	makeCvarServerInfo("ui_shellshock", "0");
@@ -279,7 +295,9 @@ initGameTypeVars()
 					false, undefined, undefined, "Cease Fire", maps\mp\uox\_uox::updateCeaseFire);
 	varDef("scr", "killcam", "bool", true,
 					true, undefined, undefined, "Killcam", maps\mp\uox\_uox::updateKillcam);
-	if([[level.getVars]]("scr_killcam"))
+	varDef("scr", "final_killcam", "bool", true,
+					false, undefined, undefined, "Final Killcam", maps\mp\uox\_uox::updateFinalKillcam);
+	if([[level.getVars]]("scr_killcam") || [[level.getVars]]("scr_final_killcam"))
 		setarchive(true);
 	
 	if(!isDefined(game["compass_range"]))		// set up the compass range.
@@ -305,6 +323,16 @@ initGameTypeVars()
 		level.teambalance = varDef("scr", "teambalance", "bool", true,
 										true, undefined, undefined, "Team Balance", 
 										maps\mp\uox\_uox::updateTeamBalance);
+		if(level.teambalance && !game["roundbased"])
+			level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop,
+					maps\mp\uox\_uox::TeamBalance_Check());
+
 		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");
 	}
+	
+	//define scoreboard vars
+	varDef("sv", "showScoreboard", "bool", true, true);
+	varDef("sv", "showScoreboardScoreLimit", "bool", true, true);
+	varDef("sv", "showPlayersLeft", "bool", true, true);
+	varDef("sv", "endRoundScoreboardTime", "int", true, 7, 3, 15);
 }

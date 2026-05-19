@@ -1,5 +1,7 @@
 Callback_StartGameType()
 {
+	level thread maps\mp\uox\_uox_loops::initServerLoop();
+	
 	level.gametype = getCvar("g_gametype");
 	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
@@ -32,6 +34,7 @@ Callback_StartGameType()
 	level.healthqueuecurrent = 0;
 	level.alliedscore = 0;
 	level.axisscore = 0;
+	level.didFinalKillcam = false;
 	
 	if (!isdefined (game["BalanceTeamsNextRound"]))
 		game["BalanceTeamsNextRound"] = false;
@@ -63,14 +66,6 @@ Callback_StartGameType()
 			game["suddendeath"] = false;
 		if(!isDefined(game["g_speed"]))
 			game["g_speed"] = getCvar("g_speed");
-		
-		game["roundbased"] = false;
-		if([[level.getVars]]("scr_roundlimit") != 1)
-			game["roundbased"] = true;
-		else if([[level.getVars]]("scr_warmupmode") > 0)
-			game["roundbased"] = true;
-		else if([[level.getVars]]("scr_halftime") > 0)
-			game["roundbased"] = true;
 		
 		if(!isDefined(game["half"]))
 		{
@@ -190,11 +185,13 @@ Callback_StartGameType()
 
 Callback_PlayerConnect()
 {
+	self thread maps\mp\uox\_uox_loops::initPlayerLoop();
 	self.statusicon = "gfx/hud/hud@status_connecting.tga";
 	self waittill("begin");
 	self.statusicon = "";
 
-	iprintln(&"MPSCRIPT_CONNECTED", self);
+	if(!isDefined(self.pers["team"]))
+		iprintln(&"MPSCRIPT_CONNECTED", self);
 
 	lpselfnum = self getEntityNumber();
 	lpselfguid = self getGuid();
@@ -456,6 +453,7 @@ Callback_PlayerConnect()
 
 Callback_PlayerDisconnect()
 {
+	self notify("disconnect");
 	iprintln(&"MPSCRIPT_DISCONNECTED", self);
 
 	lpselfnum = self getEntityNumber();
@@ -681,7 +679,10 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		doKillcam = false;
 	
 	if(doKillcam)
-		self thread maps\mp\uox\_uox_killcam::killcam(attackerNum, delay);
+	{
+		self thread maps\mp\uox\_uox_killcam::killcam(attackerNum, lpattackguid, lpattackerteam,
+			lpattackname, delay);
+	}
 	else
 		self thread maps\mp\uox\_uox_respawns::respawn();
 }

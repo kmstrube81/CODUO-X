@@ -1,11 +1,22 @@
-killcam(attackerNum, delay)
+killcam(attackerNum, attackerGUID, attackerTeam, attackerName, delay)
 {
+	
 	self endon("spawned");
 
 	// killcam
 	if(attackerNum < 0)
 		return;
-
+	
+	if([[level.getVars]]("scr_final_killcam"))
+	{
+		level.finalKillcamTime = getTime();
+		level.finalKillcamSpectatorClient = attackerNum;
+		level.finalKillcamAttacker = attackerName;
+		level.finalKillcamAttackerGUID = attackerGUID;
+		level.finalKillcamAttackerTeam = attackerTeam;
+		level.finalKillcamDelay = delay;
+	}
+	
 	self.sessionstate = "spectator";
 	self.spectatorclient = attackerNum;
 	self.archivetime = delay + 7;
@@ -23,86 +34,69 @@ killcam(attackerNum, delay)
 		return;
 	}
 
-	if(!isDefined(self.kc_topbar))
-	{
-		self.kc_topbar = newClientHudElem(self);
-		self.kc_topbar.archived = false;
-		self.kc_topbar.x = 0;
-		self.kc_topbar.y = 0;
-		self.kc_topbar.alpha = 0.5;
-		self.kc_topbar setShader("black", 640, 112);
-	}
+	doKillCam(&"MPSCRIPT_KILLCAM", [[level.getVars]]("scr_forcerespawn") != 1,
+		self.archivetime - delay);
+	
+	self.sessionstate = "dead";
+	self thread maps\mp\uox\_uox_respawns::respawn();
+}
 
-	if(!isDefined(self.kc_bottombar))
-	{
-		self.kc_bottombar = newClientHudElem(self);
-		self.kc_bottombar.archived = false;
-		self.kc_bottombar.x = 0;
-		self.kc_bottombar.y = 368;
-		self.kc_bottombar.alpha = 0.5;
-		self.kc_bottombar setShader("black", 640, 112);
-	}
+doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
+{
+	if(!isDefined(extradelay))
+		extradelay = 0;
+	options = [];
+	options["archived"] = false;
+	options["x"] = 0;
+	options["y"] = 0;
+	options["alpha"] = 0.5;
+	options["width"] = 640;
+	options["height"] = 112;
+	maps\mp\uox\_uox_hud::updateClientHUDElement("kc_topbar", "shader",  "black", options);
+	
+	options["y"] = 368;
+	maps\mp\uox\_uox_hud::updateClientHUDElement("kc_bottombar", "shader", "black", options);
 
-	if(!isDefined(self.kc_title))
-	{
-		self.kc_title = newClientHudElem(self);
-		self.kc_title.archived = false;
-		self.kc_title.x = 320;
-		self.kc_title.y = 40;
-		self.kc_title.alignX = "center";
-		self.kc_title.alignY = "middle";
-		self.kc_title.sort = 1; // force to draw after the bars
-		self.kc_title.fontScale = 3.5;
-	}
-	self.kc_title setText(&"MPSCRIPT_KILLCAM");
+	options = [];
+	options["archived"] = false;
+	options["x"] = 320;
+	options["y"] = 40;
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["sort"] = 2;
+	options["fontscale"] = 3.5;
+	maps\mp\uox\_uox_hud::updateClientHUDElement("kc_title", "text", kcTitle, options);
 
-	if ( getcvar("scr_forcerespawn") != "1" )
+	if ( doSkipText )
 	{
-		if(!isDefined(self.kc_skiptext))
-		{
-			self.kc_skiptext = newClientHudElem(self);
-			self.kc_skiptext.archived = false;
-			self.kc_skiptext.x = 320;
-			self.kc_skiptext.y = 70;
-			self.kc_skiptext.alignX = "center";
-			self.kc_skiptext.alignY = "middle";
-			self.kc_skiptext.sort = 1; // force to draw after the bars
-		}
-		self.kc_skiptext setText(&"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN");
+		options["y"] = 70;
+		options["fontscale"] = 1.0;
+		options["sort"] = 1;
+		maps\mp\uox\_uox_hud::updateClientHUDElement("kc_skiptext", "text",
+			game["respawnText"], options);
 	}
 	
-	if(!isDefined(self.kc_timer))
-	{
-		self.kc_timer = newClientHudElem(self);
-		self.kc_timer.archived = false;
-		self.kc_timer.x = 320;
-		self.kc_timer.y = 428;
-		self.kc_timer.alignX = "center";
-		self.kc_timer.alignY = "middle";
-		self.kc_timer.fontScale = 3.5;
-		self.kc_timer.sort = 1;
-	}
-	self.kc_timer setTenthsTimer(self.archivetime - delay);
-
+	options["y"] = 428;
+	options["fontscale"] = 3.5;
+	maps\mp\uox\_uox_hud::updateClientHUDElement("kc_timer", "tenthsTimer", kcTimer, options);
+	
 	self thread spawnedKillcamCleanup();
 	self thread waitSkipKillcamButton();
-	self thread waitKillcamTime();
+	self thread waitKillcamTime(extradelay);
 	self waittill("end_killcam");
 
 	self removeKillcamElements();
 
 	self.spectatorclient = -1;
 	self.archivetime = 0;
-	self.sessionstate = "dead";
-	
-	self thread maps\mp\uox\_uox_respawns::respawn();
+
 }
 
-waitKillcamTime()
+waitKillcamTime(extradelay)
 {
 	self endon("end_killcam");
 
-	wait(self.archivetime - 0.05);
+	wait(self.archivetime - extradelay - 0.05);
 	self notify("end_killcam");
 }
 
@@ -121,16 +115,11 @@ waitSkipKillcamButton()
 
 removeKillcamElements()
 {
-	if(isDefined(self.kc_topbar))
-		self.kc_topbar destroy();
-	if(isDefined(self.kc_bottombar))
-		self.kc_bottombar destroy();
-	if(isDefined(self.kc_title))
-		self.kc_title destroy();
-	if(isDefined(self.kc_skiptext))
-		self.kc_skiptext destroy();
-	if(isDefined(self.kc_timer))
-		self.kc_timer destroy();
+	maps\mp\uox\_uox_hud::deleteClientHUDElement("kc_topbar");
+	maps\mp\uox\_uox_hud::deleteClientHUDElement("kc_bottombar");
+	maps\mp\uox\_uox_hud::deleteClientHUDElement("kc_title");
+	maps\mp\uox\_uox_hud::deleteClientHUDElement("kc_skiptext");
+	maps\mp\uox\_uox_hud::deleteClientHUDElement("kc_timer");
 }
 
 spawnedKillcamCleanup()
@@ -139,4 +128,79 @@ spawnedKillcamCleanup()
 
 	self waittill("spawned");
 	self removeKillcamElements();
+}
+
+finalKillcamListener()
+{
+	level waittill("postround");
+	
+	if(!isDefined(level.finalKillcamTime))
+	{
+		level notify("end_finalkillcam");
+		return; //if no defined killcam data just abort
+	}
+	
+	level.didFinalKillcam = true;
+	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
+	
+	logPrint("A;" + level.finalKillcamAttackerGUID + ";" + level.finalKillcamSpectatorClient + ";" +
+		level.finalKillcamAttackerTeam + ";" + level.finalKillcamAttacker + ";" +
+		"final_killcam" + "\n");
+
+	// wait till the next server frame to allow code a chance to update archivetime if it needs trimming
+	wait 0.05;
+	
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{	
+		player = players[i];
+		
+		player notify("end_killcam");
+	
+		if(player.sessionstate != "dead")
+		{
+			currentorigin = self.origin;
+			currentangles = self.angles;
+			level.specmode = "death";
+			
+			if(!isDefined(currentorigin) || !isDefined(currentangles))
+				player thread maps\mp\uox\_uox_respawns::spawnSpectator();
+			else
+				player thread maps\mp\uox\_uox_respawns::spawnSpectator(currentorigin + (0, 0, 60),
+				currentangles);
+		}
+		
+		player thread doFinalKillcam();	
+	}
+	wait 9;
+	level notify("end_finalkillcam");
+}
+
+doFinalKillcam()
+{
+	self endon("spawned");
+
+	self.sessionstate = "spectator";
+	self.spectatorclient = level.finalKillcamSpectatorClient;
+	delay = level.finalKillcamDelay + level.finalKillcamTime;
+	self.archivetime = delay + 7;
+	extradelay = delay - 2;
+
+	maps\mp\gametypes\_teams::SetKillcamSpectatePermissions();
+
+	// wait till the next server frame to allow code a chance to update archivetime if it needs trimming
+	wait 0.05;
+
+	if(self.archivetime <= delay)
+	{
+		self.spectatorclient = -1;
+		self.archivetime = 0;
+	
+		maps\mp\gametypes\_teams::SetSpectatePermissions();
+		return;
+	}
+	doKillCam(game["finalKillcamText"], false, self.archivetime - delay, extradelay);
+	
+	maps\mp\gametypes\_teams::SetSpectatePermissions();
+	
 }

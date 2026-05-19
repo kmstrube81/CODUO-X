@@ -81,6 +81,24 @@ arraySlice(arr, startIndex, numToRemove)
 }
 
 /* *************************************************************************************************
+**** arrayFind(array arr, mixedtype searchVal)
+****
+**** USAGE: searches an array for searchVal
+****
+**** returns the index of the first instance of the search value
+****  
+************************************************************************************************* */
+arrayFind(arr, searchVal)
+{
+	for(i = 0; i < arr.size; i++)
+	{
+		if( searchVal == arr[i])
+			return i;
+	}
+	return undefined;
+}
+
+/* *************************************************************************************************
 **** searchObjArrayByProperty(array arr, string property, mixedtype searchVal)
 ****
 **** USAGE: searches an array of objects for a property value

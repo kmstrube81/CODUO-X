@@ -181,7 +181,7 @@ checkScoreLimit()
 	if([[level.getVars]]("scr_score_rounds"))
 	{ //init team scores if scoring rounds
 		alliedscore = level.alliedscore;
-		axisscore = level.axiscore;
+		axisscore = level.axisscore;
 	}
 	else
 	{ //init teamscores if not scoring rounds
@@ -256,7 +256,7 @@ checkScoreLimit()
 			players[i].pers["roundswon"] = players[i].score;	
 			game["roundsplayed"]++;
 			wait 5; //wait five seconds before ending round
-			maps\mp\uox\_uox_hud::createHUDEndRoundScore(3, true, false); //create game over scoreboard
+			maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
 	
 			level thread endMap(); //end map
 			return;
@@ -289,6 +289,12 @@ checkScoreLimit()
 ************************************************************************************************* */
 endMap()
 {
+	
+	if(!level.didFinalKillcam)
+	{
+		level notify("postround");
+		level waittill("end_finalkillcam");
+	}
 	game["state"] = "intermission"; //sets game to intermission
 	level notify("intermission"); //send intermission notify
 	
@@ -478,6 +484,9 @@ startGame()
 	//not currently in grace period
 	level.graceperiod = false;
 	
+	//start Final Killcam Listener
+	level thread maps\mp\uox\_uox_killcam::finalKillcamListener();
+	
 	//if timelimit is set
 	if([[level.getVars]]("scr_timelimit") > 0)
 	{
@@ -576,7 +585,7 @@ checkTimeLimit()
 				endRound("allies"); //end round in allies favor
 			else
 			{	//axis had the higher score
-				endRound("xis");
+				endRound("axis");
 			}
  		}
 		else //free for all game
@@ -734,7 +743,7 @@ checkMatchStart()
 **** for all games, draw, or reset. doKillcam flag is to specify whether to wait for a final killcam
 **** 
 ************************************************************************************************* */
-endRound(roundwinner, doKillcam)
+endRound(roundwinner)
 {
 	//overtime check for single round games
 	if(roundwinner == "deathmatch" && [[level.getVars]]("scr_roundlimit") == 1
@@ -748,10 +757,6 @@ endRound(roundwinner, doKillcam)
 		doHalftime = true;
 	else
 		doHalftime = false;
-	
-	//if killcam flag wasn't specified
-	if(!isDefined(doKillcam))
-		doKillcam = false; //don't wait
 	
 	level.switchprevent = false; //allow player to switch teams at end of round
 	level endon("kill_endround"); //abort end round if notify is sent
@@ -1045,6 +1050,7 @@ endRound(roundwinner, doKillcam)
 		level waittill("final_killcam_over"); //wait until kilcam is over
 	}
 */
+	level waittill("end_finalkillcam");
 	if(game["matchstarted"]) //if game is in progress (not pregame)
 	{
 		if( ([[level.getVars]]("scr_countdraws") && (roundwinner == "draw" || tied) )
@@ -1059,7 +1065,7 @@ endRound(roundwinner, doKillcam)
 			level.mapended = true; //set map ended flag
 			
 			iprintln(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit has been reached
-			maps\mp\uox\_uox_hud::createHUDEndRoundScore(3, true, false); //update final scoreboard
+			maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //update final scoreboard
 			
 			level thread endMap(); //end map
 			return; //exit
@@ -1092,7 +1098,7 @@ endRound(roundwinner, doKillcam)
 	}
 		
 	/* Next Round Timer */
-	maps\mp\uox\_uox_hud::createHUDNextRound(3, false, doHalftime);
+	maps\mp\uox\_uox_hud::createHUDNextRound([[level.getVars]]("sv_endRoundScoreboardTime"), false, doHalftime);
 	
 	if([[level.getVars]]("scr_roundreset")) //if scores are set to reset each round
 	{
@@ -1358,7 +1364,7 @@ checkRoundLimit()
 	level.mapended = true; //set round ended flag to true
 	
 	iprintln(&"MPSCRIPT_ROUND_LIMIT_REACHED"); //announce in feed that round limit reached
-	maps\mp\uox\_uox_hud::createHUDEndRoundScore(3, true, false); //create game over scoreboard
+	maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
 	
 	level thread endMap(); //end map
 }
@@ -2487,7 +2493,36 @@ updateScoreLimit(scorelimit)
 *************************************************************************************************** */
 updateKillcam(enableKillcam)
 {
-	setarchive(enableKillcam);
+	if(enableKillcam)
+		setarchive(true);
+	else if([[level.getVars]]("scr_final_killcam"))
+		setarchive(true);
+	else
+		setarchive(false);
+}
+
+/* **************************************************************************************************
+**** updateFinalKillCam(bool enableKillcam)
+****
+**** var callback
+**** updates the killcam mode
+****
+*************************************************************************************************** */
+updateFinalKillcam(enableKillcam)
+{
+	level.finalKillcamTime = undefined;
+	level.finalKillcamSpectatorClient = undefined;
+	level.finalKillcamAttacker = undefined;
+	level.finalKillcamAttackerGUID = undefined;
+	level.finalKillcamAttackerTeam = undefined;
+	level.finalKillcamDelay = undefined;
+	
+	if(enableKillcam)
+		setarchive(true);
+	else if([[level.getVars]]("scr_killcam"))
+		setarchive(true);
+	else
+		setarchive(false);
 }
 
 /* **************************************************************************************************
@@ -2507,9 +2542,17 @@ updateBattleRank(battlerank)
 	else
 		drawfriend = false;
 	
+	//get index of rankchange check loop
+	index = maps\mp\uox\_uox_arrays::arrayFind(level.slowLoop, 
+			maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
+	
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
-	{
+	{	
+		if(!isDefined(index)) //if rank change check is not in loop, add it
+			level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop,
+				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
+				
 		// for all living players, show the appropriate headicon
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++)
@@ -2568,6 +2611,11 @@ updateBattleRank(battlerank)
 				player.headicon = "";
 				player.statusicon = "";
 		}
+	}
+	if(battlerank == 0)
+	{
+		if(isDefined(index)) //if rank change check is in loop, remove it
+			level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, index);
 	}
 }
 
@@ -2683,15 +2731,38 @@ updateTeamBalance(teamBalance)
 		return;
 	
 	level.teambalance = teamBalance;
+	
+	index = maps\mp\uox\_uox_arrays::arrayFind(level.slowLoop, 
+				maps\mp\uox\_uox::TeamBalance_Check);
+			
 	if(teamBalance)
 	{
 		if(game["roundbased"])
+		{
+			if(isDefined(index)) //if team balance function is in slow loop, remove it
+				level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, index);
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
+		}
 		else
 		{
+			if(!isDefined(index)) //if team balance function is not in slow loop, add it
+				level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush( level.slowLoop, 
+					maps\mp\uox\_uox::TeamBalance_Check);
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check();
 			level.teambalancetimer = 0;
 		}
+	}
+	else if(isDefined(index)) //if team balance function is in slow loop, remove it
+		level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, index);
+}
+
+TeamBalance_Check()
+{
+	level.teambalancetimer++;
+	if (level.teambalancetimer >= 60)
+	{
+		level thread maps\mp\gametypes\_teams::TeamBalance_Check();
+		level.teambalancetimer = 0;
 	}
 }
 

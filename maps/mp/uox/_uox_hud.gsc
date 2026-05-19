@@ -12,6 +12,8 @@ precache()
 	precacheString(game["respawnText"]);
 	game["killcamText"] = &"MPSCRIPT_KILLCAM";
 	precacheString(game["killcamText"]);
+	game["finalKillcamText"] = &"FINAL KILLCAM";
+	precacheString(game["finalKillcamText"]);
 	game["alliesWinText"] = &"MPSCRIPT_ALLIES_WIN";
 	precacheString(game["alliesWinText"]);
 	game["axisWinText"] = &"MPSCRIPT_AXIS_WIN";
@@ -192,6 +194,10 @@ updateClientHUDElement(name, type, value, options)
 			height = options["height"];
 		else
 			height = 16;
+		if(isDefined(options["archived"]))
+			element.archived = options["archived"];
+		if(isDefined(options["sort"]))
+			element.sort = options["sort"];
 	}
 	
 	//set value
@@ -199,6 +205,9 @@ updateClientHUDElement(name, type, value, options)
 	{
 		case "timer":
 			element setTimer(value);
+			break;
+		case "tenthsTimer":
+			element setTenthsTimer(value);
 			break;
 		case "number":
 			element setValue(value);
@@ -495,7 +504,7 @@ updateServerScoreboard()
 	}
 	level.scoreboardTeam1Score = updateHUDElement(level.scoreboardTeam1Score, "number", value, options);
 	
-	if(getCvarInt("sv_showScoreboardScoreLimit") > 0 && ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") > 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") > 0 )))
+	if([[level.getVars]]("sv_showScoreboardScoreLimit") > 0 && ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") > 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") > 0 )))
 	{
 		level.scoreboardScoreLimit = true;
 	}
@@ -635,14 +644,7 @@ updatePlayerScoreboard()
 		else
 			shader = game["headicon_axis"];
 		
-		if(!isDefined(player.scoreboardShader))
-			player.scoreboardShader = newClientHudElem(player);
-		player.scoreboardShader.x = options["x"];
-		player.scoreboardShader.y = options["y"];
-		player.scoreboardShader.alignX = options["alignX"];
-		player.scoreboardShader.alignY = options["alignY"];
-		player.scoreboardShader.fontScale = options["fontScale"];
-		player.scoreboardShader setShader(shader, options["width"], options["height"]);
+		player updateClientHUDElement("scoreboardShader", "shader", shader, options);
 		
 		//Axis Score
 		options["x"] = 58;
@@ -653,28 +655,15 @@ updatePlayerScoreboard()
 		else
 			value = player.score;
 		
-		if(!isDefined(player.scoreboardScore))
-			player.scoreboardScore = newClientHudElem(player);
-		player.scoreboardScore.x = options["x"];
-		player.scoreboardScore.y = options["y"];
-		player.scoreboardScore.alignX = options["alignX"];
-		player.scoreboardScore.alignY = options["alignY"];
-		player.scoreboardScore.fontScale = options["fontScale"];
-		player.scoreboardScore setValue(value);
+		player updateClientHUDElement("scoreboardScore", "number", value, options);
 		
 		if(isDefined(level.scoreboardScoreLimit) && level.scoreboardScoreLimit)
 		{
 			//Divider
 			options["x"] = 62;
 			options["alignX"] = "center";
-			if(!isDefined(player.scoreboardDiv))
-				player.scoreboardDiv = newClientHudElem(player);
-			player.scoreboardDiv.x = options["x"];
-			player.scoreboardDiv.y = options["y"];
-			player.scoreboardDiv.alignX = options["alignX"];
-			player.scoreboardDiv.alignY = options["alignY"];
-			player.scoreboardDiv.fontScale = options["fontScale"];
-			player.scoreboardDiv setText(game["dividerText"]);
+			
+			player updateClientHUDElement("scoreboardDiv", "text", game["dividerText"], options);
 			
 			//Axis Limit
 			options["x"] = 66;
@@ -698,14 +687,7 @@ updatePlayerScoreboard()
 			else
 				value = [[level.getVars]]("scr_scorelimit");
 			
-			if(!isDefined(player.scoreboardLimit))
-				player.scoreboardLimit = newClientHudElem(player);
-			player.scoreboardLimit.x = options["x"];
-			player.scoreboardLimit.y = options["y"];
-			player.scoreboardLimit.alignX = options["alignX"];
-			player.scoreboardLimit.alignY = options["alignY"];
-			player.scoreboardLimit.fontScale = options["fontScale"];
-			player.scoreboardLimit setValue(value);
+			player updateClientHUDElement("scoreboardLimit", "number", value, options);
 		}
 				
 	}
@@ -776,50 +758,37 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	
 	thread createHUDEndRoundScore(time, lastRound, doHalfTime);
 
-	if(!isDefined(level.round))
-		level.round = newHudElem();
-	level.round.x = 540;
-	level.round.y = 360;
-	level.round.alignX = "center";
-	level.round.alignY = "middle";
-	level.round.fontScale = 1;
-	level.round.color = (1, 1, 0);
 	if(game["roundsplayed"] >= [[level.getVars]]("scr_roundlimit"))
 	{
-		level.round setText(game["OTroundText"]);
+		text = game["OTroundText"];
 		round = game["roundsplayed"] + 1 - [[level.getVars]]("scr_roundlimit");
 	}
 	else
 	{
-		level.round setText(game["roundText"]);	
+		text = game["roundText"];	
 		round = game["roundsplayed"] + 1;
 	}
-		
-	if(!isDefined(level.roundnum))
-		level.roundnum = newHudElem();
-	level.roundnum.x = 540;
-	level.roundnum.y = 380;
-	level.roundnum.alignX = "center";
-	level.roundnum.alignY = "middle";
-	level.roundnum.fontScale = 1;
-	level.roundnum.color = (1, 1, 0);
-	
-	level.roundnum setValue(round);
 
-	if(!isDefined(level.starting))
-		level.starting = newHudElem();
-	level.starting.x = 540;
-	level.starting.y = 400;
-	level.starting.alignX = "center";
-	level.starting.alignY = "middle";
-	level.starting.fontScale = 1;
-	level.starting.color = (1, 1, 0);
+	options = [];
+	options["x"] = 540;
+	options["y"] = 360;
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["fontscale"] = 1;
+	options["color"] = (1, 1, 0);
+	level.round = updateHUDElement(level.round, "text", text, options);
 	
+	options["y"] = 380;
+	level.roundnum = updateHUDElement(level.roundnum, "number", round, options);
+
 	if(doHalfTime)
-		level.starting setText(game["resumingText"]);
+		text = game["resumingText"];
 	else
-		level.starting setText(game["startingText"]);
+		text = game["startingText"];
 
+	options["y"] = 400;
+	level.starting = updateHUDElement(level.starting, "text", text, options);
+	
 	// Give all players a count-down stopwatch
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++)
@@ -845,14 +814,13 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	if(time < 3)
 		time = 3;
 	
-	if(!isDefined(level.ersHeaderHUD))
-		level.ersHeaderHUD = newHudElem();
-	level.ersHeaderHUD.x = 575;
-	level.ersHeaderHUD.y = 237;
-	level.ersHeaderHUD.alignX = "center";
-	level.ersHeaderHUD.alignY = "middle";
-	level.ersHeaderHUD.fontScale = 1;
-	level.ersHeaderHUD.color = (0, 1, 0);
+	options = [];
+	options["x"] = 575;
+	options["y"] = 237;
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["fontscale"] = 1;
+	options["color"] = (0, 1, 0);
 	
 	//if in OT
 	if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
@@ -946,257 +914,163 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	{
 		headerText = game["overtimemodeText"]; //set header to Overtime
 	}
-	if(isDefined(headerText)) //if headerText was set
-		level.ersHeaderHUD setText(headerText); //change Header Text on UI element
+	if(isDefined(headerText)) //if headerText was set		
+		level.ersHeaderHUD = updateHUDElement(level.ersHeaderHUD, "text", headerText, options);
+		//change Header Text on UI element
 	
 	if(round > 0) //if we started playing
 	{
 		//Scoreboard Text
-		if(!isDefined(level.ersBoardHUD))
-			level.ersBoardHUD = newHudElem();
-		level.ersBoardHUD.x = 575;
-		level.ersBoardHUD.y = 262;
-		level.ersBoardHUD.alignX = "center";
-		level.ersBoardHUD.alignY = "middle";
-		level.ersBoardHUD.fontScale = 1;
-		level.ersBoardHUD.color = (.99, .99, .75);
-		level.ersBoardHUD setText(game["scoreboardText"]);
+		options["y"] = 262;
+		options["color"] = (.99, .99, .75);
+		level.ersBoardHUD = updateHUDElement(level.ersBoardHUD, "text", game["scoreboardText"], options);
 
-		//Team1 Text
-		level.ersTeam1HUD = newHudElem();
-		level.ersTeam1HUD.x = 535;
-		level.ersTeam1HUD.y = 277;
-		level.ersTeam1HUD.alignX = "center";
-		level.ersTeam1HUD.alignY = "middle";
-		level.ersTeam1HUD.fontScale = .75;
-		level.ersTeam1HUD.color = (.73, .99, .73);
-		
-		//Team2 Text
-		level.ersTeam2HUD = newHudElem();
-		level.ersTeam2HUD.x = 615;
-		level.ersTeam2HUD.y = 277;
-		level.ersTeam2HUD.alignX = "center";
-		level.ersTeam2HUD.alignY = "middle";
-		level.ersTeam2HUD.fontScale = .75;
-		level.ersTeam2HUD.color = (.85, .99, .99);
-		
 		if(level.uox_teamplay) //if team game
 		{ 	//set Team Texts and Team Scores
-			level.ersTeam1HUD setText(game["team1Text"]);
-			level.ersTeam2HUD setText(game["team2Text"]);
+			team1Text = game["team1Text"];
+			team2Text = game["team2Text"];
 			matchScoreTeam1 = maps\mp\uox\_uox::getTeam1Score();
 			matchScoreTeam2 = maps\mp\uox\_uox::getTeam2Score();
 		}
 		else //if free for all game
 		{	//set Leader/You Texts and Score
-			level.ersTeam1HUD setText(game["leaderText"]);
-			level.ersTeam2HUD setText(game["youText"]);	
+			team1Text = game["leaderText"];
+			team2Text = game["youText"];	
 			leader = maps\mp\uox\_uox::getHighScore([[level.getVars]]("scr_score_rounds"));
 			if([[level.getVars]]("scr_score_rounds"))
 				matchScoreTeam1 = leader.roundsWon;
 			else
 				matchScoreTeam1 = leader.score;
 		}
+
+		//Team1 Text
+		options["x"] = 535;
+		options["y"] = 277;
+		options["fontscale"] = .75;
+		options["color"] = (.73, .99, .73);
+		level.ersTeam1HUD = updateHUDElement(level.ersTeam1HUD, "text", team1Text, options);
+		
+		//Team2 Text
+		options["x"] = 615;
+		options["color"] = (.85, .99, .99);
+		level.ersTeam2HUD = updateHUDElement(level.ersTeam2HUD, "text", team2Text, options);
 		
 		if([[level.getVars]]("scr_halftime")) //if halftime is enabled
 		{
-			// First Half Score Display
-			if(!isDefined(level.ers1HScoreHUD))
-				level.ers1HScoreHUD = newHudElem();
-			level.ers1HScoreHUD.x = 575;
-			level.ers1HScoreHUD.y = 290;
-			level.ers1HScoreHUD.alignX = "center";
-			level.ers1HScoreHUD.alignY = "middle";
-			level.ers1HScoreHUD.fontScale = .75;
-			level.ers1HScoreHUD.color = (.99, .99, .75);
-			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 1st Half text
-				level.ers1HScoreHUD setText(game["1HText"]);
-			else //if game is in OT set OT 1H text
-				level.ers1HScoreHUD setText(game["OT1HText"]);
-			
-			//First Half Team 1 Score
-			if(!isDefined(level.ers1HAxisScoreHUD))
-				level.ers1HAxisScoreHUD = newHudElem();
-			level.ers1HAxisScoreHUD.x = 532;
-			level.ers1HAxisScoreHUD.y = 290;
-			level.ers1HAxisScoreHUD.alignX = "center";
-			level.ers1HAxisScoreHUD.alignY = "middle";
-			level.ers1HAxisScoreHUD.fontScale = .75;
-			level.ers1HAxisScoreHUD.color = (.73, .99, .75);
-
-			// Second Half Score Display
-			if(!isDefined(level.ers2HScoreHUD))
-				level.ers2HScoreHUD = newHudElem();
-			level.ers2HScoreHUD.x = 575;
-			level.ers2HScoreHUD.y = 307;
-			level.ers2HScoreHUD.alignX = "center";
-			level.ers2HScoreHUD.alignY = "middle";
-			level.ers2HScoreHUD.fontScale = .75;
-			level.ers2HScoreHUD.color = (.99, .99, .75);
-			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 2nd Half text
-				level.ers2HScoreHUD setText(game["2HText"]);
-			else //if game is in OT set OT 2H text
-				level.ers2HScoreHUD setText(game["OT2HText"]);
-			
-			//Second Half Team 1 Score
-			if(!isDefined(level.ers2HAxisScoreHUD))
-				level.ers2HAxisScoreHUD = newHudElem();
-			level.ers2HAxisScoreHUD.x = 532;
-			level.ers2HAxisScoreHUD.y = 307;
-			level.ers2HAxisScoreHUD.alignX = "center";
-			level.ers2HAxisScoreHUD.alignY = "middle";
-			level.ers2HAxisScoreHUD.fontScale = .75;
-			level.ers2HAxisScoreHUD.color = (.85, .99, .99);
-								
-			// Match Score Display
-			if(!isDefined(level.ersMatchScoreHUD))
-				level.ersMatchScoreHUD = newHudElem();
-			level.ersMatchScoreHUD.x = 575;
-			level.ersMatchScoreHUD.y = 327;
-			level.ersMatchScoreHUD.alignX = "center";
-			level.ersMatchScoreHUD.alignY = "middle";
-			level.ersMatchScoreHUD.fontScale = .8;
-			level.ersMatchScoreHUD.color = (.99, .99, .75);
-			level.ersMatchScoreHUD setText(game["matchScoreText"]);
-
-			// Match Axis Score Display
-			if(!isDefined(level.ersMatchAxisScoreHUD))
-				level.ersMatchAxisScoreHUD = newHudElem();
-			level.ersMatchAxisScoreHUD.x = 532;
-			level.ersMatchAxisScoreHUD.color = (.85, .99, .99);
-			level.ersMatchAxisScoreHUD.y = 327;
-			level.ersMatchAxisScoreHUD.alignX = "center";
-			level.ersMatchAxisScoreHUD.alignY = "middle";
-			level.ersMatchAxisScoreHUD.fontScale = 1;
-			level.ersMatchAxisScoreHUD setValue(matchScoreTeam1);
-
 			if(level.uox_teamplay) //if team game
 			{ 	//set half scores
 				firstHalfTeam1Score = game["round1team1score"];
 				firstHalfTeam2Score = game["round1team2score"];
 				secondHalfTeam1Score = game["round2team1score"];
 				secondHalfTeam2Score = game["round2team2score"];
-				//1st Half Team 1 Score
-				level.ers1HAxisScoreHUD setValue(firstHalfTeam1Score);
-				//2nd Half Team 1 Score
-				level.ers2HAxisScoreHUD setValue(secondHalfTeam1Score);
 				
+				options["x"] = 618;
+				options["y"] = 290;
+				options["color"] = (.85, .99, .99);
 				//1st Half Team 2 score
-				if(!isDefined(level.ers1HAlliesScoreHUD))
-					level.ers1HAlliesScoreHUD = newHudElem();
-				level.ers1HAlliesScoreHUD.x = 618;
-				level.ers1HAlliesScoreHUD.y = 290;
-				level.ers1HAlliesScoreHUD.alignX = "center";
-				level.ers1HAlliesScoreHUD.alignY = "middle";
-				level.ers1HAlliesScoreHUD.fontScale = .75;
-				level.ers1HAlliesScoreHUD.color = (.85, .99, .99);
-				level.ers1HAlliesScoreHUD setValue(firstHalfTeam2Score);
+				level.ers1HAlliesScoreHUD = updateHUDElement(level.ers1HAlliesScoreHUD, "number",
+					firstHalfTeam2Score, options);
 				
+				options["y"] = 307;
+				options["color"] = (.73, .99, .75);
 				//2nd Half Team 2 score
-				if(!isDefined(level.ers2HAlliesScoreHUD))
-					level.ers2HAlliesScoreHUD = newHudElem();
-				level.ers2HAlliesScoreHUD.x = 618;
-				level.ers2HAlliesScoreHUD.y = 307;
-				level.ers2HAlliesScoreHUD.alignX = "center";
-				level.ers2HAlliesScoreHUD.alignY = "middle";
-				level.ers2HAlliesScoreHUD.fontScale = .75;
-				level.ers2HAlliesScoreHUD.color = (.73, .99, .75);
-				level.ers2HAlliesScoreHUD setValue(secondHalfTeam2Score);
+				level.ers2HAlliesScoreHUD = updateHUDElement(level.ers2HAlliesScoreHUD, "number", 
+					secondHalfTeam2Score, options);
 				
+				options["y"] = 327;
+				options["fontscale"] = 1;
 				//Match Team 2 Score
-				if(!isDefined(level.ersMatchAlliesScoreHUD))
-					level.ersMatchAlliesScoreHUD = newHudElem();
-				level.ersMatchAlliesScoreHUD.x = 618;
-				level.ersMatchAlliesScoreHUD.color = (.73, .99, .75);
-				level.ersMatchAlliesScoreHUD.y = 327;
-				level.ersMatchAlliesScoreHUD.alignX = "center";
-				level.ersMatchAlliesScoreHUD.alignY = "middle";
-				level.ersMatchAlliesScoreHUD.fontScale = 1;
-				level.ersMatchAlliesScoreHUD setValue(matchScoreTeam2);
+				level.ersMatchAlliesScoreHUD = updateHUDElement(level.ersMatchAlliesScoreHUD, "number", 
+					matchScoreTeam2, options);
 			}
 			else //if Free for All game mode
 			{	
 				//set half scores
 				firstHalfTeam1Score = leader.pers["1HScore"];
 				secondHalfTeam1Score = leader.pers["2HScore"];
-				//1st Half Leader Score
-				level.ers1HAxisScoreHUD setValue(firstHalfTeam1Score);
-				//1st Half Leader Score
-				level.ers2HAxisScoreHUD setValue(secondHalfTeam1Score);
 				//create HUD Scores for players
 				createPlayerHUDEndRoundScore();
 			}
+			// First Half Score Display
+			options["x"] = 575;
+			options["y"] = 290;
+			options["color"] = (.99, .99, .75);
+			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 1st Half text
+				text = game["1HText"];
+			else //if game is in OT set OT 1H text
+				text = game["OT1HText"];
+			level.ers1HScoreHUD = updateHUDElement(level.ers1HScoreHUD, "text", text, options);
+			
+			options["x"] = 532;
+			options["color"] = (.73, .99, .75);
+			
+			//First Half Team 1 Score
+			level.ers1HAxisScoreHUD = updateHUDElement(level.ers1HAxisScoreHUD, "number", 
+				firstHalfTeam1Score, options);
+			
+			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 2nd Half text
+				text = game["2HText"];
+			else //if game is in OT set OT 2H text
+				text = game["OT2HText"];
+			
+			options["x"] = 575;
+			options["y"] = 307;
+			options["color"] = (.99, .99, .75);
+			// Second Half Score Display
+			level.ers2HScoreHUD = updateHUDElement(level.ers2HScoreHUD, "text", text, options);
+			
+			options["x"] = 532;
+			options["color"] = (.85, .99, .99);
+			//Second Half Team 1 Score
+			level.ers2HAxisScoreHUD = updateHUDElement(level.ers2HAxisScoreHUD, "number", 
+				secondHalfTeam1Score, options);
+
+			options["x"] = 575;
+			options["y"] = 327;
+			options["fontscale"] = .8;
+			options["color"] = (.99, .99, .75);
+			// Match Score Display
+			level.ersMatchScoreHUD = updateHUDElement(level.ersMatchScoreHUD, "text", 
+				game["matchScoreText"], options);
+
+			options["x"] = 532;
+			options["fontscale"] = 1;
+			options["color"] = (.85, .99, .99);
+			// Match Axis Score Display
+			level.ersMatchAxisScoreHUD = updateHUDElement(level.ersMatchAxisScoreHUD, "number", 
+				matchScoreTeam1, options);
 		}
 		else //halftime disabled
 		{
+			options["x"] = 575;
+			options["y"] = 290;
+			options["fontscale"] = .8;
+			options["color"] = (.99, .99, .75);
 			// Match Score Display
-			if(!isDefined(level.ersMatchScoreHUD))
-				level.ersMatchScoreHUD = newHudElem();
-			level.ersMatchScoreHUD.x = 575;
-			level.ersMatchScoreHUD.y = 290;
-			level.ersMatchScoreHUD.alignX = "center";
-			level.ersMatchScoreHUD.alignY = "middle";
-			level.ersMatchScoreHUD.fontScale = .75;
-			level.ersMatchScoreHUD.color = (.99, .99, .75);
-			level.ersMatchScoreHUD setText(game["matchScoreText"]);
+			level.ersMatchScoreHUD = updateHUDElement(level.ersMatchScoreHUD, "text", 
+				game["matchScoreText"], options);
 			
+			options["x"] = 532;
+			options["fontscale"] = .75;
+			options["color"] = (.73, .99, .75);
 			// Match Score Team 1 Score
-			if(!isDefined(level.ersMatchAxisScoreHUD))
-				level.ersMatchAxisScoreHUD = newHudElem();
-			level.ersMatchAxisScoreHUD.x = 532;
-			level.ersMatchAxisScoreHUD.y = 290;
-			level.ersMatchAxisScoreHUD.alignX = "center";
-			level.ersMatchAxisScoreHUD.alignY = "middle";
-			level.ersMatchAxisScoreHUD.fontScale = .75;
-			level.ersMatchAxisScoreHUD.color = (.73, .99, .75);
+			level.ersMatchAxisScoreHUD = updateHUDElement(level.ersMatchAxisScoreHUD, "number", 
+				matchScoreTeam1, options);
 
 			if(level.uox_teamplay) //if team game
-			{ 	// Match Score Team 1 Score
-				level.ersMatchAxisScoreHUD setValue(matchScoreTeam1);
-				// Match Score Team 2 Score
-				if(!isDefined(level.ersMatchAlliesScoreHUD))
-					level.ersMatchAlliesScoreHUD = newHudElem();
-				level.ersMatchAlliesScoreHUD.x = 618;
-				level.ersMatchAlliesScoreHUD.y = 290;
-				level.ersMatchAlliesScoreHUD.alignX = "center";
-				level.ersMatchAlliesScoreHUD.alignY = "middle";
-				level.ersMatchAlliesScoreHUD.fontScale = .75;
-				level.ersMatchAlliesScoreHUD.color = (.85, .99, .99);
-				level.ersMatchAlliesScoreHUD setValue(matchScoreTeam2);
+			{ 	
+				options["x"] = 618;
+				options["color"] = (.85, .99, .99);
+				// Match Score Team 2 Score 
+				level.ersMatchAlliesScoreHUD = updateHUDElement(level.ersMatchAlliesScoreHUD, "number", 
+					matchScoreTeam2, options);
 			}
 			else //if free for all game
-			{	// Match Score Leader Score
-				level.ersMatchAxisScoreHUD setValue(matchScoreTeam1);
-				//create player HUD Scores
+			{	//create player HUD Scores
 				createPlayerHUDEndRoundScore();
 			}
 		}
 	}
-	/*
-	if(switchingSides) //if Switching Sides
-	{	//create Switching Side HUD
-		if(!isDefined(level.ersSwitchingHUD))
-			level.ersSwitchingHUD = newHudElem();
-		level.ersSwitchingHUD.x = 320;
-		level.ersSwitchingHUD.y = 45;
-		level.ersSwitchingHUD.alignX = "center";
-		level.ersSwitchingHUD.alignY = "middle";
-		level.ersSwitchingHUD.fontScale = 1.6;
-		level.ersSwitchingHUD.color = (1, 1, 0);
-		level.ersSwitchingHUD setText(game["switchingText"]);
-		
-		//create please wait Switching Side HUD
-		if(!isDefined(level.ersSwitchWaitHUD))
-			level.ersSwitchWaitHUD = newHudElem();
-		level.ersSwitchWaitHUD.x = 320;
-		level.ersSwitchWaitHUD.y = 75;
-		level.ersSwitchWaitHUD.alignX = "center";
-		level.ersSwitchWaitHUD.alignY = "middle";
-		level.ersSwitchWaitHUD.fontScale = 1.6;
-		level.ersSwitchWaitHUD.color = (1, 1, 0);
-		level.ersSwitchWaitHUD setText(game["switchWaitText"]);
-	}
-	*/
 	wait (time); //wait for timer
 	
 	//delete HUD elements
@@ -1223,9 +1097,9 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 		{
 			player = players[i];
 			
-			player.ers1HScoreHUD = player deleteHUDElement(player.ers1HScoreHUD);
-			player.ers2HScoreHUD = player deleteHUDElement(player.ers2HScoreHUD);
-			player.ersMatchScoreHUD = player deleteHUDElement(player.ersMatchScoreHUD);
+			player deleteClientHUDElement("ers1HScoreHUD");
+			player deleteClientHUDElement("ers2HScoreHUD");
+			player deleteClientHUDElement("ersMatchScoreHUD");
 			
 		}
 	}
@@ -1236,58 +1110,42 @@ createPlayerHUDEndRoundScore()
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++)
 	{
+		options = [];
+		options["alignX"] = "center";
+		options["alignY"] = "middle";
+		options["x"] = 618;
+		
 		player = players[i];
-		if([[level.getVars]]("scr_halftime") > 0)
+		if([[level.getVars]]("scr_halftime"))
 		{
-			if(!isDefined(player.ers1HScoreHUD))
-					player.ers1HScoreHUD = newClientHudElem(player);
-				player.ers1HScoreHUD.x = 618;
-				player.ers1HScoreHUD.y = 290;
-				player.ers1HScoreHUD.alignX = "center";
-				player.ers1HScoreHUD.alignY = "middle";
-				player.ers1HScoreHUD.fontScale = .75;
-				player.ers1HScoreHUD.color = (.85, .99, .99);
-				player.ers1HScoreHUD setValue(player.pers["1HScore"]);
+			options["y"] = 290;
+			options["fontscale"] = .75;
+			options["color"] = (.85, .99, .99);
+			player updateClientHUDElement("ers1HScoreHUD", "number", player.pers["1HScore"], options);
+			
+			options["y"] = 307;
+			options["color"] = (.73, .99, .75);
+			player updateClientHUDElement("ers2HScoreHUD", "number", player.pers["2HScore"], options);
 				
-				if(!isDefined(player.ers2HScoreHUD))
-					player.ers2HScoreHUD = newClientHudElem(player);
-				player.ers2HScoreHUD.x = 618;
-				player.ers2HScoreHUD.y = 307;
-				player.ers2HScoreHUD.alignX = "center";
-				player.ers2HScoreHUD.alignY = "middle";
-				player.ers2HScoreHUD.fontScale = .75;
-				player.ers2HScoreHUD.color = (.73, .99, .75);
-				player.ers2HScoreHUD setValue(player.pers["2HScore"]);
-				
-				if(!isDefined(player.ersMatchScoreHUD))
-					player.ersMatchScoreHUD = newClientHudElem(player);
-				
-				player.ersMatchScoreHUD.x = 618;
-				player.ersMatchScoreHUD.color = (.85, .99, .99);
-
-				player.ersMatchScoreHUD.y = 327;
-				player.ersMatchScoreHUD.alignX = "center";
-				player.ersMatchScoreHUD.alignY = "middle";
-				player.ersMatchScoreHUD.fontScale = 1;
-				if([[level.getVars]]("scr_score_rounds"))
-					player.ersMatchScoreHUD setValue(player.pers["roundswon"]);
-				else
-					player.ersMatchScoreHUD setValue(player.pers["score"]);
+			options["y"] = 327;
+			options["fontscale"] = 1;
+			options["color"] = (.85, .99, .99);
+			if([[level.getVars]]("scr_score_rounds"))
+				value = player.pers["roundswon"];
+			else
+				value = player.pers["score"];
+			player updateClientHUDElement("ersMatchScoreHUD", "number", value, options);
 		}
 		else
 		{
-			if(!isDefined(player.ersMatchScoreHUD))
-				player.ersMatchScoreHUD = newClientHudElem(player);
-			player.ersMatchScoreHUD.x = 618;
-			player.ersMatchScoreHUD.y = 290;
-			player.ersMatchScoreHUD.alignX = "center";
-			player.ersMatchScoreHUD.alignY = "middle";
-			player.ersMatchScoreHUD.fontScale = .75;
-			player.ersMatchScoreHUD.color = (.85, .99, .99);
+			options["y"] = 290;
+			options["fontscale"] = .75;
+			options["color"] = (.85, .99, .99);
 			if([[level.getVars]]("scr_score_rounds"))
-				player.ersMatchScoreHUD setValue(player.pers["roundswon"]);
+				value = player.pers["roundswon"];
 			else
-				player.ersMatchScoreHUD setValue(player.pers["score"]);
+				value = player.pers["score"];
+			player updateClientHUDElement("ersMatchScoreHUD", "number", value, options);
 		}
 	}
 }
@@ -1296,51 +1154,34 @@ createReadyUpHUD(switchingSides)
 {
 	if(!isDefined(switchingSides))
 		switchingSides = false;
-		
-	if(!isDefined(level.waitingHUD))
-		level.waitingHUD = newHudElem();
-	level.waitingHUD.alignX = "center";
-	level.waitingHUD.alignY = "middle";
-	level.waitingHUD.color = (1, 0, 0);
-	level.waitingHUD.x = 575;
-	level.waitingHUD.y = 45;
-	level.waitingHUD.fontScale = 1.4;
-
+	
 	if(switchingSides)
-		level.waitingHUD setText(game["switchingText"]);
+		text = game["switchingText"];
 	else
-		level.waitingHUD setText(game["waitingText"]);
+		text = game["waitingText"];
 	
-	if(!isDefined(level.waitingOnHUD))
-		level.waitingOnHUD = newHudElem();
-	level.waitingOnHUD.x = 575;
-	level.waitingOnHUD.y = 70;
-	level.waitingOnHUD.alignX = "center";
-	level.waitingOnHUD.alignY = "middle";
-	level.waitingOnHUD.fontScale = 1.1;
-	level.waitingOnHUD.color = (.8, 1, 1);
-	level.waitingOnHUD setText(game["waitingOnText"]);
-
-	if(!isDefined(level.playersTextHUD))
-		level.playersTextHUD = newHudElem();
-	level.playersTextHUD.x = 575;
-	level.playersTextHUD.y = 110;
-	level.playersTextHUD.alignX = "center";
-	level.playersTextHUD.alignY = "middle";
-	level.playersTextHUD.fontScale = 1.1;
-	level.playersTextHUD.color = (.8, 1, 1);
-	level.playersTextHUD setText(game["playersText"]);
-
-	if(!isDefined(level.notReadyHUD))
-		level.notReadyHUD = newHudElem();
-	level.notReadyHUD.x = 575;
-	level.notReadyHUD.y = 90;
-	level.notReadyHUD.alignX = "center";
-	level.notReadyHUD.alignY = "middle";
-	level.notReadyHUD.fontScale = 1.2;
-	level.notReadyHUD.color = (.98, .98, .60);
+	options = [];
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["color"] = (1, 0, 0);
+	options["x"] = 575;
+	options["y"] = 45;
+	options["fontscale"] = 1.4;
+	level.waitingHUD = updateHUDElement(level.waitingHUD, "text", text, options);
 	
-	level.notReadyHUD setValue(0);
+	options["y"] = 70;
+	options["fontscale"] = 1.1;
+	options["color"] = (.8, 1, 1);
+	level.waitingOnHUD = updateHUDElement(level.waitingOnHUD, "text", game["waitingOnText"], options);
+
+	options["y"] = 110;
+	level.playersTextHUD = updateHUDElement(level.playersTextHUD, "text", game["playersText"], options);
+
+	options["y"] = 90;
+	options["fontscale"] = 1.2;
+	options["color"] = (.98, .98, .60);
+	
+	level.notReadyHUD = updateHUDElement(level.notReadyHUD, "number", 0, options);
 }
 
 createPlayerReadyUpHUD(switchingSides)
@@ -1350,54 +1191,38 @@ createPlayerReadyUpHUD(switchingSides)
 	if(!isDefined(switchingSides))
 		switchingSides = false;
 	
+	options = [];
+	options["x"] = 320;
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
 	if(switchingSides)
 	{
-		if(!isDefined(self.SwitchingHUD))
-			self.SwitchingHUD = newClientHudElem(self);
-		self.SwitchingHUD.x = 320;
-		self.SwitchingHUD.y = 45;
-		self.SwitchingHUD.alignX = "center";
-		self.SwitchingHUD.alignY = "middle";
-		self.SwitchingHUD.fontScale = 1.6;
-		self.SwitchingHUD.color = (1, 1, 0);
-		self.SwitchingHUD setText(game["switchingText"]);
+		options["y"] = 45;
+		options["fontscale"] = 1.6;
+		options["color"] = (1, 1, 0);
+		updateClientHUDElement("SwitchingHUD", "text", game["switchingText"], options);
 	}
 	
-	if(!isDefined(self.waitingHUD))
-		self.waitingHUD = newClientHudElem(self);
-	self.waitingHUD.alignX = "center";
-	self.waitingHUD.alignY = "middle";
-	self.waitingHUD.color = (1, 0, 0);
-	self.waitingHUD.x = 320;
-	self.waitingHUD.y = 265;
-	self.waitingHUD.fontScale = 2;
+	options["y"] = 265;
+	options["fontscale"] = 2;
+	options["color"] = (1, 0, 0);
+	updateClientHUDElement("waitingHUD", "text", game["waitingText"], options);
 
-	self.waitingHUD setText(game["waitingText"]);
+	options["x"] = 575;
+	options["y"] = 170;
+	options["fontscale"] = 1.1;
+	options["color"] = (.8, 1, 1);
+	updateClientHUDElement("readyStatusHUD", "text", game["statusText"], options);
 	
-	if(!isDefined(self.readyStatusHUD))
-		self.readyStatusHUD = newClientHudElem(self);
-	self.readyStatusHUD.x = 575;
-	self.readyStatusHUD.y = 170;
-	self.readyStatusHUD.alignX = "center";
-	self.readyStatusHUD.alignY = "middle";
-	self.readyStatusHUD.fontScale = 1.1;
-	self.readyStatusHUD.color = (.8, 1, 1);
-	self.readyStatusHUD setText(game["statusText"]);
-
-	if(!isDefined(self.readyHUD))
-		self.readyHUD = newClientHudElem(self);
-	self.readyHUD.x = 575;
-	self.readyHUD.y = 190;
-	self.readyHUD.alignX = "center";
-	self.readyHUD.alignY = "middle";
-	self.readyHUD.fontScale = 1.2;
-	self.readyHUD.color = (1, .66, .66);
-	self.readyHUD setText(game["notReadyText"]);
+	options["y"] = 190;
+	options["fontscale"] = 1.2;
+	options["color"] = (1, .66, .66);
+	updateClientHUDElement("readyHUD", "text", game["notReadyText"], options);
 	
 	wait 8;
 	
-	self.waitingHUD = deleteHUDElement(self.waitingHUD);
-	self.SwitchingHUD = deleteHUDElement(self.SwitchingHUD);
+	deleteClientHUDElement("waitingHUD");
+	deleteClientHUDElement("SwitchingHUD");
 }
 
 deleteReadyUpHUD()
@@ -1421,83 +1246,56 @@ deleteReadyUpHUD()
 
 deletePlayerReadyUpHUD()
 {
-	self.readyStatusHUD = deleteHUDElement(self.readyStatusHUD);
-	self.readyHUD = deleteHUDElement(self.readyHUD);
+	deleteClientHUDElement("readyStatusHUD");
+	deleteClientHUDElement("readyHUD");
 }
 
 createWarmUpHUD(playercount, timer, switchingSides)
 {
 	if(!isDefined(switchingSides))
 		switchingSides = false;
+	options = [];
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["color"] = (1, 0, 0);
+	options["x"] = 575;
+	options["y"] = 45;
+	options["fontscale"] = 1.4;
 	
-	if(!isDefined(level.waitingHUD))
-		level.waitingHUD = newHudElem();
-	level.waitingHUD.alignX = "center";
-	level.waitingHUD.alignY = "middle";
-	level.waitingHUD.color = (1, 0, 0);
-	level.waitingHUD.x = 575;
-	level.waitingHUD.y = 45;
-	level.waitingHUD.fontScale = 1.4;
-
 	if(switchingSides)
-		level.waitingHUD setText(game["switchingText"]);
+		text = game["switchingText"];
 	else
-		level.waitingHUD setText(game["warmupText"]);
+		text = game["warmupText"];
+	level.waitingHUD = updateHUDElement(level.waitingHUD, "text", text, options);
 	
 	if(playercount > 0)
 	{
-		if(!isDefined(level.waitingOnHUD))
-			level.waitingOnHUD = newHudElem();
-		level.waitingOnHUD.x = 575;
-		level.waitingOnHUD.y = 70;
-		level.waitingOnHUD.alignX = "center";
-		level.waitingOnHUD.alignY = "middle";
-		level.waitingOnHUD.fontScale = 1.1;
-		level.waitingOnHUD.color = (.8, 1, 1);
-		level.waitingOnHUD setText(game["waitingOnText"]);
+		options["y"] = 70;
+		options["fontscale"] = 1.1;
+		options["color"] = (.8, 1, 1);
+		level.waitingOnHUD = updateHUDElement(level.waitingOnHUD, "text", 
+			game["waitingOnText"], options);
 
-		if(!isDefined(level.playersTextHUD))
-			level.playersTextHUD = newHudElem();
-		level.playersTextHUD.x = 575;
-		level.playersTextHUD.y = 110;
-		level.playersTextHUD.alignX = "center";
-		level.playersTextHUD.alignY = "middle";
-		level.playersTextHUD.fontScale = 1.1;
-		level.playersTextHUD.color = (.8, 1, 1);
-		level.playersTextHUD setText(game["playersText"]);
+		options["y"] = 110;
+		level.playersTextHUD = updateHUDElement(level.playersTextHUD, "text",
+			game["playersText"], options);
 
-		if(!isDefined(level.notReadyHUD))
-			level.notReadyHUD = newHudElem();
-		level.notReadyHUD.x = 573;
-		level.notReadyHUD.y = 90;
-		level.notReadyHUD.alignX = "right";
-		level.notReadyHUD.alignY = "middle";
-		level.notReadyHUD.fontScale = 1.2;
-		level.notReadyHUD.color = (.98, .98, .60);
+		options["x"] = 573;
+		options["y"] = 90;
+		options["alignX"] = "right";
+		options["fontscale"] = 1.2;
+		options["color"] = (.98, .98, .60);
+		level.notReadyHUD = updateHUDElement(level.notReadyHUD, "number", 0, options);
 		
-		level.notReadyHUD setValue(0);
+		options["x"] = 575;
+		options["alignX"] = "center";
+		level.notReadyDivHUD = updateHUDElement(level.notReadyDivHUD, "text",
+			game["dividerText"], options);
 		
-		if(!isDefined(level.notReadyDivHUD))
-			level.notReadyDivHUD = newHudElem();
-		level.notReadyDivHUD.x = 575;
-		level.notReadyDivHUD.y = 90;
-		level.notReadyDivHUD.alignX = "center";
-		level.notReadyDivHUD.alignY = "middle";
-		level.notReadyDivHUD.fontScale = 1.2;
-		level.notReadyDivHUD.color = (.98, .98, .60);
+		options["x"] = 577;
+		options["alignX"] = "left";
 		
-		level.notReadyDivHUD setText(game["dividerText"]);
-		
-		if(!isDefined(level.allReadyHUD))
-			level.allReadyHUD = newHudElem();
-		level.allReadyHUD.x = 577;
-		level.allReadyHUD.y = 90;
-		level.allReadyHUD.alignX = "left";
-		level.allReadyHUD.alignY = "middle";
-		level.allReadyHUD.fontScale = 1.2;
-		level.allReadyHUD.color = (.98, .98, .60);
-		
-		level.allReadyHUD setValue(playercount);
+		level.allReadyHUD = updateHUDElement(level.allReadyHUD, "number", playercount, options);
 	}
 }
 
@@ -1506,34 +1304,28 @@ createPlayerWarmUpHUD(switchingSides)
 	if(!isDefined(switchingSides))
 		switchingSides = false;
 	
+	options = [];
+	options["x"] = 320;
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	
 	if(switchingSides)
 	{
-		if(!isDefined(self.SwitchingHUD))
-			self.SwitchingHUD = newClientHudElem(self);
-		self.SwitchingHUD.x = 320;
-		self.SwitchingHUD.y = 45;
-		self.SwitchingHUD.alignX = "center";
-		self.SwitchingHUD.alignY = "middle";
-		self.SwitchingHUD.fontScale = 1.6;
-		self.SwitchingHUD.color = (1, 1, 0);
-		self.SwitchingHUD setText(game["switchingText"]);
+		options["y"] = 45;
+		options["fontscale"] = 1.6;
+		options["color"] = (1, 1, 0);
+		updateClientHUDElement("SwitchingHUD", "text", game["switchingText"], options);
 	}
-		
-	if(!isDefined(self.waitingHUD))
-		self.waitingHUD = newClientHudElem(self);
-	self.waitingHUD.alignX = "center";
-	self.waitingHUD.alignY = "middle";
-	self.waitingHUD.color = (1, 0, 0);
-	self.waitingHUD.x = 320;
-	self.waitingHUD.y = 265;
-	self.waitingHUD.fontScale = 2;
-
-	self.waitingHUD setText(game["warmupText"]);
+	
+	options["y"] = 265;
+	options["fontscale"] = 2;
+	options["color"] = (1, 0, 0);
+	updateClientHUDElement("waitingHUD", "text", game["warmupText"], options);
 	
 	wait 8;
 	
-	self.waitingHUD = deleteHUDElement(self.waitingHUD);
-	self.SwitchingHUD = deleteHUDElement(self.SwitchingHUD);
+	deleteClientHUDElement("waitingHUD");
+	deleteClientHUDElement("SwitchingHUD");
 }
 
 deleteWarmupHUD()
@@ -1639,12 +1431,12 @@ updateScoreboard()
 	for(;;)
 	{
 		
-		if(getCvarInt("sv_showScoreboard") > 0)
+		if([[level.getVars]]("sv_showScoreboard"))
 			updateServerScoreboard();
 		else if(isDefined(level.scoreboard))
 			deleteServerScoreboard();
 		
-		if(isDefined(level.scoreboardScoreLimit) && (getCvarInt("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
+		if(isDefined(level.scoreboardScoreLimit) && ([[level.getVars]]("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
 			deleteServerScoreboardScoreLimit();
 		
 		wait 0.25;
