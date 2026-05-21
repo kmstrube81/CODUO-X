@@ -251,7 +251,7 @@ initGameTypeVars()
 	setCvar("ui_" + gt + "_roundlimit", [[level.getVars]]("scr_roundlimit"));
 	makeCvarServerInfo("ui_" + gt + "_roundlimit", 1);
 	
-	varDef("scr", "roundlength", "float", true, 2.5, 0, 60, "Round Length");
+	level.roundlength = varDef("scr", "roundlength", "float", true, 2.5, 0, 60, "Round Length");
 	setCvar("ui_dm_roundlength", [[level.getVars]]("scr_roundlength"));
 	makeCvarServerInfo("ui_dm_roundlength", "30");
 	
@@ -276,7 +276,19 @@ initGameTypeVars()
 	else if([[level.getVars]]("scr_halftime") > 0)
 		game["roundbased"] = true;
 	
-	varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
+	switch([[level.getVars]]("scr_respawn_mode"))
+	{
+		case "spawndelay":
+			varDef("scr", "spawn_delay_time", "int", true, 7, 1, 60, "Delayed Spawn Timer");
+			break;
+		case "forcerespawn":
+		case "obj":
+			varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
+			break;
+		case "wave":
+			varDef("scr", "respawn_wave_time", "int", true, 7, 1, 60, "Respawn Wave Timer");
+			break;
+	}
 	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
 	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
 	makeCvarServerInfo("ui_battlerank", "0");
@@ -323,11 +335,16 @@ initGameTypeVars()
 		level.teambalance = varDef("scr", "teambalance", "bool", true,
 										true, undefined, undefined, "Team Balance", 
 										maps\mp\uox\_uox::updateTeamBalance);
-		if(level.teambalance && !game["roundbased"])
+		if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
 			level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop,
 					maps\mp\uox\_uox::TeamBalance_Check());
 
 		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");
+		
+		varDef("scr", "freelook", "bool", true, true, undefined, undefined, "Free Spectate",
+					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
+		varDef("scr", "spectateenemy", true, true, undefined, undefined, "Spectate Enemy Team",
+					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
 	}
 	
 	//define scoreboard vars

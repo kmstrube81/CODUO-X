@@ -6,7 +6,7 @@ Callback_StartGameType()
 	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
 	
-	maps\mp\uox\_uox::initObjectives();
+	maps\mp\uox\_uox::initObjectives(level.objective);
 	//init vars
 	maps\mp\uox\_uox_vars::initGameTypeVars();
 	maps\mp\gametypes\_teams::initGlobalCvars();
@@ -20,8 +20,6 @@ Callback_StartGameType()
 	level.exist["2players"] = -1;
 	level.didexist["2players"] = false;
 	
-	level.bombplanted = false;
-	level.bombexploded = false;
 	level.roundstarted = false;
 	level.roundended = false;
 	level.mapended = false;
@@ -161,6 +159,7 @@ Callback_StartGameType()
 		precacheShader("hudStopwatchNeedle");
 		precacheStatusIcon("gfx/hud/hud@status_dead.tga");
 		precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
+		
 		precacheItem("item_health");
 
 		maps\mp\gametypes\_teams::precache();
@@ -175,7 +174,10 @@ Callback_StartGameType()
 	
 	game["gamestarted"] = true;
 	
-	setClientNameMode("auto_change");
+	if(game["roundbased"])
+		setClientNameMode("manual_change");
+	else
+		setClientNameMode("auto_change");
 
 	thread maps\mp\uox\_uox::addBotClients(); // For development testing
 	
@@ -191,6 +193,7 @@ Callback_PlayerConnect()
 	self.statusicon = "gfx/hud/hud@status_connecting.tga";
 	self waittill("begin");
 	self.statusicon = "";
+	self.pers["teamTime"] = 1000000;
 
 	if(!isDefined(self.pers["team"]))
 		iprintln(&"MPSCRIPT_CONNECTED", self);
@@ -208,9 +211,12 @@ Callback_PlayerConnect()
 		self.pers["rank"] = 0;
 	if(!isDefined(self.pers["score"]))
 		self.pers["score"] = 0;
+	if(!isDefined(self.pers["deaths"]))
+		self.pers["deaths"] = 0;
 	if(!isDefined(self.pers["kills"]))
 		self.pers["kills"] = 0;
 	self.score = self.pers["score"];
+	self.deaths = self.pers["deaths"];
 	if(!isDefined(self.pers["1HScore"]))
 		self.pers["1HScore"] = 0;
 	if(!isDefined(self.pers["2HScore"]))
@@ -293,15 +299,74 @@ Callback_PlayerConnect()
 			case "allies":
 			case "axis":
 			case "autoassign":
+				if(level.lockteams)
+					break;
 				if(response == "autoassign")
 				{
-					teams[0] = "allies";
-					teams[1] = "axis";
-					response = teams[randomInt(2)];
+					response = getAutoAssign();
+					skipbalancecheck = true;
 				}
 
 				if(response == self.pers["team"] && self.sessionstate == "playing")
 					break;
+
+				//Check if the teams will become unbalanced when the player goes to this team...
+				//------------------------------------------------------------------------------
+				if ( (level.teambalance > 0) && (!isdefined (skipbalancecheck)) )
+				{
+					//Get a count of all players on Axis and Allies
+					players = maps\mp\gametypes\_teams::CountPlayers();
+					
+					if (self.sessionteam != "spectator")
+					{
+						if (((players[response] + 1) - (players[self.pers["team"]] - 1)) > level.teambalance)
+						{
+							if (response == "allies")
+							{
+								if (game["allies"] == "american")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_ALLIED",&"PATCH_1_3_AMERICAN");
+								else if (game["allies"] == "british")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_ALLIED",&"PATCH_1_3_BRITISH");
+								else if (game["allies"] == "russian")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_ALLIED",&"PATCH_1_3_RUSSIAN");
+							}
+							else
+								self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_ALLIED",&"PATCH_1_3_GERMAN");
+							break;
+						}
+					}
+					else
+					{
+						if (response == "allies")
+							otherteam = "axis";
+						else
+							otherteam = "allies";
+						if (((players[response] + 1) - players[otherteam]) > level.teambalance)
+						{
+							if (response == "allies")
+							{
+								if (game["allies"] == "american")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_ALLIED2",&"PATCH_1_3_AMERICAN");
+								else if (game["allies"] == "british")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_ALLIED2",&"PATCH_1_3_BRITISH");
+								else if (game["allies"] == "russian")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_ALLIED2",&"PATCH_1_3_RUSSIAN");
+							}
+							else
+							{
+								if (game["allies"] == "american")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_AXIS",&"PATCH_1_3_AMERICAN");
+								else if (game["allies"] == "british")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_AXIS",&"PATCH_1_3_BRITISH");
+								else if (game["allies"] == "russian")
+									self iprintlnbold(&"PATCH_1_3_CANTJOINTEAM_AXIS",&"PATCH_1_3_RUSSIAN");
+							}
+							break;
+						}
+					}
+				}
+				skipbalancecheck = undefined;
+				//------
 
 				if(response != self.pers["team"] && self.sessionstate == "playing")
 					self suicide();
@@ -309,8 +374,15 @@ Callback_PlayerConnect()
 				self notify("end_respawn");
 
 				self.pers["team"] = response;
+				self.pers["teamTime"] = (gettime() / 1000);
 				self.pers["weapon"] = undefined;
+				self.pers["weapon1"] = undefined;
+				self.pers["weapon2"] = undefined;
+				self.pers["spawnweapon"] = undefined;
 				self.pers["savedmodel"] = undefined;
+				
+				if(level.uox_teamplay) // update spectator permissions immediately on change of team
+					maps\mp\gametypes\_teams::SetSpectatePermissions();
 
 				// if there are weapons the user can select then open the weapon menu
 				if ( maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"]) )
@@ -337,10 +409,19 @@ Callback_PlayerConnect()
 				break;
 
 			case "spectator":
+				if (level.lockteams)
+					break;
 				if(self.pers["team"] != "spectator")
 				{
+					if(isAlive(self))
+						self suicide();
+
 					self.pers["team"] = "spectator";
+					self.pers["teamTime"] = 1000000;
 					self.pers["weapon"] = undefined;
+					self.pers["weapon1"] = undefined;
+					self.pers["weapon2"] = undefined;
+					self.pers["spawnweapon"] = undefined;
 					self.pers["savedmodel"] = undefined;
 					
 					self.sessionteam = "spectator";
@@ -394,6 +475,8 @@ Callback_PlayerConnect()
 				self openMenu(menu);
 				continue;
 			}
+
+			self.pers["selectedweapon"] = weapon;
 
 			if(isDefined(self.pers["weapon"]) && self.pers["weapon"] == weapon)
 				continue;
@@ -704,4 +787,51 @@ dropHealth()
 	
 	if(level.healthqueuecurrent >= 16)
 		level.healthqueuecurrent = 0;
+}
+
+getAutoAssign()
+{
+	
+	if(level.uox_teamplay)
+	{
+		numonteam["allies"] = 0;
+		numonteam["axis"] = 0;
+
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+		
+			if(!isDefined(player.pers["team"]) || player.pers["team"] == "spectator" || player == self)
+				continue;
+
+			numonteam[player.pers["team"]]++;
+		}
+		
+		// if teams are equal return the team with the lowest score
+		if(numonteam["allies"] == numonteam["axis"])
+		{
+			if(getTeamScore("allies") == getTeamScore("axis"))
+			{
+				teams[0] = "allies";
+				teams[1] = "axis";
+				response = teams[randomInt(2)];
+			}
+			else if(getTeamScore("allies") < getTeamScore("axis"))
+				response = "allies";
+			else
+				response = "axis";
+		}
+		else if(numonteam["allies"] < numonteam["axis"])
+			response = "allies";
+		else
+			response = "axis";
+	}
+	else
+	{
+		teams[0] = "allies";
+		teams[1] = "axis";
+		response = teams[randomInt(2)];
+	}
+	return response;
 }

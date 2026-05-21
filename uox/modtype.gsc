@@ -17,7 +17,7 @@ modtype(gt)
 		case "re":
 			return;
 		case "sd":
-			return;
+			return maps\mp\gametypes\_uox_sd::UOX_Main;
 		case "hq":
 			return;
 		case "dom":

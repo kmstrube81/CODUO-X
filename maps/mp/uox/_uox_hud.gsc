@@ -28,6 +28,10 @@ precache()
 	precacheString(game["matchResumingText"]);
 	game["roundDrawText"] = &"SD_ROUNDDRAW";
 	precacheString(game["roundDrawText"]);
+	game["bombPlantedText"] = &"SD_EXPLOSIVESPLANTED";
+	precacheString(game["bombPlantedText"]);
+	game["bombDefusedText"] = &"SD_EXPLOSIVESDEFUSED";
+	precacheString(game["bombDefusedText"]);
 	game["alliesEliminatedText"] = &"SD_ALLIESHAVEBEENELIMINATED";
 	precacheString(game["alliesEliminatedText"]);
 	game["axisEliminatedText"] = &"SD_AXISHAVEBEENELIMINATED";
@@ -126,6 +130,8 @@ precache()
 	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
 	precacheShader(game["headicon_allies"]);
 	precacheShader(game["headicon_axis"]);
+	precacheShader("black");
+	precacheShader("white");
 }
 
 initClientHUD()
@@ -251,6 +257,50 @@ deleteClientHUDElement(name)
 	self.hud = temparr;
 }
 
+animateClientHUDElement(name, type, options)
+{
+	//get hud element
+	element = getClientHUDElement(name);
+	
+	if(!isDefined(element)) //nothing to animate if no hudelement exists
+		return;
+	
+	//process options
+	if(isDefined(options))
+	{
+		if(isDefined(options["x"]))
+			x = options["x"];
+		if(isDefined(options["y"]))
+			y = options["y"];
+		if(isDefined(options["time"]))
+			time = options["time"];
+		else time = 0;
+		if(isDefined(options["color"]))
+			color = options["color"];
+		if(isDefined(options["fontscale"]))
+			fontscale = options["fontscale"];
+		if(isDefined(options["alpha"]))
+			alpha = options["alpha"];
+		if(isDefined(options["width"]))
+			width = options["width"];
+		else width = 16;
+		if(isDefined(options["height"]))
+			height = options["height"];
+		else height = 16;
+	}
+	
+	if(time <= 0) //if no timer, nothing to animate
+		return;
+		
+	//do animation
+	switch(type)
+	{
+		case "scaleShader":
+			element scaleOverTime(time, width, height);
+			break;
+	}
+}
+
 clearClientHUD()
 {
 	for(i = 0; i < self.hud.size; i++)
@@ -294,6 +344,9 @@ updateHUDElementProperty(element, property, value)
 			break;
 		case "color":
 			element.color = value;
+			break;
+		case "sort":
+			element.sort = value;
 			break;
 	}
 	return element;
@@ -363,6 +416,47 @@ deleteHUDElement(element)
 	element = undefined;
 	
 	return element;
+}
+
+animateHUDElement(element, type, options)
+{
+	if(!isDefined(element)) //nothing to animate if no hudelement exists
+		return;
+	
+	//process options
+	if(isDefined(options))
+	{
+		if(isDefined(options["x"]))
+			x = options["x"];
+		if(isDefined(options["y"]))
+			y = options["y"];
+		if(isDefined(options["time"]))
+			time = options["time"];
+		else time = 0;
+		if(isDefined(options["color"]))
+			color = options["color"];
+		if(isDefined(options["fontscale"]))
+			fontscale = options["fontscale"];
+		if(isDefined(options["alpha"]))
+			alpha = options["alpha"];
+		if(isDefined(options["width"]))
+			width = options["width"];
+		else width = 16;
+		if(isDefined(options["height"]))
+			height = options["height"];
+		else height = 16;
+	}
+	
+	if(time <= 0) //if no timer, nothing to animate
+		return;
+		
+	//do animation
+	switch(type)
+	{
+		case "scaleShader":
+			element scaleOverTime(time, width, height);
+			break;
+	}
 }
 
 /* ****************************************************************************************************
@@ -455,6 +549,119 @@ deleteHUDMainClock()
 deleteHUDCompassClock()
 {
 	level.compassclock = deleteHUDElement(level.compassclock);
+}
+
+updateHUDMainBombClock(timer)
+{
+	//delete main clock if making a bomb clock
+	level.mainclock = deleteHUDElement(level.mainclock);
+	
+	//UI Element Options array
+	options = [];
+	/* 	X
+		Y
+		AlignX
+		AlignY
+		Font
+		Color
+		Size
+		Alpha
+	*/
+	options["x"] = 320; //center of screen x
+	options["y"] = 460; //20 px above bottom of screen y
+	options["alignX"] = "center"; //align text horizontally
+	options["alignY"] = "middle"; //align text vertically
+	options["font"] = "bigfixed"; //font option
+	options["color"] = (1, 1, 1 ); // white
+	if(timer > 0) //if timer
+		level.mainBombClock = updateHUDElement(level.mainBombClock, "timer", timer, options);
+}
+
+updateHUDSecondaryBombClock(timer)
+{
+		//UI Element Options array
+	options = [];
+	/* 	X
+		Y
+		AlignX
+		AlignY
+		Font
+		Color
+		Size
+		Alpha
+	*/
+	options["x"] = 180; //left center of screen x
+	options["y"] = 460; //20 px above bottom of screen y
+	options["alignX"] = "center"; //align text horizontally
+	options["alignY"] = "middle"; //align text vertically
+	options["font"] = "bigfixed"; //font option
+	options["color"] = (1, 1, 1 ); // white
+	if(timer > 0) //if timer
+		level.secondBombClock = updateHUDElement(level.secondBombClock, "timer", timer, options); 
+}
+
+deleteHUDMainBombClock()
+{
+	level.mainBombClock = deleteHUDElement(level.mainBombClock);
+}
+
+deleteHUDSecondaryBombClock()
+{
+	level.secondBombClock = deleteHUDElement(level.secondBombClock);
+}
+
+createClientHUDProgressBar(timer)
+{
+	barsize = 288;
+		
+	iconOptions = [];
+	iconOptions["alignX"] = "center";
+	iconOptions["alignY"] = "middle";
+	iconOptions["x"] = 320;
+	iconOptions["y"] = 345;
+	iconOptions["width"] = 64;
+	iconOptions["height"] = 64;
+	
+	backgroundOptions = [];
+	backgroundOptions["alignX"] = "center";
+	backgroundOptions["alignY"] = "middle";
+	backgroundOptions["x"] = 320;
+	backgroundOptions["y"] = 385;
+	backgroundOptions["alpha"] = 0.5;
+	backgroundOptions["height"] = 12;
+	backgroundOptions["width"] = (barsize + 4);
+	
+	barOptions = [];
+	barOptions["alignX"] = "left";
+	barOptions["alignY"] = "middle";
+	barOptions["x"] = (320 - (barsize / 2.0));
+	barOptions["y"] = 385;
+	barOptions["height"] = 8;
+	barOptions["width"] = 0;
+	
+	barAnimOptions = [];
+	barAnimOptions["height"] = 8;
+	barAnimOptions["width"] = barsize;
+	
+	//test if element already exists, don't spam hud updates
+	if(!isDefined(self maps\mp\uox\_uox_hud::getClientHUDElement("progressbackground")))
+		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbackground",
+			"shader", "black", backgroundOptions);
+
+	//test if element already exists, don't spam hud updates
+	if(!isDefined(self maps\mp\uox\_uox_hud::getClientHUDElement("progressbar")))
+		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbar",
+			"shader", "white", barOptions);
+			
+	barAnimOptions["time"] = planttime;
+	self maps\mp\uox\_uox_hud::animateClientHUDElement("progressbar", "scaleShader",
+		barAnimOptions);
+}
+
+deleteClientHUDProgressBar()
+{
+	self deleteClientHUDElement("progressbackground");
+	self deleteClientHUDElement("progressbar");
 }
 
 updateServerScoreboard()

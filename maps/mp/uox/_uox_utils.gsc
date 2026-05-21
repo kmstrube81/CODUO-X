@@ -28,3 +28,18 @@ stringSplit(str, seperator)
 	}
 	return substrings;
 }
+
+/* *************************************************************************************************
+**** notifyLater(string msg, int delay, ent entity [optional])
+****
+**** sends a notify after the specified delay (in seconds)
+****  
+************************************************************************************************* */
+notifyLater(msg, delay, ent)
+{
+	wait delay;
+	if(isDefined(ent)) //notify this ent
+		ent notify(msg);
+	else
+		level notify(msg); //notify server
+}

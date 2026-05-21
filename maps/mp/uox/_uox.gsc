@@ -84,79 +84,12 @@ checkPlayerKilled(victim, attacker)
 		{	
 			if ([[level.getVars]]("scr_teamscorepenalty")) //if teamkill penalty flag set to true
 			{
-				//penalize team as well
-				if(attacker.pers["team"] == "allies")
-				{	//subtract a kill from allies team score
-					if([[level.getVars]]("scr_score_rounds"))
-					{
-						teamscore = level.alliedscore;
-						teamscore--;
-						level.alliedscore = teamscore;
-						setTeamScore("allies", level.alliedscore);
-					}
-					else
-					{
-						teamscore = game["alliedscore"];
-						teamscore--;
-						game["alliedscore"] = teamscore;
-						setTeamScore("allies", game["alliedscore"]);
-					}
-					
-				}
-				else 
-				{	//subtract a kill from axis team score
-					if([[level.getVars]]("scr_score_rounds"))
-					{
-						teamscore = level.axisscore;
-						teamscore--;
-						setTeamScore("axis", level.axisscore);
-					}
-					else
-					{
-						teamscore = game["axisscore"];
-						teamscore--;
-						game["axisscore"] = teamscore;
-						setTeamScore("axis", game["axisscore"]);
-					}
-				}
+				incrementTeamScore(attacker.pers["team"], -1);
 			}
 		}
 		else //normal kill
 		{
-			if(attacker.pers["team"] == "allies")
-			{	//give a kill to allies team score
-				if([[level.getVars]]("scr_score_rounds"))
-				{
-					teamscore = level.alliedscore;
-					teamscore++;
-					level.alliedscore = teamscore;
-					setTeamScore("allies", level.alliedscore);
-				}
-				else
-				{
-					teamscore = game["alliedscore"];
-					teamscore++;
-					game["alliedscore"] = teamscore;
-					setTeamScore("allies", game["alliedscore"]);
-				}
-			}
-			else if(attacker.pers["team"] == "axis")
-			{	//give a kill to axis team score
-				if([[level.getVars]]("scr_score_rounds"))
-				{
-					teamscore = level.axisscore;
-					teamscore++;
-					level.axisscore = teamscore;
-					setTeamScore("axis", level.axisscore);
-				}
-				else
-				{
-					teamscore = game["axisscore"];
-					teamscore++;
-					game["axisscore"] = teamscore;
-					setTeamScore("axis", game["axisscore"]);
-				}
-			}
+			incrementTeamScore(attacker.pers["team"]);
 		}
 	}
 	if(doCheckScoreLimit) //if check score limit flag is true
@@ -507,7 +440,8 @@ startGame()
 	{	//start the round
 		thread startRound();
 		//if its a team game and teambalance is on, check for balanced teams
-		if ( (level.uox_teamplay) && (level.teambalance > 0) && (!game["BalanceTeamsNextRound"]) )
+		if ( (level.uox_teamplay) && (level.teambalance > 0) && (!game["BalanceTeamsNextRound"])
+			&& ([[level.getVars]]("scr_roundlimit") != 1 ))
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
 		//if its a single round game 
 		if([[level.getVars]]("scr_roundlimit") == 1)
@@ -594,44 +528,32 @@ checkTimeLimit()
 }
 
 /* *************************************************************************************************
-**** startRound()
+**** startRoundTimer()
 ****
-**** Called from startGame 
-**** Initializes round timer, does grace period and waits for timer to expire before ending round.
-**** Is killed by "bomb_plant" notify so that round doesn't end during an active bomb
-**** 
+**** Called from startRound, _uox_bombs
+**** starts round timer, if timer reaches the end, the round ends
+****
 ************************************************************************************************* */
-startRound()
-{	
+startRoundTimer(timer, doGracePeriod)
+{
 	//kill on bomb_plant
-	level endon("bomb_plant");
-	// round does not start until the match starts
-	if ( !game["matchstarted"] )
+	level endon("timer_pause");	
+	
+	if(!isDefined(doGracePeriod))
+		doGracePeriod = false;
+	
+	if([[level.getVars]]("scr_roundlength") <= 0) //if no timelimit
+		return; //nothing to check
+	if(game["suddendeath"]) //in sudden death overtime
+		return; //ignore timelimit
+	if(level.roundended) //wait til next round to call time up
 		return;
-		
-	//set roundstarted flag
-	level.roundstarted = true;
-	
-	//get epoch time for round start
-	level.roundstarttime = getTime();
-	
-	// if the round length is zero (or less) then no clock or timer
-	if ( [[level.getVars]]("scr_roundlength") <= 0 )
-		return;	
-	
-	//if game is a single round (but uses warm up or OT)
-	if([[level.getVars]]("scr_roundlimit") == 1)
-	{	//set timer to the game time limit
-		timer = ([[level.getVars]]("scr_timelimit") * 60) - (game["timepassed"] * 60);
-	}
-	else//otherwise
-	{	//set time to the round time limit
-		timer = [[level.getVars]]("scr_roundlength") * 60;
-	}
+	if(level.mapended) //if map is already over 
+		return; //no point in checking time limit
 	//update main clock
 	maps\mp\uox\_uox_hud::updateHUDMainClock(timer);
-	//run grace period
-	level thread doGracePeriod([[level.getVars]]("scr_graceperiod"));
+	if(doGracePeriod) //run grace period
+		level thread doGracePeriod([[level.getVars]]("scr_graceperiod"));
 		
 	//wait for round timer
 	wait(timer);
@@ -645,13 +567,15 @@ startRound()
 	 
 	if(level.uox_teamplay) //if team game
 	{ 
-		//if scores are equal
-		if(level.alliedscore == level.axisscore)
+		//if game has defense and offense
+		// defenders win round if time runs out
+		if(isDefined(game["defenders"]))
+		{
+			incrementTeamScore(game["defenders"]);
+			endRound(game["defenders"]);
+		}
+		else if(level.alliedscore == level.axisscore)
 		{	//round was a tie
-			// defenders win round if a tie
-			if(isDefined(game["defenders"]))
-				endRound(game["defenders"]);
-			else
 				endRound("draw");
 		} //if allies have more score than axis
 		else if(level.alliedscore > level.axisscore)
@@ -666,7 +590,41 @@ startRound()
 	else //if free for all game
 	{	//determine who won round later
 		endRound("deathmatch");
+	}	
+}
+
+/* *************************************************************************************************
+**** startRound()
+****
+**** Called from startGame 
+**** Initializes round timer, does grace period and waits for timer to expire before ending round.
+**** Is killed by "bomb_plant" notify so that round doesn't end during an active bomb
+**** 
+************************************************************************************************* */
+startRound()
+{	
+	
+	// round does not start until the match starts
+	if ( !game["matchstarted"] )
+		return;
+		
+	//set roundstarted flag
+	level.roundstarted = true;
+	
+	//get epoch time for round start
+	level.roundstarttime = getTime();
+	
+	//if game is a single round (but uses warm up or OT)
+	if([[level.getVars]]("scr_roundlimit") == 1)
+	{	//set timer to the game time limit
+		timer = ([[level.getVars]]("scr_timelimit") * 60) - (game["timepassed"] * 60);
 	}
+	else//otherwise
+	{	//set time to the round time limit
+		timer = level.roundlength * 60;
+	}
+	
+	level startRoundTimer(timer, true);
 }
 
 /* *************************************************************************************************
@@ -1093,6 +1051,7 @@ endRound(roundwinner)
 	{ //if teams are marked to balanced and teambalance is enforced
 		level.lockteams = true; //don't let players switch team
 		level thread maps\mp\gametypes\_teams::TeamBalance(); //start team balance routine
+		level thread maps\mp\uox\_uox_utils::notifyLater("Teams Balanced", 15);
 		level waittill ("Teams Balanced"); //wait until teams are balanced
 		wait 4; //give us a second to reset
 	}
@@ -2013,6 +1972,69 @@ setPlayerScore(victim, attacker)
 	}
 }
 
+incrementTeamScore(team, val)
+{
+	if(!isDefined(val))
+		val = 1;
+	//give them a point
+	if(team == "axis")
+	{
+		if([[level.getVars]]("scr_score_rounds"))
+		{
+			teamscore = level.axisscore;
+			teamscore += val;
+			level.axisscore = teamscore;
+			setTeamScore("axis", level.axisscore);
+		}
+		else
+		{
+			teamscore = game["axisscore"];
+			teamscore += val;
+			game["axisscore"] = teamscore;
+			setTeamScore("axis", game["axisscore"]);
+		}
+	}
+	else if(team == "allies")
+	{
+		if([[level.getVars]]("scr_score_rounds"))
+		{
+			teamscore = level.alliedscore;
+			teamscore += val;
+			level.alliedscore = teamscore;
+			setTeamScore("allies", level.alliedscore);
+		}
+		else
+		{
+			teamscore = game["alliedscore"];
+			teamscore += val;
+			game["alliedscore"] = teamscore;
+			setTeamScore("allies", game["alliedscore"]);
+		}
+	}
+}
+
+// ----------------------------------------------------------------------------------
+//	GivePointsToTeam
+//
+// 		Gives points to everyone on a certain team
+// ----------------------------------------------------------------------------------
+GivePointsToTeam( team, points )
+{
+	players = getentarray("player", "classname");
+	
+	// count up the people in the flag area
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+
+		if(isAlive(player) && player.pers["team"] == team)
+		{
+			player.pers["score"] += points;
+			player.score = player.pers["score"];
+		}
+	}
+}
+
 /* *************************************************************************************************
 **** lockPlayersInPlace()
 ****
@@ -2379,9 +2401,12 @@ getNumBots()
 **** sets up objectives for gametype. AttackDefend is team to set as attacker if not defined by map
 ****
 *************************************************************************************************** */
-initObjectives(AttackDefend)
+initObjectives(objective)
 {
-	if(!isDefined(AttackDefend))
+
+	if(!isDefined(objective))
+		objective = "none";
+	if(objective == "none")
 		AttackDefendFlag = false;
 	else
 		AttackDefendFlag = true;
@@ -2408,6 +2433,15 @@ initObjectives(AttackDefend)
 		game["attackers"] = undefined;
 		game["defenders"] = undefined;
 	}
+
+	switch(objective)
+	{
+		case "bomb":
+			maps\mp\uox\_uox_bombs::precacheAssets();
+			maps\mp\uox\_uox_bombs::initVars();
+			thread maps\mp\uox\_uox_bombs::bombzones();
+			return;
+	}
 }
 
 /* **************************************************************************************************
@@ -2416,19 +2450,27 @@ initObjectives(AttackDefend)
 **** returns objective text for scoreboard
 ****
 *************************************************************************************************** */
-getObjectiveText()
+getObjectiveText(objective)
 {
-	switch(level.gametype)
+	switch(objective)
 	{
-		case "dm":
-			return &"DM_KILL_OTHER_PLAYERS";
-		case "tdm":
-			if(self.pers["team"] == "allies")
-				return &"TDM_KILL_AXIS_PLAYERS";
-			else if(self.pers["team"] == "axis")
-				return &"TDM_KILL_ALLIED_PLAYERS";
+		case "bomb":
+			if(game["attackers"] == "allies")
+				return &"SD_OBJ_SPECTATOR_ALLIESATTACKING";
+			else if(game["attackers"] == "axis")
+				return &"SD_OBJ_SPECTATOR_AXISATTACKING";
+		default:
+			if(level.uox_teamplay)
+			{
+				if(self.pers["team"] == "allies")
+					return &"TDM_KILL_AXIS_PLAYERS";
+				else if(self.pers["team"] == "axis")
+					return &"TDM_KILL_ALLIED_PLAYERS";
+				else
+					return &"TDM_ALLIES_KILL_AXIS_PLAYERS";
+			}
 			else
-				return &"TDM_ALLIES_KILL_AXIS_PLAYERS";
+				return &"DM_KILL_OTHER_PLAYERS";
 	}
 	return &"DM_KILL_OTHER_PLAYERS";
 }

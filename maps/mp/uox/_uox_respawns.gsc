@@ -94,8 +94,11 @@ menu_spawn(weapon)
 				self thread maps\mp\uox\_uox::printJoinedTeam(self.pers["team"]);
 			}
 		}
-	
 	}
+	if(level.uox_teamplay)
+		self thread maps\mp\gametypes\_teams::SetSpectatePermissions();
+	if (isdefined (self.autobalance_notify))
+		self.autobalance_notify destroy();
 }
 
 spawnIntermission()
@@ -152,7 +155,7 @@ spawnSpectator(origin, angles)
 	level maps\mp\uox\_uox::updateTeamStatus();
 	if(!game["matchstarted"])
 		level thread maps\mp\uox\_uox::checkMatchStart();
-	self setClientCvar("cg_objectiveText", &"DM_KILL_OTHER_PLAYERS");
+	self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(level.objective));
 }
 
 respawn()
@@ -210,19 +213,8 @@ respawn_delayed()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	gt = level.gametype;
-	death_wait_time_override = getCvarInt("scr_" + gt + "_spawndelay_time");
-	
-	if(death_wait_time_override > 0)
-		death_wait_time = death_wait_time_override;
-	else
-	{
-		if(getCvarInt("scr_spawndelay_time") > 0)
-			death_wait_time = getCvarInt("scr_spawndelay_time");
-		else 
-			death_wait_time = 7;
-	}
-	
+	death_wait_time = [[level.getVars]]("scr_spawndelay_time");
+		
 	self thread maps\mp\uox\_uox_hud::stopwatch_start("respawn", death_wait_time);
 
 	wait (death_wait_time);
@@ -236,21 +228,11 @@ respawn_wave()
 	
 	if(self.pers["team"] != "allies" && self.pers["team"] != "axis")
 	{
-		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
+		maps\mp\_utility::error("Team not set correctly on spawning player "
+			+ self + " " + self.pers["team"]);
 	}
-	
-	gt = level.gametype;
-	wave_time_override = getCvarInt("scr_" + gt + "_respawn_wave_time");
-	
-	if(wave_time_override > 0)
-		timer = wave_time_override;
-	else
-	{
-		if(getCvarInt("scr_respawn_wave_time") > 0)
-			timer = getCvarInt("scr_respawn_wave_time");
-		else 
-			timer = 7;
-	}
+
+	wave_time = [[level.getVars]]("scr_respawn_wave_time");	
 	
 	if(!isDefined(level.respawn_timer))
 		level.respawn_timer = [];
@@ -321,7 +303,7 @@ getMidRoundLives()
 			continue;
 		if(!isDefined(player.pers["team"]) || (isDefined(player.pers["team"]) && player.pers["team"] == "spectator"))
 			continue;
-		if(level.uox_teamplay && players.pers["team"] != self.pers["team"])
+		if(level.uox_teamplay && player.pers["team"] != self.pers["team"])
 			continue;
 		if(!isDefined(player.lives))
 			continue;
@@ -374,17 +356,11 @@ getRespawnMode()
 				case "tdm":
 				case "bel":
 				default:
-					if(getCvarInt("scr_forcerespawn") > 0)
-						return ::respawn_forced;
-					else
-						return ::respawn_dm;
+					return ::respawn_dm;
 			}
 	}
 	//if you got here somehow (should never though) set dm respawn mode
-	if(getCvarInt("scr_forcerespawn") > 0)
-		return ::respawn_forced;
-	else
-		return ::respawn_dm;
+	return ::respawn_dm;
 }
 
 waitForceRespawnTime()
@@ -392,7 +368,7 @@ waitForceRespawnTime()
 	self endon("end_respawn");
 	self endon("respawn");
 
-	wait getCvarInt("scr_forcerespawn");
+	wait [[level.getVars]]("scr_forcerespawn");
 	self notify("respawn");
 }
 
@@ -521,7 +497,7 @@ spawnPlayer(farthest)
 	self.usedweapons = false;
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 	
-	self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText());
+	self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(level.objective));
 
 	if([[level.getVars]]("scr_drawfriend"))
 	{

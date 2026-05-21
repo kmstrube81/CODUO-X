@@ -133,6 +133,7 @@ spawnedKillcamCleanup()
 finalKillcamListener()
 {
 	level waittill("postround");
+	level.didFinalKillcam = true;
 	
 	if(!isDefined(level.finalKillcamTime))
 	{
@@ -140,7 +141,6 @@ finalKillcamListener()
 		return; //if no defined killcam data just abort
 	}
 	
-	level.didFinalKillcam = true;
 	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
 	
 	logPrint("A;" + level.finalKillcamAttackerGUID + ";" + level.finalKillcamSpectatorClient + ";" +
