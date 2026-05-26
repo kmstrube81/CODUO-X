@@ -1,0 +1,221 @@
+/* *************************************************************************************************
+**** initPlayerInputs()
+****
+**** adds monitors to player fastLoop
+****  
+************************************************************************************************* */
+initPlayerInputs()
+{
+	self initInputSequences();
+	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorUseKey);
+	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorMeleeKey);
+	self maps\mp\uox\_uox_loops::addToWaitTills(self, "Pressed Use", ::watchUse);
+}
+
+/* *************************************************************************************************
+**** initInputSequences()
+****
+**** sets up the inpute sequences and registered commands
+****  
+************************************************************************************************* */
+initInputSequences()
+{
+	//init default input sequences (hold use, hold melee, doubletap use, double tap melee
+	self.holdUse = [];
+	//TO DO: add cvar for setting default action
+
+	self.holdMelee = [];
+	//TO DO: add cvar for setting default action
+}
+
+/* *************************************************************************************************
+**** monitorUseKey()
+****
+**** sends a notify when the use key is pressed
+****  
+************************************************************************************************* */
+monitorUseKey()
+{
+	//don't monitor in any of these cases
+	if(!isPlayer(self)|| !isAlive(self) || self isOnGround() || self.pers["team"] == "spectator"
+		|| level.mapended || level.rounded)
+	return;
+	
+	if(!isDefined(self.isUsing))
+		self.isUsing = false;
+	
+	if(self.isUsing)
+		return;
+	
+	if(self useButtonPressed())
+	{
+		self.isUsing = true;
+		self notify("Pressed Use");
+	}
+}
+
+watchUse()
+{
+	self endon("disconnect");
+	
+	//array shape n["callback"] - what happens when finished
+	// n["delaytime"] how long before hold starts counting
+	// n["waittime"] how long it takes
+	// n["progressbar"] whether to draw progress bar
+
+	if(!isDefined(self.holdUse[0]))
+	{
+		skipHold = true; //no current hold use, nothing to do
+		delaytime = 0;
+	}
+	else
+	{
+		skipHold = false;
+		delaytime = self.holdUse[0]["delaytime"];
+		waittime = self.holdUse[0]["waittime"];
+		holdCallback = self.holdUse[0]["callback"];
+		failCallback = self.holdUse[0]["failure"];
+		drawProgressBar = self.holdUse[0]["progressbar"];
+		lockInPlace = self.holdUse[0]["lock"];
+		disableWeapon = self.holdUse[0]["disableweapon"];
+		trigger = self.holdUse[0]["trigger"];
+		audioCue = self.holdUse[0]["audiocue"];
+	}
+	
+	self.currenttime = 0;
+	while(!skipHold && self useButtonPressed() && (isAlive(self))
+		&& (!isDefined(trigger) || (isDefined(trigger) && self istouching(trigger))) )
+	{
+		usetime = 0;
+		while(isAlive(self) && self useButtonPressed() && (usetime < delaytime))
+		{
+			wait .05;
+			usetime = (usetime + .05);
+		}
+		
+		if(!(self isOnGround()))
+		{
+			continue;
+		}
+
+		if((isAlive(self)) && (self useButtonPressed())
+			)
+		{	
+			self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime);
+			progresstime = 0;
+			
+			self notify("kill_check_" + msg);
+			
+			if(isDefined(trigger))
+				trigger.doing = true;
+			
+			if(lockInPlace)
+			{
+				spawned = spawn("script_origin", self.origin);
+				if(isdefined(spawned))
+					self linkto(spawned);
+			}
+			
+			if(disableWeapon)
+				self disableWeapon();
+			
+			if(isDefined(audioCue) && isDefined(trigger))
+				trigger playsound(audioCue);
+			
+			while(isAlive(self) && self useButtonPressed() && (progresstime < waittime) && maps\mp\_util_mp_gmi::canPlantGMI())
+			{
+				progresstime += 0.05;
+				wait 0.05;
+			}
+
+			//delete hud elems
+			self maps\mp\uox\_uox_hud::deleteClientHUDProgressBar();
+
+			//did it!
+			if(progresstime >= waittime)
+			{
+				self thread [[holdCallback]](trigger);
+				self unlink();
+				self enableWeapon();
+				self.isUsing = false;
+				return;
+			}
+			else
+			{
+				self.isUsing = false;
+				self unlink();
+				self enableWeapon();
+				if(isDefined(trigger))
+					trigger.doing = undefined;
+				if(isDefined(failCallback))
+					[[failCallback]](trigger);
+			}
+		}
+	}
+	//got here, record the input instead TODO input recording
+	
+	//after recording input, makesure it still isn't held down
+	while(self useButtonPressed())
+		wait 0.05;
+	//mark as no using
+	self.isUsing = false;
+}
+
+addHoldUse(msg, delayTime, waitTime, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
+{
+	if(!isDefined(drawProgressBar))
+		drawProgressBar = false;
+	if(!isDefined(lockInPlace))
+		lockInPlace = false;
+	if(!isDefined(disableWeapon))
+		disableWeapon = false;
+	
+	hold = [];
+	hold["msg"] = msg;
+	hold["delaytime"] = delayTime;
+	hold["waittime"] = waitTime;
+	hold["callback"] = succesCallback;
+	hold["failure"] = failCallback;
+	hold["progressbar"] = drawProgressBar;
+	hold["lock"] = lockInPlace;
+	hold["disableweapon"] = disableWeapon;
+	hold["trigger"] = trigger;
+	hold["audiocue"] = audioCue;
+	
+	self.holdUse = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdUse, hold);
+}
+
+removeHoldUse(msg)
+{
+	index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(self.holdUse, "msg", msg);
+	if(isDefined(index))
+	{
+		self.holdUse = maps\mp\uox\_uox_arrays::arraySlice(self.holdUse, index);
+	}
+}
+
+/* *************************************************************************************************
+**** monitorMeleeKey()
+****
+**** sends a notify when the melee key is pressed
+****  
+************************************************************************************************* */
+monitorMeleeKey()
+{
+	//don't monitor in any of these cases
+	if(!isPlayer(self)|| !isAlive(self) || self isOnGround() || self.pers["team"] == "spectator"
+		|| level.mapended || level.rounded)
+	return;
+	
+	if(!isDefined(self.isMelee))
+		self.isMelee = false;
+	
+	if(self.isMelee)
+		return;
+	
+	if(self meleeButtonPressed())
+	{
+		self.ismelee = true;
+		self notify("Pressed Melee");
+	}
+}

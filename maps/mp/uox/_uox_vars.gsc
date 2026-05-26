@@ -159,59 +159,54 @@ monitorVar(prefix, varname, type, hrName)
 ************************************************************************************************* */
 updateVars()
 {
-		
-	for(;;)
+	for(i = 0; i < level.monitoredVars.size; i++)
 	{
-		for(i = 0; i < level.monitoredVars.size; i++)
+		var = level.monitoredVars[i];
+		
+		_val = getVar(var["prefix"], var["varname"], var["type"]);
+		
+	/*	_index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(
+			level.vars, "cvarname", var["cvarname"]); */
+			
+	//	_var = level.vars[_index];
+		_var = level.vars[var["cvarname"]];
+		
+		if(!isDefined(_val))
+			_val = _var["defaultvalue"];
+			
+		if(_val != _var["value"])
 		{
-			var = level.monitoredVars[i];
+			oldval = _var["value"];
+			//update var
 			
-			_val = getVar(var["prefix"], var["varname"], var["type"]);
-			
-		/*	_index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(
-				level.vars, "cvarname", var["cvarname"]); */
-				
-		//	_var = level.vars[_index];
-			_var = level.vars[var["cvarname"]];
-			
-			if(!isDefined(_val))
-				_val = _var["defaultvalue"];
-				
-			if(_val != _var["value"])
+			//level.vars[_index]["value"] = _val;
+			level.vars[var["cvarname"]]["value"] = _val;
+			//announce var change if hrname is defined
+			if(isDefined(_var["hrname"]))
 			{
-				oldval = _var["value"];
-				//update var
-				
-				//level.vars[_index]["value"] = _val;
-				level.vars[var["cvarname"]]["value"] = _val;
-				//announce var change if hrname is defined
-				if(isDefined(_var["hrname"]))
+				switch(_var["type"])
 				{
-					switch(_var["type"])
-					{
-						case "bool":
-							if(_val)
-								setting = "ON";
-							else
-								setting = "OFF";
-							iprintln("SERVER: ^1" + var["hrname"] + " ^7has been turned ^1" + setting);
-							break;
-						case "int":
-						case "float":
-						case "string":
-							setting = _val;
-							iprintln("SERVER: ^1" + var["hrname"] + " ^7has been updated to ^1" + setting + "^7 from ^1" + oldval);
-							break;
-					}
-				}
-				//run callback, the var value is the first parameter
-				if(isDefined(_var["callback"]))
-				{
-					[[_var["callback"]]](_var["value"]);
+					case "bool":
+						if(_val)
+							setting = "ON";
+						else
+							setting = "OFF";
+						iprintln("SERVER: ^1" + var["hrname"] + " ^7has been turned ^1" + setting);
+						break;
+					case "int":
+					case "float":
+					case "string":
+						setting = _val;
+						iprintln("SERVER: ^1" + var["hrname"] + " ^7has been updated to ^1" + setting + "^7 from ^1" + oldval);
+						break;
 				}
 			}
+			//run callback, the var value is the first parameter
+			if(isDefined(_var["callback"]))
+			{
+				[[_var["callback"]]](_var["value"]);
+			}
 		}
-		wait 1;
 	}
 }
 
@@ -295,7 +290,7 @@ initGameTypeVars()
 	//needed for compatibility with built in UO battlerank
 	level.battlerank = [[level.getVars]]("scr_battlerank");
 	if(level.battlerank > 0)
-		level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop,
+		maps\mp\uox\_uox_loops::addToLoop(level, "slow",
 				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
 				
 	varDef("scr", "shellshock", "bool", true, true, undefined, undefined, "Shellshock");
@@ -336,7 +331,7 @@ initGameTypeVars()
 										true, undefined, undefined, "Team Balance", 
 										maps\mp\uox\_uox::updateTeamBalance);
 		if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
-			level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop,
+			maps\mp\uox\_uox_loops::addToLoop(level, "slow",
 					maps\mp\uox\_uox::TeamBalance_Check());
 
 		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");

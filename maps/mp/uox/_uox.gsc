@@ -231,9 +231,14 @@ endMap()
 	game["state"] = "intermission"; //sets game to intermission
 	level notify("intermission"); //send intermission notify
 	
-	if(isdefined(level.bombmodel)) //for objective modes, disable bomb tick
-		level.bombmodel stopLoopSound();
-
+	if(isdefined(level.bombs)) //for objective modes, disable bomb tick
+	{
+		if(isdefined(level.bombs["A"]))
+			level.bombs["A"] stopLoopSound();
+		if(isdefined(level.bombs["B"]))
+			level.bombs["B"] stopLoopSound();
+	}
+	
 	winners = ""; //init winner string
 	losers = ""; //init loser string
 	logToPrintW = ""; //init log print W string
@@ -449,11 +454,13 @@ startGame()
 	}
 	
 	//start game timer loop
+	//maps\mp\uox\_uox_loops::addToLoop(level, "slow", ::checkTimeLimit);
+	/*
 	for(;;)
 	{	//check time limit once a second.
 		checkTimeLimit();
 		wait 1;
-	}
+	} */
 }
 
 /* *************************************************************************************************
@@ -1758,14 +1765,20 @@ doOvertime()
 	//announce that the game is in sudden death
 	iprintlnbold("SUDDEN DEATH OVERTIME STARTING NOW");
 	
-	for(;;) //loop while checking if game is still tied
-	{
-		
-		if(!checkTie([[level.getVars]]("scr_score_rounds")))
-			break;
-		
-		wait 0.2;
-	}
+	maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::checkSuddenDeath);
+}
+
+checkSuddenDeath()
+{
+	if(!checkTie([[level.getVars]]("scr_score_rounds")))
+		endOvertime();
+}
+
+endOvertime()
+{
+	//kill loop
+	maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", ::checkSuddenDeath);
+	
 	//tie has been broken. End Game
 	if(game["roundbased"])
 	{	//if round hasn't already ended
@@ -2406,27 +2419,31 @@ initObjectives(objective)
 
 	if(!isDefined(objective))
 		objective = "none";
-	if(objective == "none")
-		AttackDefendFlag = false;
-	else
-		AttackDefendFlag = true;
+	switch(objective)
+	{
+		case "none":
+			AttackDefendFlag = false;
+			break;
+		case "sd":
+		case "re":
+			AttackDefendFlag = true;
+			break;
+		default:
+			AttackDefendFlag = false;
+	}
 	
 	//set up attackers/defenders
 	if(AttackDefendFlag) //game should have attackers/defenders
 	{
 		if(!isDefined(game["attackers"]))
-		{
-			if(AttackDefend == "axis")
-			{
-				game["attackers"] = "axis";
-				game["defenders"] = "allies";
-			}
-			else
-			{
-				game["attackers"] = "allies";
-				game["defenders"] = "axis";
-			}
-		}
+			game["attackers"] = "allies";
+		if(!isDefined(game["defenders"]))
+			game["defenders"] = "axis";
+		if(!isdefined(game["re_attackers"]))
+			game["re_attackers"] = "allies";
+		if(!isdefined(game["re_defenders"]))
+			game["re_defenders"] = "axis";
+		
 	}
 	else //game should not have attackers/defenders
 	{
@@ -2437,9 +2454,14 @@ initObjectives(objective)
 	switch(objective)
 	{
 		case "bomb":
-			maps\mp\uox\_uox_bombs::precacheAssets();
+			maps\mp\uox\_uox_bombs::precache();
 			maps\mp\uox\_uox_bombs::initVars();
 			thread maps\mp\uox\_uox_bombs::bombzones();
+			return;
+		case "retrieval":
+			maps\mp\uox\_uox_retrievals::precache();
+			maps\mp\uox\_uox_retrievals::initVars();
+			thread maps\mp\uox\_uox_retrievals::retrieval();
 			return;
 	}
 }
@@ -2584,15 +2606,10 @@ updateBattleRank(battlerank)
 	else
 		drawfriend = false;
 	
-	//get index of rankchange check loop
-	index = maps\mp\uox\_uox_arrays::arrayFind(level.slowLoop, 
-			maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
-	
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
-	{	
-		if(!isDefined(index)) //if rank change check is not in loop, add it
-			level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop,
+	{	//if rank change check is not in loop, add it
+		maps\mp\uox\_uox_loops::addToLoop(level, "slow",
 				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
 				
 		// for all living players, show the appropriate headicon
@@ -2656,8 +2673,7 @@ updateBattleRank(battlerank)
 	}
 	if(battlerank == 0)
 	{
-		if(isDefined(index)) //if rank change check is in loop, remove it
-			level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, index);
+		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
 	}
 }
 
@@ -2773,29 +2789,23 @@ updateTeamBalance(teamBalance)
 		return;
 	
 	level.teambalance = teamBalance;
-	
-	index = maps\mp\uox\_uox_arrays::arrayFind(level.slowLoop, 
-				maps\mp\uox\_uox::TeamBalance_Check);
 			
 	if(teamBalance)
 	{
 		if(game["roundbased"])
 		{
-			if(isDefined(index)) //if team balance function is in slow loop, remove it
-				level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, index);
+			maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", maps\mp\gametypes\_teams::TeamBalance_Check);
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
 		}
 		else
 		{
-			if(!isDefined(index)) //if team balance function is not in slow loop, add it
-				level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush( level.slowLoop, 
+			maps\mp\uox\_uox_loops::addToLoop( level, "slow", 
 					maps\mp\uox\_uox::TeamBalance_Check);
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check();
 			level.teambalancetimer = 0;
 		}
 	}
-	else if(isDefined(index)) //if team balance function is in slow loop, remove it
-		level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, index);
+	maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", maps\mp\gametypes\_teams::TeamBalance_Check);
 }
 
 TeamBalance_Check()

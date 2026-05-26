@@ -149,17 +149,7 @@ Callback_StartGameType()
 		precacheMenu(game["menu_quickstatements"]);
 		precacheMenu(game["menu_quickresponses"]);
 		precacheMenu(game["menu_quickvehicles"]);
-		precacheMenu(game["menu_quickrequests"]);
-
-		precacheShader("black");
-		precacheShader("hudScoreboard_mp");
-		precacheShader("gfx/hud/hud@mpflag_none.tga");
-		precacheShader("gfx/hud/hud@mpflag_spectator.tga");
-		precacheShader("hudStopwatch");
-		precacheShader("hudStopwatchNeedle");
-		precacheStatusIcon("gfx/hud/hud@status_dead.tga");
-		precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
-		
+		precacheMenu(game["menu_quickrequests"]);		
 		precacheItem("item_health");
 
 		maps\mp\gametypes\_teams::precache();
@@ -182,14 +172,15 @@ Callback_StartGameType()
 	thread maps\mp\uox\_uox::addBotClients(); // For development testing
 	
 	thread maps\mp\uox\_uox::startGame();
-	thread maps\mp\uox\_uox_vars::updateVars();
+	maps\mp\uox\_uox_loops::addToLoop(level, "slow", maps\mp\uox\_uox_vars::updateVars);
 }
 
 Callback_PlayerConnect()
 {
 	self thread maps\mp\uox\_uox_loops::initPlayerLoop();
-	self.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(self.slowLoop,
+	self maps\mp\uox\_uox_loops::addToLoop(self, "slow",
 		maps\mp\uox\_uox_vars::enforceClientCvars); 
+	self maps\mp\uox\_uox_inputs::initPlayerInputs();
 	self.statusicon = "gfx/hud/hud@status_connecting.tga";
 	self waittill("begin");
 	self.statusicon = "";

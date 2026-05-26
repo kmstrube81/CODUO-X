@@ -1,5 +1,13 @@
-precacheAssets()
+precache()
 {
+	game["bombPlantedText"] = &"SD_EXPLOSIVESPLANTED";
+	precacheString(game["bombPlantedText"]);
+	game["bombDefusedText"] = &"SD_EXPLOSIVESDEFUSED";
+	precacheString(game["bombDefusedText"]);
+	game["alliesSuccessText"] = &"SD_ALLIEDMISSIONACCOMPLISHED";
+	precacheString(game["alliesSuccessText"]);
+	game["axisSuccessText"] = &"SD_AXISMISSIONACCOMPLISHED";
+	precacheString(game["axisSuccessText"]);
 	precacheShader("ui_mp/assets/hud@plantbomb.tga");
 	precacheShader("ui_mp/assets/hud@defusebomb.tga");
 	precacheShader("gfx/hud/hud@objectiveA.tga");
@@ -108,147 +116,110 @@ bombzone_think(bombzone_other)
 				other maps\mp\uox\_uox_hud::updateClientHUDElement("plant_icon", "shader",
 					"ui_mp/assets/hud@plantbomb.tga", iconOptions);
 			
-			while(other istouching(self) && isAlive(other) && other useButtonPressed())
-			{
-				planttime = [[level.getVars]]("scr_bombplanttime");
-				
-				other notify("kill_check_bombzone"); //stop checking bombzone while planting
-				
-				self.planting = true;
-				
-				other maps\mp\uox\_uox_hud::createClientHUDProgressBar(planttime);
-				
-				other playsound("MP_bomb_plant");
-				other linkTo(self);
-				other disableWeapon();
-
-				self.progresstime = 0;
-				while(isAlive(other) && other useButtonPressed()
-					&& (self.progresstime < planttime)
-					&& (other maps\mp\_util_mp_gmi::canPlantGMI()))
-				{
-					self.progresstime += 0.05;
-					wait 0.05;
-				}
-				
-				//delete hud elems
-				other maps\mp\uox\_uox_hud::deleteClientHUDProgressBar();
-
-				if(self.progresstime >= planttime)
-				{
-					other maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
-
-					other enableWeapon();
-
-					other.pers["score"] += [[level.getVars]]("scr_bombplantbonuspoints");
-					other.score = other.pers["score"];
-					
-					bombexploder = self.script_noteworthy;
-					level.bombexploders[self.objectiveName] = bombexploder;
-					
-					if([[level.getVars]]("scr_bombplantmode") < 1)
-					{
-						bombzone_A = getent("bombzone_A", "targetname");
-						bombzone_B = getent("bombzone_B", "targetname");
-						bombzone_A delete();
-						bombzone_B delete();
-						objective_delete(0);
-						objective_delete(1);
-					}
-	
-					plant = other maps\mp\_util_mp_gmi::getPlantGMI();
-					
-					bombmodel = spawn("script_model", plant.origin);
-					bombmodel.angles = plant.angles;
-					bombmodel setmodel("xmodel/mp_bomb1_defuse");
-					bombmodel playSound("Explo_plant_no_tick");
-					bombmodel.objectiveName = self.objectiveName;
-					bombmodel.objective = self.objective;
-					
-					bombtrigger = getent("bombtrigger", "targetname");
-					bombtrigger.origin = bombmodel.origin;
-
-					if([[level.getVars]]("scr_bombplantmode") < 1)
-						objective_add(0, "current", bombtrigger.origin, "gfx/hud/hud@bombplanted.tga");
-		
-					level.bombsites[self.objectiveName]["planted"] = true;
-					
-					lpselfnum = other getEntityNumber();
-					lpselfguid = other getGuid();
-					logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + game["attackers"] + ";" + other.name + ";" + "bomb_plant" + "\n");
-					
-					announcement(&"SD_EXPLOSIVESPLANTED");
-										
-					players = getentarray("player", "classname");
-					for(i = 0; i < players.size; i++)
-						players[i] playLocalSound("MP_announcer_bomb_planted");
-					
-					options = [];
-					options["x"] = 320;
-					options["y"] = 390;
-					options["alignX"] = "center";
-					options["alignY"] = "middle";
-					options["fontscale"] = 1.5;
-					options["color"] = (1, 1, 0);
-					level.hudplanted = maps\mp\uox\_uox_hud::updateHUDElement(level.hudplanted, "text",
-						&"SD_EXPLOSIVESPLANTED", options);
-						
-					level.mainClock = level maps\mp\uox\_uox_hud::deleteHUDMainClock();
-					if(!isDefined(level.roundTimeLeft))
-						level.roundTimeLeft = (level.roundlength * 60)
-													- ( (getTime() - level.roundstarttime) / 1000 );
-					else if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
-						level.roundTimeLeft = level.roundTimeLeft - ( (getTime() - level.roundresumetime) / 1000 );
-					
-					if(!isDefined(level.mainBombClock))
-					{
-						maps\mp\uox\_uox_hud::updateHUDMainBombClock([[level.getVars]]("scr_bombtimer"));
-						//if secondary clock exists, move it
-						if(isDefined(level.secondBombClock))
-							level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
-								level.secondBombClock, "x", 180);
-						bombmodel.clock = level.mainBombClock;
-					}
-					else
-					{
-						maps\mp\uox\_uox_hud::updateHUDSecondaryBombClock(
-							[[level.getVars]]("scr_bombtimer"));
-						bombmodel.clock = level.secondBombClock;
-					}
-					level.bombs[self.objectiveName] = bombmodel;
-					
-					bombtrigger thread bomb_think(bombmodel);
-					bombtrigger thread bomb_countdown(bombmodel);
-					
-					level notify("timer_paused");
-					
-					return;	//TEMP, script should stop after the wait .05
-				}
-				else
-				{
-					other unlink();
-					other enableWeapon();
-				}
-				
-				wait .05;
-			}
+			other maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
+				::plantBomb, ::check_bombzone, true, true, true, self, "MP_bomb_plant");
 			
-			self.planting = undefined;
-			other thread check_bombzone(self);
 		}
 	}
 }
 
+plantBomb(trigger)
+{
+	self.pers["score"] += [[level.getVars]]("scr_bombplantbonuspoints");
+	self.score = self.pers["score"];
+	
+	bombexploder = trigger.script_noteworthy;
+	level.bombexploders[trigger.objectiveName] = bombexploder;
+	
+	if([[level.getVars]]("scr_bombplantmode") < 1)
+	{
+		bombzone_A = getent("bombzone_A", "targetname");
+		bombzone_B = getent("bombzone_B", "targetname");
+		bombzone_A delete();
+		bombzone_B delete();
+		objective_delete(0);
+		objective_delete(1);
+	}
+
+	plant = self maps\mp\_util_mp_gmi::getPlantGMI();
+	
+	bombmodel = spawn("script_model", plant.origin);
+	bombmodel.angles = plant.angles;
+	bombmodel setmodel("xmodel/mp_bomb1_defuse");
+	bombmodel playSound("Explo_plant_no_tick");
+	bombmodel.objectiveName = trigger.objectiveName;
+	bombmodel.objective = trigger.objective;
+	
+	bombtrigger = getent("bombtrigger", "targetname");
+	bombtrigger.origin = bombmodel.origin;
+
+	if([[level.getVars]]("scr_bombplantmode") < 1)
+		objective_add(0, "current", bombtrigger.origin, "gfx/hud/hud@bombplanted.tga");
+
+	level.bombsites[trigger.objectiveName]["planted"] = true;
+	
+	lpselfnum = self getEntityNumber();
+	lpselfguid = self getGuid();
+	logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + game["attackers"] + ";" + self.name + ";" + "bomb_plant" + "\n");
+	
+	announcement(game["bombPlantedText"]);
+						
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+		players[i] playLocalSound("MP_announcer_bomb_planted");
+	
+	options = [];
+	options["x"] = 320;
+	options["y"] = 390;
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["fontscale"] = 1.5;
+	options["color"] = (1, 1, 0);
+	level.hudplanted = maps\mp\uox\_uox_hud::updateHUDElement(level.hudplanted, "text",
+		game["bombPlantedText"], options);
+		
+	level.mainClock = level maps\mp\uox\_uox_hud::deleteHUDMainClock();
+	if(!isDefined(level.roundTimeLeft))
+		level.roundTimeLeft = (level.roundlength * 60)
+									- ( (getTime() - level.roundstarttime) / 1000 );
+	else if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
+		level.roundTimeLeft = level.roundTimeLeft - ( (getTime() - level.roundresumetime) / 1000 );
+	
+	if(!isDefined(level.mainBombClock))
+	{
+		maps\mp\uox\_uox_hud::updateHUDMainBombClock([[level.getVars]]("scr_bombtimer"));
+		//if secondary clock exists, move it
+		if(isDefined(level.secondBombClock))
+			level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
+				level.secondBombClock, "x", 180);
+		bombmodel.clock = level.mainBombClock;
+	}
+	else
+	{
+		maps\mp\uox\_uox_hud::updateHUDSecondaryBombClock(
+			[[level.getVars]]("scr_bombtimer"));
+		bombmodel.clock = level.secondBombClock;
+	}
+	level.bombs[trigger.objectiveName] = bombmodel;
+	
+	bombtrigger thread bomb_think(bombmodel);
+	bombtrigger thread bomb_countdown(bombmodel);
+	
+	level notify("timer_paused");
+	
+}
+
 check_bombzone(trigger)
 {
-	self notify("kill_check_bombzone");
-	self endon("kill_check_bombzone");
+	self notify("kill_check_plant_bomb");
+	self endon("kill_check_plant_bomb");
 	level endon("round_ended");
 
-	while(isDefined(trigger) && !isDefined(trigger.planting) && self istouching(trigger) && isAlive(self) && !(self isinvehicle()))
+	while(isDefined(trigger) && !isDefined(trigger.doing) && self istouching(trigger) && isAlive(self) && !(self isinvehicle()))
 		wait 0.05;
 
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
+	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
 }
 
 bomb_countdown(bomb)
@@ -317,9 +288,9 @@ bomb_countdown(bomb)
 		|| [[level.getVars]]("scr_bombplantmode" < 2))
 	{
 		if (game["attackers"] == "allies") {
-			announcement(&"SD_ALLIEDMISSIONACCOMPLISHED");
+			announcement(game["alliesSuccessText"]);
 		} else {
-			announcement(&"SD_AXISMISSIONACCOMPLISHED");
+			announcement(game["axisSuccessText"]);
 		}
 		level thread maps\mp\uox\_uox::endRound(game["attackers"]);
 	}
@@ -390,7 +361,7 @@ bomb_think(bomb)
 					bomb delete();
 					self delete();
 
-					announcement(&"SD_EXPLOSIVESDEFUSED");
+					announcement(game["bombDefusedText"]);
 					
 					lpselfnum = other getEntityNumber();
 					lpselfguid = other getGuid();

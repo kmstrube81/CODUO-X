@@ -28,18 +28,10 @@ precache()
 	precacheString(game["matchResumingText"]);
 	game["roundDrawText"] = &"SD_ROUNDDRAW";
 	precacheString(game["roundDrawText"]);
-	game["bombPlantedText"] = &"SD_EXPLOSIVESPLANTED";
-	precacheString(game["bombPlantedText"]);
-	game["bombDefusedText"] = &"SD_EXPLOSIVESDEFUSED";
-	precacheString(game["bombDefusedText"]);
 	game["alliesEliminatedText"] = &"SD_ALLIESHAVEBEENELIMINATED";
 	precacheString(game["alliesEliminatedText"]);
 	game["axisEliminatedText"] = &"SD_AXISHAVEBEENELIMINATED";
 	precacheString(game["axisEliminatedText"]);
-	game["alliesSuccessText"] = &"SD_ALLIEDMISSIONACCOMPLISHED";
-	precacheString(game["alliesSuccessText"]);
-	game["axisSuccessText"] = &"SD_AXISMISSIONACCOMPLISHED";
-	precacheString(game["axisSuccessText"]);
 	game["livesText"] = &"Lives Left";
 	precacheString(game["livesText"]);
 	game["dividerText"] = &"/";
@@ -114,6 +106,7 @@ precache()
 	precacheString(game["matchScoreText"]);	
 	
 	game["objective_default"] = "gfx/hud/headicon@re_objcarrier.dds";
+	game["headicon_carrier"] = game["objective_default"];
 	precacheShader(game["objective_default"]);
 	switch(game["allies"])
 	{
@@ -130,6 +123,19 @@ precache()
 	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
 	precacheShader(game["headicon_allies"]);
 	precacheShader(game["headicon_axis"]);
+	precacheShader("gfx/hud/hud@objectivegoal.tga");
+	precacheShader("gfx/hud/hud@objectivegoal_up.tga");
+	precacheShader("gfx/hud/hud@objectivegoal_down.tga");
+	precacheShader("gfx/hud/objective.tga");
+	precacheShader("gfx/hud/objective_up.tga");
+	precacheShader("gfx/hud/objective_down.tga");
+	precacheShader("hudScoreboard_mp");
+	precacheShader("gfx/hud/hud@mpflag_none.tga");
+	precacheShader("gfx/hud/hud@mpflag_spectator.tga");
+	precacheShader("hudStopwatch");
+	precacheShader("hudStopwatchNeedle");
+	precacheStatusIcon("gfx/hud/hud@status_dead.tga");
+	precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
 	precacheShader("black");
 	precacheShader("white");
 }

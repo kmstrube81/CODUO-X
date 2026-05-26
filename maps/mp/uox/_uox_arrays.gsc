@@ -15,6 +15,29 @@ arrayPush(arr, element)
 }
 
 /* *************************************************************************************************
+**** arrayUnshift(array arr)
+****
+**** USAGE: adds element to begining of array
+****
+**** returns updated array
+****  
+************************************************************************************************* */
+arrayUnshift(arr, element)
+{
+	if(!isDefined(arr))
+		arr = []; //init new array if array not defined
+	
+	tempArr = [];
+	
+	tempArr[0] = element;
+	
+	for(i = 0; i < arr.size; i++) //loop through arr
+		tempArr[i + 1] = arr[i];
+	
+	return tempArr; 
+}
+
+/* *************************************************************************************************
 **** arrayPop(array arr)
 ****
 **** USAGE: removes last element of array
@@ -24,10 +47,13 @@ arrayPush(arr, element)
 ************************************************************************************************* */
 arrayPop(arr)
 {
-	if(!isDefined(arr) || arr.size <= 1 )
-		return undefined; //return undefined if array not defined or has only one elemet
+	if(!isDefined(arr))
+		return undefined; //return undefined if array not defined
 	
 	tempArr = [];
+	
+	if(arr.size <= 1)
+		return tempArr;
 	
 	for(i = 0; i < arr.size - 1; i++) //loop through all but the last element
 		tempArr[i] = arr[i];
@@ -36,7 +62,31 @@ arrayPop(arr)
 }
 
 /* *************************************************************************************************
-**** arraySplice(array arr, int startIndex, int numToRemove (optional)
+**** arrayShift(array arr)
+****
+**** USAGE: removes first element of array
+****
+**** returns updated array
+****  
+************************************************************************************************* */
+arrayShift(arr)
+{
+	if(!isDefined(arr))
+		return undefined; //return undefined if array not defined
+	
+	tempArr = [];
+	
+	if(arr.size <= 1)
+		return tempArr;
+	
+	for(i = 0; i < arr.size - 1; i++) //loop through all but the first element
+		tempArr[i] = arr[i + 1];
+	
+	return tempArr; 
+}
+
+/* *************************************************************************************************
+**** arraySlice(array arr, int startIndex, int numToRemove (optional)
 ****
 **** USAGE: removes the numToRemove number of items from array starting at startIndex
 ****
