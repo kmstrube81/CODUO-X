@@ -454,7 +454,7 @@ startGame()
 	}
 	
 	//start game timer loop
-	//maps\mp\uox\_uox_loops::addToLoop(level, "slow", ::checkTimeLimit);
+	maps\mp\uox\_uox_loops::addToLoop(level, "slow", ::checkTimeLimit, "checkTimeLimit");
 	/*
 	for(;;)
 	{	//check time limit once a second.
@@ -544,7 +544,7 @@ checkTimeLimit()
 startRoundTimer(timer, doGracePeriod)
 {
 	//kill on bomb_plant
-	level endon("timer_pause");	
+	level endon("timer_paused");	
 	
 	if(!isDefined(doGracePeriod))
 		doGracePeriod = false;
@@ -1171,7 +1171,7 @@ updateTeamStatus()
 	{	//if allies did exist and now they don't and axis did exist and they don't either
 		if(oldvalue["allies"] && !level.exist["allies"] && oldvalue["axis"] && !level.exist["axis"])
 		{	//for objective modes, if the bomb is not planted
-			if(!level.bombplanted)
+			if(!level.bombsites["A"]["planted"] && !level.bombsites["B"]["planted"])
 			{	//score round as a draw
 				announcement(&"SD_ROUNDDRAW"); //announce the draw
 				level thread endRound("draw"); //run draw endRound
@@ -1193,11 +1193,11 @@ updateTeamStatus()
 		if(oldvalue["allies"] && !level.exist["allies"])
 		{
 			// for objective modes, no bomb planted, axis win
-			if(!level.bombplanted)
+			if(!level.bombsites["A"]["planted"] && !level.bombsites["B"]["planted"])
 			{
 				announcement(&"SD_ALLIESHAVEBEENELIMINATED"); //announce that allies are all dead
 				//end round for axis, do killcam if the flag for the last allies killed is true
-				level thread endRound("axis",level.alliesLastKilled);
+				level thread endRound("axis");
 				return;
 			}
 			// in objective modes if the allies are attackers and the bomb is planted
@@ -1209,7 +1209,7 @@ updateTeamStatus()
 			{
 				announcement(&"SD_ALLIESHAVEBEENELIMINATED"); //announce allies are all dead
 				//end round for axis, do killcam if the flag for the last allies killed is true
-				level thread endRound("axis", level.alliesLastKilled);
+				level thread endRound("axis");
 				return;
 			}
 			//if the axis are not alive
@@ -1221,7 +1221,7 @@ updateTeamStatus()
 		if(oldvalue["axis"] && !level.exist["axis"])
 		{
 			// for objective, no bomb planted, allies win
-			if(!level.bombplanted)
+			if(!level.bombsites["A"]["planted"] && !level.bombsites["B"]["planted"])
 			{	
 				announcement(&"SD_AXISHAVEBEENELIMINATED"); //announce the last axis just died
 				//end round for axis, if flag for last axis killed is set to true, do final killcam
@@ -1237,7 +1237,7 @@ updateTeamStatus()
 			{
 				announcement(&"SD_AXISHAVEBEENELIMINATED"); //announc that the last axis just died
 				//end round for axis, if flag for last axis killed is set to true, do final killcam
-				level thread endRound("allies",level.axisLastKilled);
+				level thread endRound("allies");
 				return;
 			}
 			//if allies are not alive
@@ -1765,7 +1765,7 @@ doOvertime()
 	//announce that the game is in sudden death
 	iprintlnbold("SUDDEN DEATH OVERTIME STARTING NOW");
 	
-	maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::checkSuddenDeath);
+	maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::checkSuddenDeath, "checkSuddenDeath");
 }
 
 checkSuddenDeath()
@@ -1777,7 +1777,7 @@ checkSuddenDeath()
 endOvertime()
 {
 	//kill loop
-	maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", ::checkSuddenDeath);
+	maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "checkSuddenDeath");
 	
 	//tie has been broken. End Game
 	if(game["roundbased"])
@@ -2424,8 +2424,8 @@ initObjectives(objective)
 		case "none":
 			AttackDefendFlag = false;
 			break;
-		case "sd":
-		case "re":
+		case "bomb":
+		case "retrieval":
 			AttackDefendFlag = true;
 			break;
 		default:
@@ -2610,7 +2610,7 @@ updateBattleRank(battlerank)
 	if(battlerank > 0)
 	{	//if rank change check is not in loop, add it
 		maps\mp\uox\_uox_loops::addToLoop(level, "slow",
-				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
+				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges, "CheckPlayersForRankChanges");
 				
 		// for all living players, show the appropriate headicon
 		players = getentarray("player", "classname");
@@ -2673,7 +2673,7 @@ updateBattleRank(battlerank)
 	}
 	if(battlerank == 0)
 	{
-		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
+		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "CheckPlayersForRankChanges");
 	}
 }
 
@@ -2794,18 +2794,18 @@ updateTeamBalance(teamBalance)
 	{
 		if(game["roundbased"])
 		{
-			maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", maps\mp\gametypes\_teams::TeamBalance_Check);
+			maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "TeamBalance_Check");
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();
 		}
 		else
 		{
 			maps\mp\uox\_uox_loops::addToLoop( level, "slow", 
-					maps\mp\uox\_uox::TeamBalance_Check);
+					maps\mp\uox\_uox::TeamBalance_Check, "TeamBalance_Check");
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check();
 			level.teambalancetimer = 0;
 		}
 	}
-	maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", maps\mp\gametypes\_teams::TeamBalance_Check);
+	maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "TeamBalance_Check");
 }
 
 TeamBalance_Check()

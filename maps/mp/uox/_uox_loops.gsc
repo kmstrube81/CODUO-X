@@ -51,10 +51,10 @@ initPlayerLoop()
 {
 	self endon("disconnect");
 	
-	self.fastLoop = [];
-	self.mediumLoop = [];
-	self.slowLoop = [];
-	self.waitTills = [];
+	self.fastLoop = maps\mp\uox\_uox_arrays::superArray();
+	self.mediumLoop = maps\mp\uox\_uox_arrays::superArray();
+	self.slowLoop = maps\mp\uox\_uox_arrays::superArray();
+	self.waitTills = maps\mp\uox\_uox_arrays::superArray();
 	
 	//start Loop
 	for(frame = 0; true; frame++)
@@ -63,28 +63,15 @@ initPlayerLoop()
 			frame = 0;
 		if(frame == 0)
 		{
-			for(i = 0; i < self.slowLoop.size; i++)
-			{
-				self thread [[self.slowLoop[i]]]();
-			}
+			maps\mp\uox\_uox_arrays::arrayForEach(self.slowLoop, ::doLoop );
 		}
 		if(frame % 5 == 0)
 		{
-			for(i = 0; i < self.mediumLoop.size; i++)
-			{
-				self thread [[self.mediumLoop[i]]]();
-			}
+			maps\mp\uox\_uox_arrays::arrayForEach(self.mediumLoop, ::doLoop );
 		}
-		for(i = 0; i < self.fastLoop.size; i++)
-		{
-			self thread [[self.fastLoop[i]]]();
-		}
-		for(i = 0; i < self.waitTills.size; i++)
-		{
-			waiter = self.waitTills[i];
-			if(!waiter["waiting"])
-				self thread doWait(i);
-		}
+		maps\mp\uox\_uox_arrays::arrayForEach(self.fastLoop, ::doLoop );
+		
+		maps\mp\uox\_uox_arrays::arrayForEach(self.waitTills, ::startWait);
 		wait 0.05;
 	}
 }
@@ -100,9 +87,9 @@ initEntityLoop()
 {
 	self endon("destroyed");
 	
-	self.fastLoop = [];
-	self.mediumLoop = [];
-	self.slowLoop = [];
+	self.fastLoop = maps\mp\uox\_uox_arrays::superArray();
+	self.mediumLoop = maps\mp\uox\_uox_arrays::superArray();
+	self.slowLoop = maps\mp\uox\_uox_arrays::superArray();
 	self.waitTills = [];
 	
 	//start Loop
@@ -112,22 +99,13 @@ initEntityLoop()
 			frame = 0;
 		if(frame == 0)
 		{
-			for(i = 0; i < self.slowLoop.size; i++)
-			{
-				self thread [[self.slowLoop[i]]]();
-			}
+			maps\mp\uox\_uox_arrays::arrayForEach(self.slowLoop, ::doLoop );
 		}
 		if(frame % 5 == 0)
 		{
-			for(i = 0; i < self.mediumLoop.size; i++)
-			{
-				self thread [[self.mediumLoop[i]]]();
-			}
+			maps\mp\uox\_uox_arrays::arrayForEach(self.mediumLoop, ::doLoop );
 		}
-		for(i = 0; i < self.fastLoop.size; i++)
-		{
-			self thread [[self.fastLoop[i]]]();
-		}
+		maps\mp\uox\_uox_arrays::arrayForEach(self.fastLoop, ::doLoop );
 		for(i = 0; i < self.waitTills.size; i++)
 		{
 			waiter = self.waitTills[i];
@@ -148,26 +126,20 @@ initEntityLoop()
 **** times a second, and fast for every frame (20fps)
 ****  
 ************************************************************************************************* */
-addToLoop(ent, loop, callback)
+addToLoop(ent, loop, callback, callbackName)
 {
 	if(ent == level)
 	{
 		switch(loop)
 		{
 			case "slow":
-				index = maps\mp\uox\_uox_arrays::arrayFind(level.slowLoop, callback);
-				if(!isDefined(index))
-					level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop, callback);
+					level.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(level.slowLoop, callback, callbackName);
 				break;
 			case "medium":
-				index = maps\mp\uox\_uox_arrays::arrayFind(level.mediumLoop, callback);
-				if(!isDefined(index))
-					level.mediumLoop = maps\mp\uox\_uox_arrays::arrayPush(level.mediumLoop, callback);
+				level.mediumLoop = maps\mp\uox\_uox_arrays::arrayPush(level.mediumLoop, callback, callbackName);
 				break;
 			case "fast":
-				index = maps\mp\uox\_uox_arrays::arrayFind(level.fastLoop, callback);
-				if(!isDefined(index))
-					level.fastLoop = maps\mp\uox\_uox_arrays::arrayPush(level.fastLoop, callback);
+				level.fastLoop = maps\mp\uox\_uox_arrays::arrayPush(level.fastLoop, callback, callbackName);
 				break;
 		}
 	}
@@ -176,19 +148,13 @@ addToLoop(ent, loop, callback)
 		switch(loop)
 		{
 			case "slow":
-				index = maps\mp\uox\_uox_arrays::arrayFind(ent.slowLoop, callback);
-				if(!isDefined(index))
-					ent.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(ent.slowLoop, callback);
+				ent.slowLoop = maps\mp\uox\_uox_arrays::arrayPush(ent.slowLoop, callback, callbackName);
 				break;
 			case "medium":
-				index = maps\mp\uox\_uox_arrays::arrayFind(ent.mediumLoop, callback);
-				if(!isDefined(index))
-					ent.mediumLoop = maps\mp\uox\_uox_arrays::arrayPush(ent.mediumLoop, callback);
+				ent.mediumLoop = maps\mp\uox\_uox_arrays::arrayPush(ent.mediumLoop, callback, callbackName);
 				break;
 			case "fast":
-				index = maps\mp\uox\_uox_arrays::arrayFind(ent.fastLoop, callback);
-				if(!isDefined(index))
-					ent.fastLoop = maps\mp\uox\_uox_arrays::arrayPush(ent.fastLoop, callback);
+				ent.fastLoop = maps\mp\uox\_uox_arrays::arrayPush(ent.fastLoop, callback, callbackName);
 				break;
 		}
 	}
@@ -201,26 +167,20 @@ addToLoop(ent, loop, callback)
 **** times a second, and fast for every frame (20fps)
 ****  
 ************************************************************************************************* */
-removeFromLoop(ent, loop, callback)
+removeFromLoop(ent, loop, callbackName)
 {
 	if(ent == level)
 	{
 		switch(loop)
 		{
 			case "slow":
-				index = maps\mp\uox\_uox_arrays::arrayFind(level.slowLoop, callback);
-				if(isDefined(index))
-					level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, index);
+				level.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(level.slowLoop, callbackName);
 				break;
 			case "medium":
-				index = maps\mp\uox\_uox_arrays::arrayFind(level.mediumLoop, callback);
-				if(isDefined(index))
-					level.mediumLoop = maps\mp\uox\_uox_arrays::arraySlice(level.mediumLoop, index);
+				level.mediumLoop = maps\mp\uox\_uox_arrays::arraySlice(level.mediumLoop, callbackName);
 				break;
 			case "fast":
-				index = maps\mp\uox\_uox_arrays::arrayFind(level.fastLoop, callback);
-				if(isDefined(index))
-					level.fastLoop = maps\mp\uox\_uox_arrays::arraySlice(level.fastLoop, index);
+				level.fastLoop = maps\mp\uox\_uox_arrays::arraySlice(level.fastLoop, callbackName);
 				break;
 		}
 	}
@@ -229,19 +189,13 @@ removeFromLoop(ent, loop, callback)
 		switch(loop)
 		{
 			case "slow":
-				index = maps\mp\uox\_uox_arrays::arrayFind(ent.slowLoop, callback);
-				if(isDefined(index))
-					ent.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.slowLoop, index);
+				ent.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.slowLoop, callbackName);
 				break;
 			case "medium":
-				index = maps\mp\uox\_uox_arrays::arrayFind(ent.mediumLoop, callback);
-				if(isDefined(index))
-					ent.mediumLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.mediumLoop, index);
+				ent.mediumLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.mediumLoop, callbackName);
 				break;
 			case "fast":
-				index = maps\mp\uox\_uox_arrays::arrayFind(ent.fastLoop, callback);
-				if(isDefined(index))
-					ent.fastLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.fastLoop, index);
+				ent.fastLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.fastLoop, callbackName);
 				break;
 		}
 	}
@@ -259,19 +213,11 @@ addToWaitTills(ent, msg, callback)
 		return; //not implemented yet
 	else
 	{
-		index = ent maps\mp\uox\_uox_arrays::searchObjArrayByProperty(ent.waitTills, "msg", msg);
 		waiter = [];
 		waiter["msg"] = msg;
 		waiter["callback"] = callback;
 		waiter["waiting"] = false;
-		if(!isDefined(index))
-		{
-			ent.waitTills = ent maps\mp\uox\_uox_arrays::arrayPush(ent.waitTills, waiter);
-		}
-		else if(waiter["callback"] != ent.waitTills[index]["callback"])
-		{
-			ent.waitTills[index]["callback"] = callback;
-		}
+		ent.waitTills = ent maps\mp\uox\_uox_arrays::arrayPush(ent.waitTills, waiter, msg);
 	}
 }
 
@@ -287,12 +233,10 @@ removeFromWaitTills(ent, msg)
 		return; //not implemented yet
 	else
 	{
-		index = ent maps\mp\uox\_uox_arrays::searchObjArrayByProperty(ent.waitTills, "msg", msg);
-		if(isDefined(index))
-		{
-			ent.waitTills = ent maps\mp\uox\_uox_arrays::arraySlice(ent.waitTills, index);
-			ent notify("kill_" + msg);
-		}
+		
+		ent.waitTills = ent maps\mp\uox\_uox_arrays::arraySlice(ent.waitTills, "msg");
+		ent notify("kill_" + msg);
+		
 	}
 	return ent.waitTills;
 }
@@ -303,20 +247,41 @@ removeFromWaitTills(ent, msg)
 **** USAGE: waits for notification and executes callback and sets it back to waiter mode
 ****  
 ************************************************************************************************* */
-doWait(index)
+doWait(waiter)
 {
-	waiter = self.waitTills[index];
+	if(waiter["waiting"])
+		return;
+	self.waitTills = self maps\mp\uox\_uox_arrays::arraySetProperty(self.waitTills, waiter["msg"], "waiting", true);
+	
+	self notify("kill_" + waiter["msg"]);
 	self endon("kill_" + waiter["msg"]);
 	self endon("disconnect");
 	self endon("destroyed");
 	
-	if(waiter["waiting"])
-		return;
-	
-	waiter["waiting"] = true;
 	self waittill(waiter["msg"]);
 	self thread [[waiter["callback"]]]();
-	waiter["waiting"] = false;
-	
-	return waiter;
+	self.waitTills	= self maps\mp\uox\_uox_arrays::arraySetProperty(self.waitTills, waiter["msg"], "waiting",
+		false);
+}
+
+/* *************************************************************************************************
+**** doLoop(callback)
+****
+**** USAGE: executes callback
+****  
+************************************************************************************************* */
+doLoop(callback)
+{
+	thread [[callback]]();
+}
+
+/* *************************************************************************************************
+**** startWait(waiter)
+****
+**** USAGE: starts waittill
+****  
+************************************************************************************************* */
+startWait(waiter)
+{
+	thread doWait(waiter);
 }

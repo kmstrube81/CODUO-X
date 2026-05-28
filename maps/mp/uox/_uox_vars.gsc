@@ -291,7 +291,7 @@ initGameTypeVars()
 	level.battlerank = [[level.getVars]]("scr_battlerank");
 	if(level.battlerank > 0)
 		maps\mp\uox\_uox_loops::addToLoop(level, "slow",
-				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges);
+				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges, "checkPlayersForRankChanges");
 				
 	varDef("scr", "shellshock", "bool", true, true, undefined, undefined, "Shellshock");
 	setCvar("ui_shellshock", [[level.getVars]]("scr_shellshock"));
@@ -332,7 +332,7 @@ initGameTypeVars()
 										maps\mp\uox\_uox::updateTeamBalance);
 		if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
 			maps\mp\uox\_uox_loops::addToLoop(level, "slow",
-					maps\mp\uox\_uox::TeamBalance_Check());
+					maps\mp\uox\_uox::TeamBalance_Check(), "TeamBalance_Check");
 
 		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");
 		

@@ -659,7 +659,7 @@ createClientHUDProgressBar(timer)
 		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbar",
 			"shader", "white", barOptions);
 			
-	barAnimOptions["time"] = planttime;
+	barAnimOptions["time"] = timer;
 	self maps\mp\uox\_uox_hud::animateClientHUDElement("progressbar", "scaleShader",
 		barAnimOptions);
 }

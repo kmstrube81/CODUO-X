@@ -181,6 +181,7 @@ Callback_PlayerConnect()
 	self maps\mp\uox\_uox_loops::addToLoop(self, "slow",
 		maps\mp\uox\_uox_vars::enforceClientCvars); 
 	self maps\mp\uox\_uox_inputs::initPlayerInputs();
+
 	self.statusicon = "gfx/hud/hud@status_connecting.tga";
 	self waittill("begin");
 	self.statusicon = "";
@@ -694,6 +695,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	if(!level.doingReadyUp)
 		self.statusicon = "gfx/hud/hud@status_dead.tga";
 	self.deaths++;
+	self.pers["deaths"];
 
 	lpselfnum = self getEntityNumber();
 	lpselfname = self.name;
@@ -716,6 +718,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattacknum = attacker getEntityNumber();
 		lpattackguid = attacker getGuid();
 		lpattackname = attacker.name;
+		level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
 	}
 	else // If you weren't killed by a player, you were in the wrong place at the wrong time
 	{
@@ -726,8 +729,6 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattackname = "";
 		lpattackerteam = "world";
 	}
-	
-	level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
 	
 	if(!level.warmup)
 		logPrint("K;" + lpselfguid + ";" + lpselfnum + ";" + lpselfteam + ";" + lpselfname + ";" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + sWeapon + ";" + iDamage + ";" + sMeansOfDeath + ";" + sHitLoc + "\n");
@@ -746,6 +747,9 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
 	body = self cloneplayer();
 
+	//immediately deduct life when its your last one
+	if(isDefined(self.lives) && self.lives == 0)
+		self.lives--;
 	maps\mp\uox\_uox::updateTeamStatus();
 
 	delay = 2;	// Delay the player becoming a spectator till after he's done dying

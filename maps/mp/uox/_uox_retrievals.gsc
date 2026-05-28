@@ -233,6 +233,13 @@ retrieval_think() //each objective model runs this to find it's trigger and goal
 	}
 }
 
+dropping(trigger)
+{
+	if(self useButtonPressed() && (isAlive(self)))
+		return true;
+	return false;
+}
+
 hold_objective(player) //the objective model runs this to be held by 'player'
 {
 	self endon("completed");
@@ -255,7 +262,7 @@ hold_objective(player) //the objective model runs this to be held by 'player'
 	objective_onEntity(self.objnum, player);
 
 	self thread objective_carrier_atgoal_wait(player);
-	player thread maps\mp\uox\_uox_inputs::addHoldUse("picked up", .3, 2, ::drop_objective, undefined, true, true, false, self );
+	player thread maps\mp\uox\_uox_inputs::addHoldUse("picked up", .3, 2, ::dropping, ::drop_objective, undefined, true, true, false, self );
 
 	if ( level.battlerank )
 	{
