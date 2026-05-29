@@ -4,6 +4,13 @@
 **** USAGE: adds element to end of array. SUPER ARRAY USAGE: Adds element to end of array with synthetic
 **** key if none specified, otherwise updates key if it exists or adds it to the end of the super array
 ****
+**** SUPER ARRAY: If no key is specified, a synthetic numeric key equal to the
+**** current length is used (0, 1, 2...). If callers mix synthetic and explicit
+**** keys in the same super array, collisions are possible — e.g. pushing with
+**** no key after the array has explicit key "3" present will collide if length
+**** also happens to be 3. Either use explicit keys throughout, or rely on
+**** synthetic keys throughout; do not mix in arrays where collision matters.
+**** 
 **** returns updated array
 ****  
 ************************************************************************************************* */
@@ -49,8 +56,6 @@ arrayUnshift(arr, element, key)
 	{
 		tempArr = [];
 		shift = false;
-		for(i = 0; i < arr["values"].size; i++) //loop through arr
-			tempArr["values"][i + 1] = arr["values"][i];
 		if(!isDefined(key))
 		{
 			key = 0;
@@ -248,12 +253,14 @@ arraySlice(arr, startIndex, numToRemove, keys)
 				break;
 			}
 		}
-		while(cnt < abs)
+		if(numToRemove > 0) key = i + cnt; else key = i - cnt;
+		while(cnt < abs && key > -1 && key < arr["length"])
 		{
-			if(numToRemove > 0) key = i + cnt; else key = i - cnt;
+			
 			if(isDefined(arr["keys"][key]))
 				keys[keys.size] = arr["keys"][key];
 			cnt++;
+			if(numToRemove > 0) key = i + cnt; else key = i - cnt;
 		}
 		for(i = 0; i < arr["length"]; i++)
 		{
@@ -297,8 +304,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 			continue;
 		tempArr = arrayPush(tempArr, arr[i]);
 	}
-	if(tempArr.size == 0)
-		return undefined;
+	
 	return tempArr;
 }
 
@@ -452,7 +458,7 @@ updateObjArrayByProperty(arr, value, property, searchVal, oneOrAll)
 		{
 			tempArr = [];
 			tempArr[property] = value;
-			arr = arrayPush(arr, value);
+			arr = arrayPush(arr, tempArr);
 		}
 		return arr;
 	} //update all matching indices
@@ -465,7 +471,7 @@ updateObjArrayByProperty(arr, value, property, searchVal, oneOrAll)
 	{
 		tempArr = [];
 		tempArr[property] = value;
-		arr = arrayPush(arr, value);
+		arr = arrayPush(arr, tempArr);
 	}
 	return arr;
 }
@@ -585,7 +591,7 @@ arraySetProperty(arr, key, property, value)
 	}
 }
 
-arrayNext(arr, startIndex)
+getNextValue(arr, startIndex)
 {
 	if(!isDefined(startIndex) || startIndex < -1)
 		startIndex = -1;
@@ -613,6 +619,32 @@ getArrayKeys(arr)
 		return undefined;
 }
 
+removeArrayKey(arr, key)
+{
+	if(!isSuperArray(arr))
+		return arr;
+	j = undefined;
+	for(i = 0; i < arr["length"]; i++)
+	{
+		if(arr["keys"][i] == key)
+		{
+			j = i;
+			break;
+		}
+	}
+	if(!isDefined(j))
+		return arr;
+
+	for(i = j; i < arr["length"] - 1; i++)
+		arr["keys"][i] = arr["keys"][ i + 1 ];
+
+	arr["keys"][arr["length"] - 1] = undefined;
+	arr["values"][key] = undefined;
+	arr["length"] = arr["length"] - 1;
+
+	return arr;
+}
+
 arrayForEach(arr, callback)
 {
 	if(!isSuperArray(arr))
@@ -629,7 +661,20 @@ arrayForEach(arr, callback)
 	return arr;
 }
 
-keyNext(arr, startIndex)
+arrayReadEach(arr, callback)
+{
+	if(!isSuperArray(arr))
+		return;
+	keys = getArrayKeys(arr);
+	for( i = 0; i < arr["length"]; i++)
+	{
+		key = arr["keys"][i];
+		item = arr["values"][key];
+		[[callback]](item);
+	}
+}
+
+getNextKey(arr, startIndex)
 {
 	if(!isDefined(startIndex) || startIndex < -1)
 		startIndex = -1;
