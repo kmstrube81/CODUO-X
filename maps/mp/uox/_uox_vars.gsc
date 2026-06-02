@@ -20,7 +20,7 @@ varDef(prefix, varname, type, shouldMonitor, defValue, minVal, maxVal, hrName, c
 	value = getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map);
 	//add to varlist
 	if(!isDefined(level.vars))
-		level.vars = [];
+		level.vars = maps\mp\uox\_uox_arrays::superArray();
 	
 	cvarname = prefix + "_" + varname;
 	
@@ -33,11 +33,7 @@ varDef(prefix, varname, type, shouldMonitor, defValue, minVal, maxVal, hrName, c
 	var["defaultvalue"] = defValue;
 	var["callback"] = callback;
 	
-	/*
-	level.vars = maps\mp\uox\_uox_arrays::updateObjArrayByProperty(
-		level.vars, var, "cvarname", cvarname );
-	*/
-		level.vars[cvarname] = var;
+	level.vars = maps\mp\uox\_uox_arrays::arrayPush(level.vars, var, cvarname);
 	return value;
 }
 
@@ -146,9 +142,9 @@ monitorVar(prefix, varname, type, hrName)
 	var["hrname"] = hrName;
 
 	if(!isDefined(level.monitoredVars))
-		level.monitoredVars = [];
-	level.monitoredVars = maps\mp\uox\_uox_arrays::updateObjArrayByProperty(
-		level.monitoredVars, var, "cvarname", cvarname );
+		level.monitoredVars = maps\mp\uox\_uox_arrays::superArray();
+	level.monitoredVars = maps\mp\uox\_uox_arrays::arrayPush(
+		level.monitoredVars, var, cvarname );
 }
 
 /* *************************************************************************************************
@@ -159,17 +155,14 @@ monitorVar(prefix, varname, type, hrName)
 ************************************************************************************************* */
 updateVars()
 {
-	for(i = 0; i < level.monitoredVars.size; i++)
+	for(i = 0; i < maps\mp\uox\_uox_arrays::getArrayLength(level.monitoredVars); i++)
 	{
-		var = level.monitoredVars[i];
+		keys = maps\mp\uox\_uox_arrays::getArrayKeys(level.monitoredVars);
+		var = maps\mp\uox\_uox_arrays::getValue(level.monitoredVars, keys[i]);
 		
 		_val = getVar(var["prefix"], var["varname"], var["type"]);
-		
-	/*	_index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(
-			level.vars, "cvarname", var["cvarname"]); */
 			
-	//	_var = level.vars[_index];
-		_var = level.vars[var["cvarname"]];
+		_var = maps\mp\uox\_uox_arrays::getValue(level.vars, var["cvarname"]);
 		
 		if(!isDefined(_val))
 			_val = _var["defaultvalue"];
@@ -178,9 +171,7 @@ updateVars()
 		{
 			oldval = _var["value"];
 			//update var
-			
-			//level.vars[_index]["value"] = _val;
-			level.vars[var["cvarname"]]["value"] = _val;
+			level.vars = maps\mp\uox\_uox_arrays::updateProperty(level.vars, var["cvarname"], "value", _val);
 			//announce var change if hrname is defined
 			if(isDefined(_var["hrname"]))
 			{
@@ -218,8 +209,7 @@ updateVars()
 ************************************************************************************************* */
 getVars(cvarname)
 {
-	//return level.vars[maps\mp\uox\_uox_arrays::searchObjArrayByProperty(level.vars, "cvarname", cvarname)]["value"];
-	return level.vars[cvarname]["value"];
+	return maps\mp\uox\_uox_arrays::getValue(level.vars, cvarname)["value"];
 }
 
 /* *************************************************************************************************
@@ -253,7 +243,7 @@ initGameTypeVars()
 	varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
 
 	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset");
-	varDef("scr", "score_rounds", "bool", true, true, undefined, undefined, "Score Round Wins");
+	varDef("scr", "score_rounds", "bool", true, false, undefined, undefined, "Score Round Wins");
 	varDef("scr", "countdraws", "bool", true, true, undefined, undefined, "Count Draws");
 
 	varDef("scr", "warmupmode", "int", true, 0, 0, 2, "Warmup Mode");
@@ -278,6 +268,7 @@ initGameTypeVars()
 			break;
 		case "forcerespawn":
 		case "obj":
+		case "dm":
 			varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
 			break;
 		case "wave":

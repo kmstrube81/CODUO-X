@@ -37,8 +37,13 @@ initVars()
 		0 = default SD plant mode, single site, round ends after defusal
 		1 = can dual plant bombsites, round ends after timer/elims or 1 bomb explodes
 		2 = can dual plant bombsites, round ends after timer/elims or both bombs explode */
-	maps\mp\uox\_uox_vars::varDef("scr", "bombplantmode", "int", true,
+	level.bombmode = maps\mp\uox\_uox_vars::varDef("scr", "bombplantmode", "int", true,
 		0, 0, 2, "Bomb Plant Mode");
+	if([[level.getVars]]("scr_score_rounds"))
+		level.defense_points = 1;
+	else
+		level.defense_points = 2;
+		
 	/* Bomb Plant Bonus Points:
 		extra points given to players who plant the bomb*/
 	maps\mp\uox\_uox_vars::varDef("scr", "bombplantbonuspoints", "int", true,
@@ -110,7 +115,7 @@ bombzone_think(bombzone_other)
 		self waittill("trigger", other);
 
 		//don't allow plant if someone else is planting and its single site plant mode
-		if(isDefined(bombzone_other.planting) && [[level.getVars]]("scr_bombplantmode") < 1)
+		if(isDefined(bombzone_other.planting) && level.bombmode < 1)
 		{
 			other maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
 			continue;
@@ -149,7 +154,7 @@ plantBomb(trigger)
 	bombexploder = trigger.script_noteworthy;
 	level.bombexploders[trigger.objectiveName] = bombexploder;
 	
-	if([[level.getVars]]("scr_bombplantmode") < 1)
+	if(level.bombmode < 1)
 	{
 		bombzone_A = getent("bombzone_A", "targetname");
 		bombzone_B = getent("bombzone_B", "targetname");
@@ -171,7 +176,7 @@ plantBomb(trigger)
 	bombtrigger = getent("bombtrigger", "targetname");
 	bombtrigger.origin = bombmodel.origin;
 
-	if([[level.getVars]]("scr_bombplantmode") < 1)
+	if(level.bombmode < 1)
 		objective_add(0, "current", bombtrigger.origin, "gfx/hud/hud@bombplanted.tga");
 
 	level.bombsites[trigger.objectiveName]["planted"] = true;
@@ -254,7 +259,7 @@ bomb_countdown(bomb)
 	wait countdowntime;
 		
 	// bomb timer is up
-	if([[level.getVars]]("scr_bombplantmode") < 1)
+	if(level.bombmode < 1)
 	{
 		objective_delete(0);
 	}
@@ -301,10 +306,14 @@ bomb_countdown(bomb)
 		//delete clock
 		level.mainBombClock = level maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
 	}
-	level maps\mp\uox\_uox::incrementTeamScore(game["attackers"]);
+	if(![[level.getVars]]("scr_score_rounds"))
+	{
+		level maps\mp\uox\_uox::incrementTeamScore(game["attackers"]);
+		level.defense_points--;
+	}
 		
 	if((level.bombsites["A"]["exploded"] && level.bombsites["B"]["exploded"])
-		|| [[level.getVars]]("scr_bombplantmode") < 2)
+		|| level.bombmode < 2)
 	{
 		if (game["attackers"] == "allies") {
 			announcement(game["alliesSuccessText"]);
@@ -373,7 +382,7 @@ defuseBomb(trigger)
 	self.pers["score"] += [[level.getVars]]("scr_bombdefusebonuspoints");
 	self.score = self.pers["score"];
 
-	if([[level.getVars]]("scr_bombplantmode") == 0)
+	if(level.bombmode == 0)
 		objective_delete(0);
 
 	trigger notify("bomb_defused");
@@ -413,7 +422,7 @@ defuseBomb(trigger)
 		level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
 	} 
 	
-	if([[level.getVars]]("scr_bombplantmode") == 0)
+	if(level.bombmode == 0)
 	{
 		maps\mp\uox\_uox::incrementTeamScore(game["defenders"]);
 		level thread maps\mp\uox\_uox::endRound(game["defenders"]);
@@ -441,4 +450,9 @@ check_bomb(trigger)
 
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("defuse_icon");
 	self maps\mp\uox\_uox_inputs::removeHoldUse("defuse_bomb");
+}
+
+onPlayerKill(victim, attacker)
+{
+	return;
 }

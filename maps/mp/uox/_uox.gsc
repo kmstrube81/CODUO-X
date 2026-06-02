@@ -65,17 +65,24 @@ checkPlayerKilled(victim, attacker)
 	{
 		attacker.pers["kills"]++; //give attacker a kill
 	}
+	/* Objective Based Kill checks */
+	obj = level.objective; //get gametype
 	
-	gt = level.gametype; //get gametype
+	if(!isDefined(obj))
+		obj = "none";
 	
-	switch(gt)
+	switch(obj)
 	{
-		case "dm": //if dm, check score limit
+		case "none": //if dm, check score limit
 			doCheckScoreLimit = true;
+			if(level.uox_teamplay)
+				addKillToTeamScore = true;
 			break;
-		case "tdm": //if tdm, check score limit
-			doCheckScoreLimit = true;
-			addKillToTeamScore = true; //also add the kill to team score
+		case "bomb": //SD/DEM bonus
+			maps\mp\uox\_uox_bombs::onPlayerKill(victim, attacker);
+			break;
+		case "retrieval": //RE bonus
+			maps\mp\uox\_uox_retrievals::onPlayerKill(victim, attacker);
 			break;
 	}
 	if(addKillToTeamScore) //if add to team score flag set.
@@ -510,25 +517,28 @@ checkTimeLimit()
 				game["suddendeath"] = true;
 			}
 		}
-		if(level.uox_teamplay)
-		{	//if tie
-			if(level.alliedscore == level.axisscore)
+		if(level.uox_teamplay) //if team game
+		{ 
+			//if game has defense and offense
+			// defenders win round if time runs out
+			if(isDefined(game["defenders"]))
 			{
-				//round was a tie
-				// defenders win round if a tie
-				if(isDefined(game["defenders"]))
-					endRound(game["defenders"]);
-				else
-					endRound("draw");
+				incrementTeamScore(game["defenders"], level.defense_points);
+				endRound(game["defenders"]);
 			}
-			//if allies have more points than axis
+			else if(level.alliedscore == level.axisscore)
+			{	//round was a tie
+					endRound("draw");
+			} //if allies have more score than axis
 			else if(level.alliedscore > level.axisscore)
-				endRound("allies"); //end round in allies favor
+			{	//allies won the round
+				endRound("allies");
+			} //otherwise axis scored more than allies
 			else
-			{	//axis had the higher score
+			{	//axis won the round
 				endRound("axis");
 			}
- 		}
+		}
 		else //free for all game
 			endRound("deathmatch");
 	}
@@ -578,7 +588,7 @@ startRoundTimer(timer, doGracePeriod)
 		// defenders win round if time runs out
 		if(isDefined(game["defenders"]))
 		{
-			incrementTeamScore(game["defenders"]);
+			incrementTeamScore(game["defenders"], level.defense_points);
 			endRound(game["defenders"]);
 		}
 		else if(level.alliedscore == level.axisscore)
@@ -741,18 +751,6 @@ endRound(roundwinner)
 	for(i = 0; i < players.size; i++) //loop players
 	{
 		player = players[i]; //for current player
-		 //remove gametype hud elements
-		if(isDefined(player.planticon))
-			player.planticon destroy();
-
-		if(isDefined(player.defuseicon))
-			player.defuseicon destroy();
-
-		if(isDefined(player.progressbackground))
-			player.progressbackground destroy();
-
-		if(isDefined(player.progressbar))
-			player.progressbar destroy();
 
 		player unlink(); //unlink from objective
 		player enableWeapon(); //re-enable weapon if disabled by objective
@@ -2419,49 +2417,32 @@ initObjectives(objective)
 
 	if(!isDefined(objective))
 		objective = "none";
-	switch(objective)
-	{
-		case "none":
-			AttackDefendFlag = false;
-			break;
-		case "bomb":
-		case "retrieval":
-			AttackDefendFlag = true;
-			break;
-		default:
-			AttackDefendFlag = false;
-	}
-	
-	//set up attackers/defenders
-	if(AttackDefendFlag) //game should have attackers/defenders
-	{
-		if(!isDefined(game["attackers"]))
-			game["attackers"] = "allies";
-		if(!isDefined(game["defenders"]))
-			game["defenders"] = "axis";
-		if(!isdefined(game["re_attackers"]))
-			game["re_attackers"] = "allies";
-		if(!isdefined(game["re_defenders"]))
-			game["re_defenders"] = "axis";
-		
-	}
-	else //game should not have attackers/defenders
-	{
-		game["attackers"] = undefined;
-		game["defenders"] = undefined;
-	}
 
 	switch(objective)
 	{
 		case "bomb":
+			if(!isDefined(game["attackers"]))
+				game["attackers"] = "allies";
+			if(!isDefined(game["defenders"]))
+				game["defenders"] = "axis";
 			maps\mp\uox\_uox_bombs::precache();
 			maps\mp\uox\_uox_bombs::initVars();
 			thread maps\mp\uox\_uox_bombs::bombzones();
 			return;
 		case "retrieval":
+			if(!isdefined(game["re_attackers"]))
+				game["re_attackers"] = "allies";
+			game["attackers"] = game["re_attackers"];
+			if(!isdefined(game["re_defenders"]))
+				game["re_defenders"] = "axis";
+			game["defenders"] = game["re_defenders"];
 			maps\mp\uox\_uox_retrievals::precache();
 			maps\mp\uox\_uox_retrievals::initVars();
 			thread maps\mp\uox\_uox_retrievals::retrieval();
+			return;
+		default:
+			game["attackers"] = undefined;
+			game["defenders"] = undefined;
 			return;
 	}
 }
@@ -2474,6 +2455,9 @@ initObjectives(objective)
 *************************************************************************************************** */
 getObjectiveText(objective)
 {
+	if(!isDefined(objective))
+		objective = "none";
+	
 	switch(objective)
 	{
 		case "bomb":

@@ -15,7 +15,7 @@ modtype(gt)
 		case "bel":
 			return;
 		case "re":
-			return;
+			return maps\mp\gametypes\_uox_re::UOX_Main;
 		case "sd":
 			return maps\mp\gametypes\_uox_sd::UOX_Main;
 		case "hq":

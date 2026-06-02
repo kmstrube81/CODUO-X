@@ -520,7 +520,14 @@ isSuperArray(arr)
 		return false;
 }
 
-arrayGet(arr, key)
+getArrayLength(arr)
+{
+	if(isSuperArray(arr))
+		return arr["length"];
+	return arr.size;
+}
+
+getValue(arr, key)
 {
 	if(isSuperArray(arr))
 		if(isDefined(arr["values"][key]))
@@ -534,7 +541,7 @@ arrayGet(arr, key)
 			return undefined;
 }
 
-arraySet(arr, key, value)
+updateValue(arr, key, value)
 {
 	if(isSuperArray(arr))
 	{
@@ -557,7 +564,7 @@ arraySet(arr, key, value)
 			return arr;
 	}
 }
-arraySetProperty(arr, key, property, value)
+updateProperty(arr, key, property, value)
 {
 	if(isSuperArray(arr))
 	{

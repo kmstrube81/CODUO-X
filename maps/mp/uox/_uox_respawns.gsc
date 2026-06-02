@@ -379,8 +379,11 @@ waitRespawnButton()
 
 	wait 0; // Required or the "respawn" notify could happen before it's waittill has begun
 
-	if ( [[level.getVars]]("scr_forcerespawn") == "1" )
+	if ( [[level.getVars]]("scr_forcerespawn") >= 1 )
+	{
+		thread waitForceRespawnTime();
 		return;
+	}
 	
 	//if you haven't spawned since session started (or last went spec), skip the respawn text
 	if(self.sessionspawned) 
@@ -439,6 +442,7 @@ spawnPlayer(farthest)
 	self.archivetime = 0;
 	self.friendlydamage = undefined;
 	self.sessionspawned = true;
+	self.objs_held = 0;
 	
 	// make sure that the client compass is at the correct zoom specified by the level
 	self setClientCvar("cg_hudcompassMaxRange", game["compass_range"]);
@@ -498,8 +502,13 @@ spawnPlayer(farthest)
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 	
 	self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(level.objective));
-
-	if([[level.getVars]]("scr_drawfriend"))
+	
+	if(level.uox_teamplay)
+		drawfriend = [[level.getVars]]("scr_drawfriend");
+	else
+		drawfriend = false;
+	
+	if(drawfriend)
 	{
 		if([[level.getVars]]("scr_battlerank"))
 		{

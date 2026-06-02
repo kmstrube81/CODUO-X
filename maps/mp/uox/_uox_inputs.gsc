@@ -68,7 +68,7 @@ watchUse()
 	// n["delaytime"] how long before hold starts counting
 	// n["waittime"] how long it takes
 	// n["progressbar"] whether to draw progress bar
-	use = maps\mp\uox\_uox_arrays::arrayNext(self.holdUse);
+	use = maps\mp\uox\_uox_arrays::getNextValue(self.holdUse);
 	
 	if(!isDefined(use))
 	{
@@ -78,7 +78,7 @@ watchUse()
 	else
 	{
 		skipHold = false;
-		msg = maps\mp\uox\_uox_arrays::keyNext(self.holdUse);
+		msg = maps\mp\uox\_uox_arrays::getNextKey(self.holdUse);
 		delaytime = use["delaytime"];
 		waittime = use["waittime"];
 		conditionCallback = use["condition"];

@@ -39,22 +39,34 @@ precache()
 	precacheString(&"RE_OBJ_SPY_RECORDS");
 	precacheString(&"RE_OBJ_ROCKET_SCHEDULE");
 	precacheString(&"RE_OBJ_CAMP_RECORDS");
+	game["headicon_carrier"] = "gfx/hud/headicon@re_objcarrier.dds";
 	precacheHeadIcon(game["headicon_carrier"]);
 	precacheStatusIcon(game["headicon_carrier"]);
 }
 
 initVars()
 {
-	maps\mp\uox\_uox_vars::varDef("scr", "showcarrier", "bool", true, false, undefined, undefined);
+	maps\mp\uox\_uox_vars::varDef("scr", "showcarrier", "bool", true, false,
+		undefined, undefined, "Show Objective Carrier");
 	maps\mp\uox\_uox_vars::varDef("scr", "objpickupbonuspoints", "int", true,
 		0, 0, 10, "Objective Pickup Bonus Points");
 	maps\mp\uox\_uox_vars::varDef("scr", "objscorebonuspoints", "int", true,
 		0, 0, 10, "Objective Score Bonus Points");
+	maps\mp\uox\_uox_vars::varDef("scr", "objcarrierkillbonuspoints", "int", true,
+		0, 0, 10, "Carrier Kill Bonus Points");
 		
 	if(!isdefined(game["re_attackers_obj_text"]))
 		game["re_attackers_obj_text"] = (&"RE_ATTACKERS_OBJ_TEXT_GENERIC");
 	if(!isdefined(game["re_defenders_obj_text"]))
 		game["re_defenders_obj_text"] = (&"RE_DEFENDERS_OBJ_TEXT_GENERIC");
+	
+	//get the minefields
+	level.minefield = getentarray("minefield", "targetname");
+	if (!isdefined (level.minefield))
+		level.minefield = [];
+	hurtTrigs = getentarray("trigger_hurt","classname");
+	for (i=0;i<hurtTrigs.size;i++)
+		level.minefield[level.minefield.size] = hurtTrigs[i];
 	
 	level.numobjectives = 0;
 	level.objectives_done = 0;
@@ -65,6 +77,7 @@ initVars()
 retrieval()
 {
 	level.retrieval_objective = getentarray("retrieval_objective", "targetname");
+	level.defense_points = level.retrieval_objective.size;
 	for(i = 0; i < level.retrieval_objective.size; i++)
 	{
 		level.retrieval_objective[i] thread maps\mp\uox\_uox_loops::initEntityLoop();
@@ -297,12 +310,15 @@ objective_carrier_atgoal_wait(player)
 				player.score = player.pers["score"];
 			}
 			level.objectives_done++;
+			level.defense_points--;
 
 			objective_delete(self.objnum);
 			self notify("completed");
 
 			//org = (player.origin);
 			player thread drop_objective_at_goal(self);
+			//remove drop addhold
+			player maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 
 			objective_delete(self.objnum);
 
@@ -331,22 +347,7 @@ drop_objective(trigger)
 	if(isPlayer(self))
 	{
 		num = (16 - (trigger.hudnum));
-		if(isdefined(self.objs_held))
-		{
-			if(self.objs_held > 0)
-			{
-				for(i = 0; i < (level.numobjectives + 1); i++)
-				{
-					if(isdefined(self.hasobj[i]))
-					{
-						//if(trigger isonground())
-							self.hasobj[i] thread drop_objective_on_disconnect_or_death(self);
-						//else
-						//	self.hasobj[i] thread drop_objective_on_disconnect_or_death(self.origin, "trace");
-					}
-				}
-			}
-		}
+		self drop_all();
 		
 		self maps\mp\uox\_uox_hud::deleteClientHUDElement("re" + num);
 	}
@@ -515,12 +516,15 @@ drop_objective(trigger)
 		}
 
 		level.objectives_done++;
+		level.defense_points--;
 
 		trigger notify("completed");
-		level thread clear_player_dropbar(player);
+		level thread clear_player_dropbar(self);
 		
 		objective_delete(trigger.objnum);
 		trigger delete();
+		
+		self maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 
 		if(level.objectives_done < level.retrieval_objective.size)
 		{
@@ -544,22 +548,7 @@ drop_objective_at_goal(trigger)
 	if(isPlayer(self))
 	{
 		num = (16 - (trigger.hudnum));
-		if(isdefined(self.objs_held))
-		{
-			if(self.objs_held > 0)
-			{
-				for(i = 0; i < (level.numobjectives + 1); i++)
-				{
-					if(isdefined(self.hasobj[i]))
-					{
-						//if(self isonground())
-							self.hasobj[i] thread drop_objective_on_disconnect_or_death(self);
-						//else
-						//	self.hasobj[i] thread drop_objective_on_disconnect_or_death(self.origin, "trace");
-					}
-				}
-			}
-		}
+		self drop_all();
 		
 		self maps\mp\uox\_uox_hud::deleteClientHUDElement("re" + num);
 	}
@@ -625,8 +614,7 @@ clear_player_dropbar(player)
 {
 	if(isdefined(player))
 	{
-		player.progressbackground destroy();
-		player.progressbar destroy();
+		player maps\mp\uox\_uox_hud::deleteClientHUDProgressBar();
 		player unlink();
 		player.isusing = false;
 	}
@@ -644,122 +632,7 @@ objective_timeout()
 	self.pickup_count = 0;
 	objective_position(self.objnum, self.origin);
 }
-/*
-holduse(player)
-{
-	player endon("death");
-	self endon("completed");
-	self endon("dropped");
-	player.isusing = false;
-	delaytime = .3;
-	droptime = 2;
-	barsize = 288;
-	level.barincrement = (barsize / (20.0 * droptime));
-	
-	wait(1);
 
-	while(isPlayer(player))
-	{
-		player waittill("Pressed Use");
-		if(player.isusing == true)
-			continue;
-		else
-			player.isusing = true;
-
-		player.currenttime = 0;
-		while(player useButtonPressed() && (isAlive(player)))
-		{
-			usetime = 0;
-			while(isAlive(player) && player useButtonPressed() && (usetime < delaytime))
-			{
-				wait .05;
-				usetime = (usetime + .05);
-			}
-
-			if(!(player isOnGround()))
-				continue;
-
-			if(!((isAlive(player)) && (player useButtonPressed())))
-			{
-				player unlink();
-				continue;
-			}
-			else
-			{
-				if(!isdefined(player.progressbackground))
-				{
-					player.progressbackground = newClientHudElem(player);
-					player.progressbackground.alignX = "center";
-					player.progressbackground.alignY = "middle";
-					player.progressbackground.x = 320;
-					player.progressbackground.y = 385;
-					player.progressbackground.alpha = 0.5;
-				}
-				player.progressbackground setShader("black", (level.barsize + 4), 12);		
-				progresstime = 0;
-				progresslength = 0;
-				
-				spawned = spawn("script_origin", player.origin);
-				if(isdefined(spawned))
-					player linkto(spawned);
-
-				while(isAlive(player) && player useButtonPressed() && (progresstime < droptime))
-				{
-					progresstime += 0.05;
-					progresslength += level.barincrement;
-
-					if(!isdefined(player.progressbar))
-					{
-						player.progressbar = newClientHudElem(player);				
-						player.progressbar.alignX = "left";
-						player.progressbar.alignY = "middle";
-						player.progressbar.x = (320 - (level.barsize / 2.0));
-						player.progressbar.y = 385;
-					}
-					player.progressbar setShader("white", progresslength, 8);			
-
-					wait 0.05;
-				}
-
-				if(progresstime >= droptime)
-				{
-					if(isdefined(player.progressbackground))
-						player.progressbackground destroy();
-					if(isdefined(player.progressbar))
-						player.progressbar destroy();
-					
-					self thread drop_objective(player);
-					self notify("dropped");
-					player unlink();
-					player.isusing = false;
-					return;
-				}
-				else if(isAlive(player))
-				{
-					player.progressbackground destroy();
-					player.progressbar destroy();
-				}
-			}
-		}
-		player unlink();
-		player.isusing = false;
-		wait(.05);
-	}
-}
-
-pressuse_notify(player)
-{
-	player endon("death");
-	self endon("dropped");
-	while(isPlayer(player))
-	{
-		if(player useButtonPressed())
-			player notify("Pressed Use");
-
-		wait(.05);
-	}
-}
-*/
 display_holding_obj(obj_ent)
 {
 	num = (16 - (obj_ent.hudnum));
@@ -827,6 +700,24 @@ client_print(obj, text, s)
 	wait 3;
 	
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("re" + num);
+}
+
+drop_all()
+{
+	if(isdefined(self.objs_held))
+	{
+		if(self.objs_held > 0)
+		{
+			for(i = 0; i < (level.numobjectives + 1); i++)
+			{
+				if(isdefined(self.hasobj[i]))
+				{
+					self.hasobj[i] thread drop_objective_on_disconnect_or_death(self);
+				}
+			}
+			maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
+		}
+	}
 }
 
 drop_objective_on_disconnect_or_death(player)
@@ -946,12 +837,17 @@ drop_objective_on_disconnect_or_death(player)
 			player.score = player.pers["score"];
 		}
 		level.objectives_done++;
+		level.defense_points--;
 
 		self notify("completed");
 		level thread clear_player_dropbar(player);
 		
 		objective_delete(self.objnum);
 		self delete();
+		
+		player maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
+		
+		level maps\mp\uox\_uox::incrementTeamScore(game["re_attackers"]);
 
 		if(level.objectives_done < level.retrieval_objective.size)
 		{
@@ -959,6 +855,7 @@ drop_objective_on_disconnect_or_death(player)
 		}
 		else
 		{
+			wait 0.05; //required to let threads die
 			announcement(&"RE_OBJ_CAPTURED_ALL");
 			level thread maps\mp\uox\_uox::endRound(game["re_attackers"]);
 			return;
@@ -975,4 +872,34 @@ drop_objective_on_disconnect_or_death(player)
 	self thread objective_timeout();
 	self notify("dropped");
 	self thread retrieval_think();
+}
+
+onPlayerKill(victim, attacker)
+{
+	if(isdefined(victim.objs_held))
+	{
+		if(victim.objs_held > 0)
+		{
+			for(i = 0; i < (level.numobjectives + 1); i++)
+			{
+				if(isdefined(victim.hasobj[i]))
+				{
+					if ( level.battlerank )
+					{
+						// give the killer a point per object 
+						if (isplayer(attacker))
+						{
+							attacker.pers["score"] += [[level.getVars]]("scr_objcarrierkillbonuspoints");
+							attacker.score = attacker.pers["score"];
+						}
+					}
+					victim.hasobj[i] thread drop_objective_on_disconnect_or_death(victim);
+				}
+			}
+		}
+	}
+	for(i = 1; i < 16; i++)
+	{
+		victim maps\mp\uox\_uox_hud::deleteClientHUDElement("re" + i);
+	}
 }

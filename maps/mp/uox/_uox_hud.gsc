@@ -106,7 +106,6 @@ precache()
 	precacheString(game["matchScoreText"]);	
 	
 	game["objective_default"] = "gfx/hud/headicon@re_objcarrier.dds";
-	game["headicon_carrier"] = game["objective_default"];
 	precacheShader(game["objective_default"]);
 	switch(game["allies"])
 	{
@@ -142,7 +141,7 @@ precache()
 
 initClientHUD()
 {
-	self.hud = [];
+	self.uox_hud = maps\mp\uox\_uox_arrays::superArray();
 }
 
 initServerHUD()
@@ -163,13 +162,7 @@ initServerHUD()
 ***************************************************************************************************** */
 getClientHUDElement(name)
 {
-	//find element
-	index = maps\mp\uox\_uox_arrays::searchObjArrayByProperty(self.hud, "name", name);
-	//if element exists
-	if(isDefined(index))
-		return self.hud[index]["element"]; //return element
-	
-	return undefined; //otherwise return undefined
+	return maps\mp\uox\_uox_arrays::getValue(self.uox_hud, name);
 }
 
 updateClientHUDElement(name, type, value, options)
@@ -177,7 +170,7 @@ updateClientHUDElement(name, type, value, options)
 	element = getClientHUDElement(name);
 	
 	if(!isDefined(element))
-		element = createClientHUDElement(name)["element"];
+		element = createClientHUDElement(name);
 	
 	//process options
 	if(isDefined(options))
@@ -236,31 +229,20 @@ updateClientHUDElement(name, type, value, options)
 
 createClientHUDElement(name)
 {
-	element = [];
-	element["name"] = name;
-	element["element"] = newClientHudElem(self);
+	element = newClientHudElem(self);
 	
-	self.hud[self.hud.size] = element;
+	self.uox_hud = maps\mp\uox\_uox_arrays::arrayPush(self.uox_hud, element, name);
 	
-	return self.hud[self.hud.size - 1];
+	return element;
 }
 
 deleteClientHUDElement(name)
 {
-	temparr = [];
-	
-	for(i = 0; i < self.hud.size; i++)
-	{
-		hudElement = self.hud[i];
-		if(name != hudElement["name"])
-			temparr[temparr.size] = hudElement;
-		else
-		{
-			hudElement["element"] destroy();
-			hudElement = undefined;
-		}
-	}
-	self.hud = temparr;
+	element = getClientHUDElement(name);
+	if(isDefined(element))
+		element destroy();
+	element = undefined;
+	self.uox_hud = maps\mp\uox\_uox_arrays::arrayPop(self.uox_hud, name);
 }
 
 animateClientHUDElement(name, type, options)
@@ -309,13 +291,15 @@ animateClientHUDElement(name, type, options)
 
 clearClientHUD()
 {
-	for(i = 0; i < self.hud.size; i++)
-	{
-		hudElement = self.hud[i];
-		hudElement["element"] destroy();
-		hudElement = undefined;
-	}
+	maps\mp\uox\_uox_arrays::arrayReadEach(self.uox_hud, ::destroyClientHUDElement);
+	
 	initClientHUD();
+}
+
+destroyClientHUDElement( element )
+{
+	element destroy();
+	element = undefined;
 }
 
 updateHUDElementProperty(element, property, value)
@@ -698,7 +682,7 @@ updateServerScoreboard()
 		value = maps\mp\uox\_uox::getTeam1Score();
 	else
 	{
-		if([[level.getVars]]("scr_score_rounds"))
+		if(level.scoreboardKillsRounds)
 		{
 			highscore = maps\mp\uox\_uox::getHighScore(true);
 			if(isDefined(highscore))
@@ -863,7 +847,7 @@ updatePlayerScoreboard()
 		options["x"] = 58;
 		options["alignX"] = "right";
 		
-		if([[level.getVars]]("scr_score_rounds"))
+		if(level.scoreboardKillsRounds)
 			value = player.pers["roundswon"];
 		else
 			value = player.score;
@@ -881,7 +865,7 @@ updatePlayerScoreboard()
 			//Axis Limit
 			options["x"] = 66;
 			options["alignX"] = "left";
-			if([[level.getVars]]("scr_score_rounds"))
+			if(level.scoreboardKillsRounds)
 			{
 				//if in OT
 				if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))

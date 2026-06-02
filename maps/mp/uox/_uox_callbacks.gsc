@@ -32,6 +32,7 @@ Callback_StartGameType()
 	level.healthqueuecurrent = 0;
 	level.alliedscore = 0;
 	level.axisscore = 0;
+	level.defense_points = 0;
 	level.didFinalKillcam = false;
 	
 	if (!isdefined (game["BalanceTeamsNextRound"]))
@@ -214,6 +215,7 @@ Callback_PlayerConnect()
 	if(!isDefined(self.pers["2HScore"]))
 		self.pers["2HScore"] = 0;
 	self.sessionspawned = false;
+	self.objs_held = 0;
 	
 	//init HUD
 	self maps\mp\uox\_uox_hud::initClientHUD();
@@ -537,6 +539,8 @@ Callback_PlayerDisconnect()
 	lpselfguid = self getGuid();
 	logPrint("Q;" + lpselfguid + ";" + lpselfnum + ";" + self.name + "\n");
 	
+	self maps\mp\uox\_uox_retrievals::drop_all();
+	
 	maps\mp\uox\_uox_warmup::OnPlayerDisconnect(lpselfnum);
 	
 	if(game["matchstarted"])
@@ -695,7 +699,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	if(!level.doingReadyUp)
 		self.statusicon = "gfx/hud/hud@status_dead.tga";
 	self.deaths++;
-	self.pers["deaths"];
+	self.pers["deaths"] = self.deaths;
 
 	lpselfnum = self getEntityNumber();
 	lpselfname = self.name;
