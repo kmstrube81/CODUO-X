@@ -291,6 +291,7 @@ animateClientHUDElement(name, type, options)
 
 clearClientHUD()
 {
+	maps\mp\uox\_uox_debug::debugLog("info", "Clearing " + self.name + " HUD", "self.uox_hud", self.uox_hud);
 	maps\mp\uox\_uox_arrays::arrayReadEach(self.uox_hud, ::destroyClientHUDElement);
 	
 	initClientHUD();

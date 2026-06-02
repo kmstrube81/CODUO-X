@@ -61,8 +61,14 @@ safeDump(var)
     if(!isDefined(var))
         return "undefined";
 
+<<<<<<< HEAD
     if(isSuperArray(var))
         return dumpSuperArrayShallow(var);
+=======
+    // Entity check — entities have .origin in CoD1/UO
+   // if(isDefined(var.origin))
+   //     return "<entity>";
+>>>>>>> 7b6a97ee56aaff6f3620abb379970b999182ce88
 
     // Caller is responsible for ensuring `var` is a string or number
     // if not a super array. Anything else may throw.

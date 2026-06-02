@@ -708,6 +708,7 @@ drop_all()
 	{
 		if(self.objs_held > 0)
 		{
+			maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 			for(i = 0; i < (level.numobjectives + 1); i++)
 			{
 				if(isdefined(self.hasobj[i]))
@@ -715,7 +716,6 @@ drop_all()
 					self.hasobj[i] thread drop_objective_on_disconnect_or_death(self);
 				}
 			}
-			maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 		}
 	}
 }
