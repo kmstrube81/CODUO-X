@@ -77,8 +77,8 @@ superDump(var, depth)
         return "undefined";
 
     // Entity check — entities have .origin in CoD1/UO
-    if(isDefined(var.origin))
-        return "<entity>";
+   // if(isDefined(var.origin))
+   //     return "<entity>";
 
     // Super array — known structure
     if(maps\mp\uox\_uox_arrays::isSuperArray(var))
