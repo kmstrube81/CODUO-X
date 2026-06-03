@@ -55,6 +55,8 @@ monitorUseKey()
 		self.isUsing = true;
 		self notify("Pressed Use");
 	}
+	else
+		self.isUsing = false;
 }
 
 isPressingUse(trigger)
@@ -152,18 +154,18 @@ watchUse()
 				self thread [[holdCallback]](trigger);
 				self unlink();
 				self enableWeapon();
-				self.isUsing = false;
+				//self.isUsing = false;
 				return;
 			}
 			else
 			{
-				self.isUsing = false;
+				//self.isUsing = false;
 				self unlink();
 				self enableWeapon();
 				if(isDefined(trigger))
 					trigger.doing = undefined;
 				if(isDefined(failCallback))
-					[[failCallback]](trigger);
+					self thread [[failCallback]](trigger);
 			}
 		}
 	}

@@ -192,7 +192,7 @@ retrieval_think() //each objective model runs this to find it's trigger and goal
 	{
 		self.trigger waittill ("trigger", other);
 		
-		if(!game["matchstarted"])
+		if(!game["matchstarted"] || level.roundended || level.mapended)
 			return;
 
 		if((isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))

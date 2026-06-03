@@ -231,6 +231,8 @@ createClientHUDElement(name)
 {
 	element = newClientHudElem(self);
 	
+	element.elementName = name;
+	
 	self.uox_hud = maps\mp\uox\_uox_arrays::arrayPush(self.uox_hud, element, name);
 	
 	return element;
@@ -299,6 +301,7 @@ clearClientHUD()
 
 destroyClientHUDElement( element )
 {
+	maps\mp\uox\_uox_debug::debugLog("info", "Clearing " + element.elementName + " HUD Element");
 	element destroy();
 	element = undefined;
 }

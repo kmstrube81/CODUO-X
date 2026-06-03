@@ -67,7 +67,7 @@ safeDump(var)
     if(!isDefined(var))
         return "undefined";
 
-    if(isSuperArray(var))
+    if(maps\mp\uox\_uox_arrays::isSuperArray(var))
         return dumpSuperArrayShallow(var);
 
     // Caller is responsible for ensuring `var` is a string or number
