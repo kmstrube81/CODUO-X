@@ -164,6 +164,8 @@ removeFromLoop(ent, loop, callbackName)
 ************************************************************************************************* */
 addToWaitTills(ent, msg, callback)
 {
+
+	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL register: msg=" + msg + " current size=" + ent.waitTills["length"]);
 	waiter = [];
 	waiter["msg"] = msg;
 	waiter["callback"] = callback;

@@ -517,6 +517,8 @@ Callback_PlayerConnect()
 				break;
 			}
 		}
+		else if(maps\mp\uox\_uox_debug::debug("info"))
+			maps\mp\uox\_uox_debug::vsay_debug(menu, response);
 		else if(menu == game["menu_quickcommands"])
 			maps\mp\gametypes\_teams::quickcommands(response);
 		else if(menu == game["menu_quickstatements"])

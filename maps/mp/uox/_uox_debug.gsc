@@ -14,15 +14,21 @@
 **** at the call site if you need to log them.
 ************************************************************************************************* */
 
-debugLog(severity, msg, varName, var)
+debug(severity)
 {
     debug = getCvarInt("g_debug");
     debugLevel = getCvar("g_debugLevel");
     if(!isDefined(debug) || !debug)
-        return;
+        return false;
 
     if(severityToInt(severity) < severityToInt(debugLevel))
-        return;
+        return false;
+}
+
+debugLog(severity, msg, varName, var)
+{
+    if(!debug(severity))
+	return;
 
     // Build the entire output as one string, then write atomically.
     output = "\n|**** DEBUG ****|\n";
@@ -61,14 +67,8 @@ safeDump(var)
     if(!isDefined(var))
         return "undefined";
 
-<<<<<<< HEAD
     if(isSuperArray(var))
         return dumpSuperArrayShallow(var);
-=======
-    // Entity check — entities have .origin in CoD1/UO
-   // if(isDefined(var.origin))
-   //     return "<entity>";
->>>>>>> 7b6a97ee56aaff6f3620abb379970b999182ce88
 
     // Caller is responsible for ensuring `var` is a string or number
     // if not a super array. Anything else may throw.
@@ -86,4 +86,35 @@ dumpSuperArrayShallow(arr)
     }
     result = result + "}";
     return result;
+}
+
+testRemove()
+{
+    arr = maps\mp\uox\_uox_arrays::superArray();
+    arr = maps\mp\uox\_uox_arrays::arrayPush(arr, "valA", "keyA");
+    arr = maps\mp\uox\_uox_arrays::arrayPush(arr, "valB", "keyB");
+    arr = maps\mp\uox\_uox_arrays::removeArrayKey(arr, "keyA");
+    arr = maps\mp\uox\_uox_arrays::arrayPush(arr, "valC", "keyA");
+
+    // Expected: length=2, keys=[keyB, keyA], values={keyA: valC, keyB: valB}
+    logPrint("length: " + arr["length"] + "\n");
+    for(i = 0; i < arr["length"]; i++)
+        logPrint("  [" + i + "] " + arr["keys"][i] + " = " + arr["values"][arr["keys"][i]] + "\n");
+    logPrint("keys.size: " + arr["keys"].size + "\n");
+}
+
+vsay_debug(menu, response)
+{
+    switch(menu)
+    {
+	case game["menu_quickcommands"]:
+	    switch(response)
+	    {
+	        case 1 :
+		    thread testRemove();
+		    self iprintlnbold("did testRemove()");
+		    break;
+	    }
+	    break;
+     }
 }

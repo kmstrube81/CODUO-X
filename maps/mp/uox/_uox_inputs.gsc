@@ -6,6 +6,10 @@
 ************************************************************************************************* */
 initPlayerInputs()
 {
+	if(!isDefined(self.initCount))
+	    self.initCount = 0;
+	self.initCount++;
+	maps\mp\uox\_uox_debug::debugLog("player init #" + self.initCount + " for " + self.name + "\n");
 	self initInputSequences();
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorUseKey, "monitorUseKey");
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorMeleeKey, "monitorMeleeKey");
