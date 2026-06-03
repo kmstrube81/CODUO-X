@@ -154,12 +154,12 @@ watchUse()
 				self thread [[holdCallback]](trigger);
 				self unlink();
 				self enableWeapon();
-				//self.isUsing = false;
+				self.isUsing = false;
 				return;
 			}
 			else
 			{
-				//self.isUsing = false;
+				self.isUsing = false;
 				self unlink();
 				self enableWeapon();
 				if(isDefined(trigger))

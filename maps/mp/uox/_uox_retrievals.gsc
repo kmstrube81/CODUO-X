@@ -347,7 +347,7 @@ drop_objective(trigger)
 	if(isPlayer(self))
 	{
 		num = (16 - (trigger.hudnum));
-		self drop_all();
+		//self drop_all();
 		
 		self maps\mp\uox\_uox_hud::deleteClientHUDElement("re" + num);
 	}

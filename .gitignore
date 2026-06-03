@@ -1,0 +1,7 @@
+################################
+# Slick Edit Project files
+################################
+*.vpj 
+*.vpw
+*.vpwhistuxml
+*.vpwwildcardcache

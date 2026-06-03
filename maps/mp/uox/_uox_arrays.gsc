@@ -127,17 +127,19 @@ arrayPop(arr, key)
 				tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 				tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 			}
+            tempArr["length"] = arr["length"] - 1;
 			return tempArr;
 		}
 		if(!isDefined(arr["values"][key]))
 			return arr;
-		for(i = 0; i < arr["length"] - 1; i++)
+		for(i = 0; i < arr["length"]; i++)
 		{
 			if(arr["keys"][i] == key)
 				continue;
 			tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 			tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 		}
+        tempArr["length"] = arr["length"] - 1;
 		return tempArr;		
 	}
 	tempArr = [];
