@@ -9,7 +9,7 @@ initPlayerInputs()
 	if(!isDefined(self.initCount))
 	    self.initCount = 0;
 	self.initCount++;
-	maps\mp\uox\_uox_debug::debugLog("player init #" + self.initCount + " for " + self.name + "\n");
+	maps\mp\uox\_uox_debug::debugLog("info", "player init #" + self.initCount + " for " + self.name + "\n");
 	self initInputSequences();
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorUseKey, "monitorUseKey");
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorMeleeKey, "monitorMeleeKey");
@@ -180,6 +180,7 @@ watchUse()
 
 addHoldUse(msg, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
+		
 	if(!isDefined(drawProgressBar))
 		drawProgressBar = false;
 	if(!isDefined(lockInPlace))
@@ -201,11 +202,14 @@ addHoldUse(msg, delayTime, waitTime, conditionCallback, successCallback, failCal
 	hold["audiocue"] = audioCue;
 	
 	self.holdUse = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdUse, hold, msg);
+	
+	maps\mp\uox\_uox_debug::debugLog("info", "HoldUse register: msg=" + msg + " new size=" + self.holdUse["length"], "self.holdUse", self.holdUse);
 }
 
 removeHoldUse(msg)
 {
 	self.holdUse = maps\mp\uox\_uox_arrays::arraySlice(self.holdUse, msg);
+	maps\mp\uox\_uox_debug::debugLog("info", "HoldUse deregister: msg=" + msg + " new size=" + self.holdUse["length"], "self.holdUse", self.holdUse);
 }
 
 /* *************************************************************************************************

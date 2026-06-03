@@ -23,12 +23,21 @@ debug(severity)
 
     if(severityToInt(severity) < severityToInt(debugLevel))
         return false;
+		
+	return true;
 }
 
 debugLog(severity, msg, varName, var)
 {
+	//make self healing, if you forgot message you probably put it in the severity parameter
+	if(!isDefined(msg))
+	{
+		msg = severity;
+		severity = "info";
+	}
+
     if(!debug(severity))
-	return;
+		return;
 
     // Build the entire output as one string, then write atomically.
     output = "\n|**** DEBUG ****|\n";
@@ -51,6 +60,7 @@ severityToInt(s)
 {
     if(!isDefined(s))
         return 0;   // treat undefined as lowest, so everything passes filter
+				
     switch(s)
     {
         case "debug": return 0;
@@ -97,24 +107,25 @@ testRemove()
     arr = maps\mp\uox\_uox_arrays::arrayPush(arr, "valC", "keyA");
 
     // Expected: length=2, keys=[keyB, keyA], values={keyA: valC, keyB: valB}
-    logPrint("length: " + arr["length"] + "\n");
+    string = "length: " + arr["length"] + "\n";
     for(i = 0; i < arr["length"]; i++)
-        logPrint("  [" + i + "] " + arr["keys"][i] + " = " + arr["values"][arr["keys"][i]] + "\n");
-    logPrint("keys.size: " + arr["keys"].size + "\n");
+        string = string + "  [" + i + "] " + arr["keys"][i] + " = " + arr["values"][arr["keys"][i]] + "\n";
+    string = string + "keys.size: " + arr["keys"].size + "\n";
+	debugLog("info", string);
 }
 
 vsay_debug(menu, response)
 {
-    switch(menu)
-    {
-	case game["menu_quickcommands"]:
+	self iprintlnbold("doing vsay debug #" + response);
+    if(menu == game["menu_quickcommands"])
+	{
+		self iprintlnbold("quick command debugs");
 	    switch(response)
 	    {
-	        case 1 :
-		    thread testRemove();
-		    self iprintlnbold("did testRemove()");
-		    break;
+	        case "1":
+				level thread testRemove();
+				self iprintlnbold("did testRemove()");
+				break;
 	    }
-	    break;
-     }
+    }
 }

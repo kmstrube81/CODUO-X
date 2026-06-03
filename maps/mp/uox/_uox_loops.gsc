@@ -84,7 +84,7 @@ initEntityLoop()
 	self.fastLoop = maps\mp\uox\_uox_arrays::superArray();
 	self.mediumLoop = maps\mp\uox\_uox_arrays::superArray();
 	self.slowLoop = maps\mp\uox\_uox_arrays::superArray();
-	self.waitTills = [];
+	self.waitTills = maps\mp\uox\_uox_arrays::superArray();
 	
 	//start Loop
 	for(frame = 0; true; frame++)
@@ -164,13 +164,12 @@ removeFromLoop(ent, loop, callbackName)
 ************************************************************************************************* */
 addToWaitTills(ent, msg, callback)
 {
-
-	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL register: msg=" + msg + " current size=" + ent.waitTills["length"]);
 	waiter = [];
 	waiter["msg"] = msg;
 	waiter["callback"] = callback;
 	waiter["waiting"] = false;
 	ent.waitTills = maps\mp\uox\_uox_arrays::arrayPush(ent.waitTills, waiter, msg);
+	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL register: msg=" + msg + " new size=" + ent.waitTills["length"]);
 }
 
 /* *************************************************************************************************
@@ -185,12 +184,12 @@ removeFromWaitTills(ent, msg)
 		return; //not implemented yet
 	else
 	{
-		
+		maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL deregister: msg=" + msg + " current size=" + ent.waitTills["length"]);
 		ent.waitTills = maps\mp\uox\_uox_arrays::removeArrayKey(ent.waitTills, msg);
 		ent notify("kill_" + msg);
 		
 	}
-	return ent.waitTills;
+	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL deregister: msg=" + msg + " new size=" + ent.waitTills["length"]);
 }
 
 /* *************************************************************************************************
