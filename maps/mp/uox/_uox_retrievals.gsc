@@ -310,7 +310,7 @@ objective_carrier_atgoal_wait(other)
         return;
 
 	//loop objectives
-    for(i = 0; i = self.objectives.size; i++) {
+    for(i = 0; i < self.objectives.size; i++) {
         objective = objectives[i];
         hasObj = false;
 
