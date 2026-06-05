@@ -227,8 +227,8 @@ doWait(waiter)
 
 	self notify("kill_" + waiter["msg"]);
 	name = " ";
-	if(isPlayer(ent))
-		name = ent.name + name;
+	if(isPlayer(self))
+		name = self.name + name;
 	else
 		name = "";
 	wait 0.05; //allow notifies to kill hanging threads

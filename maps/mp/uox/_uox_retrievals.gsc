@@ -138,11 +138,13 @@ retrieval_spawn_objective()
         {
                 trigger = targeted[i];
                 trigger.objective = self;
+				self.trigger = trigger;
         }
 		else //set up the goal trigger if its a trigger_multiple
 		if(targeted[i].classname == "trigger_multiple")
 		{
 			goal = targeted[i];
+			self.goal = goal;
 			goal thread objective_think("goal");
             goal.objectives = maps\mp\uox\_uox_arrays::arrayPush(goal.objectives, self);
 		}
@@ -183,16 +185,17 @@ retrieval_spawn_objective()
 		objective_position(self.objnum, self.origin);
 	
 	//Set hintstring on the objectives trigger
+	maps\mp\uox\_uox_debug::debugLog("info", "spawn_objective reached registration, trigger defined=" + isDefined(trigger));
 	wait 0;//required for level script to run and load the level.obj array
 	if((isdefined(self.script_objective_name)) && (isdefined(level.obj[self.script_objective_name])))
 		trigger setHintString(&"RE_PRESS_TO_PICKUP", level.obj[self.script_objective_name]);
 	else
 		trigger setHintString(&"RE_PRESS_TO_PICKUP_GENERIC");
 	
-	trigger maps\mp\uox\_uox_loops::initEntityLoop();
+	trigger thread maps\mp\uox\_uox_loops::initEntityLoop();
 	trigger maps\mp\uox\_uox_loops::addToWaitTills(trigger, "trigger", ::retrieval_think, true);
 
-    goal maps\mp\uox\_uox_loops::initEntityLoop();
+    goal thread maps\mp\uox\_uox_loops::initEntityLoop();
     goal maps\mp\uox\_uox_loops::addToWaitTills(goal, "trigger", ::objective_carrier_atgoal_wait, true);
 }
 
@@ -203,8 +206,6 @@ retrieval_think(other) //each objective model runs this to find it's trigger and
 
     if(!game["matchstarted"] || level.roundended || level.mapended)
         return;
-
-	other iprintlnbold("triggered");
 
     if((isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))
     {
@@ -307,13 +308,16 @@ hold_objective(player) //the objective model runs this to be held by 'player'
 
 objective_carrier_atgoal_wait(other)
 {
-    other.hasobj[objective.objnum] = objective;
+	if(!isDefined(other.hasobj))
+		return;
     if(other.objs_held < 1)
         return;
 
 	//loop objectives
     for(i = 0; i < self.objectives.size; i++) {
         objective = objectives[i];
+		
+		other.hasobj[objective.objnum] = objective;
         hasObj = false;
 
         if(isDefined(other.hasobj[objective.objnum]) && other.hasobj[objective.objnum] == objective) 

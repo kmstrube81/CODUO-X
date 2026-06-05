@@ -1191,7 +1191,7 @@ updateTeamStatus()
 		if(oldvalue["allies"] && !level.exist["allies"])
 		{
 			// for objective modes, no bomb planted, axis win
-			if(!level.bombsites["A"]["planted"] && !level.bombsites["B"]["planted"])
+			if(checkObjective())
 			{
 				announcement(&"SD_ALLIESHAVEBEENELIMINATED"); //announce that allies are all dead
 				//end round for axis, do killcam if the flag for the last allies killed is true
@@ -1219,7 +1219,7 @@ updateTeamStatus()
 		if(oldvalue["axis"] && !level.exist["axis"])
 		{
 			// for objective, no bomb planted, allies win
-			if(!level.bombsites["A"]["planted"] && !level.bombsites["B"]["planted"])
+			if(checkObjective())
 			{	
 				announcement(&"SD_AXISHAVEBEENELIMINATED"); //announce the last axis just died
 				//end round for axis, if flag for last axis killed is set to true, do final killcam
@@ -2479,6 +2479,23 @@ getObjectiveText(objective)
 				return &"DM_KILL_OTHER_PLAYERS";
 	}
 	return &"DM_KILL_OTHER_PLAYERS";
+}
+
+checkObjective()
+{
+	objective = level.objective;
+	
+	switch(objective)
+	{
+		case "bomb":
+			if(!level.bombsites["A"]["planted"] && !level.bombsites["B"]["planted"])
+				return true;
+			else
+				return false;
+		default:
+			return true;
+	}
+	return true;
 }
 
 /* **************************************************************************************************
