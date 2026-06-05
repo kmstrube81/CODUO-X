@@ -314,7 +314,7 @@ objective_carrier_atgoal_wait(other)
         objective = objectives[i];
         hasObj = false;
 
-        if(isDefined(other.hasobj[objective.objnum]) && other.hasobj[objective.objnum] = objective) 
+        if(isDefined(other.hasobj[objective.objnum]) && other.hasobj[objective.objnum] == objective) 
             hasObj = true;
         if(hasObj && (isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))
         {
