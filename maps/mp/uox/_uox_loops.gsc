@@ -179,7 +179,13 @@ addToWaitTills(ent, msg, callback, entFlag, responseFlag)
     waiter["entFlag"] = entFlag;
     waiter["responseFlag"] = responseFlag; 
 	ent.waitTills = maps\mp\uox\_uox_arrays::arrayPush(ent.waitTills, waiter, msg);
-	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL register: msg=" + msg + " new size=" + ent.waitTills["length"]);
+	
+	name = " ";
+	if(isPlayer(ent))
+		name = ent.name + name;
+	else
+		name = "";
+	maps\mp\uox\_uox_debug::debugLog("info", name + "WAITTILL register: msg=" + msg + " new size=" + ent.waitTills["length"]);
 }
 
 /* *************************************************************************************************
@@ -191,10 +197,16 @@ addToWaitTills(ent, msg, callback, entFlag, responseFlag)
 removeFromWaitTills(ent, msg)
 {
 	if(!isDefined(ent)) ent = level;
-    maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL deregister: msg=" + msg + " current size=" + ent.waitTills["length"]);
+	name = " ";
+	if(isPlayer(ent))
+		name = ent.name + name;
+	else
+		name = "";
+	maps\mp\uox\_uox_debug::debugLog("info", name + "WAITTILL deregister: msg=" + msg + " current size=" + ent.waitTills["length"]);
     ent.waitTills = maps\mp\uox\_uox_arrays::removeArrayKey(ent.waitTills, msg);
     ent notify("kill_" + msg);
-	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL deregister: msg=" + msg + " new size=" + ent.waitTills["length"]);
+	maps\mp\uox\_uox_debug::debugLog("info", name + 
+	"WAITTILL deregister: msg=" + msg + " new size=" + ent.waitTills["length"]);
 }
 
 /* *************************************************************************************************
@@ -214,21 +226,32 @@ doWait(waiter)
 	self endon("destroyed");
 
 	self notify("kill_" + waiter["msg"]);
+	name = " ";
+	if(isPlayer(ent))
+		name = ent.name + name;
+	else
+		name = "";
 	wait 0.05; //allow notifies to kill hanging threads
 
     if(waiter["entFlag"] && waiter["responseFlag"])
     {
+		maps\mp\uox\_uox_debug::debugLog("info", name + "waiting til: msg=" + waiter["msg"]);
         self waittill(waiter["msg"], ent, response);   
+		maps\mp\uox\_uox_debug::debugLog("info", name + "saw message with entity and response: msg=" + waiter["msg"]);
         self thread [[waiter["callback"]]](ent, response);
     }
     else if (waiter["entFlag"])
     {
+		maps\mp\uox\_uox_debug::debugLog("info", name + "waiting til: msg=" + waiter["msg"]);
         self waittill(waiter["msg"], ent);   
+		maps\mp\uox\_uox_debug::debugLog("info", name + "saw message with entity: msg=" + waiter["msg"]);
         self thread [[waiter["callback"]]](ent);
     }
     else
     {
-        self waittill(waiter["msg"]); 
+		maps\mp\uox\_uox_debug::debugLog("info", name + "waiting til: msg=" + waiter["msg"]);
+        self waittill(waiter["msg"]);
+		maps\mp\uox\_uox_debug::debugLog("info", name + "saw message: msg=" + waiter["msg"]);
         self thread [[waiter["callback"]]]();
     }
 	self.waitTills	= self maps\mp\uox\_uox_arrays::updateProperty(self.waitTills, waiter["msg"], "waiting",
@@ -295,7 +318,7 @@ doLevelWait(waiter)
         level waittill(waiter["msg"], ent, response);   
         level thread [[waiter["callback"]]](ent, response);
     }
-    else if (waiter["entFlag"])
+    else if(waiter["entFlag"])
     {
         level waittill(waiter["msg"], ent);   
         level thread [[waiter["callback"]]](ent);

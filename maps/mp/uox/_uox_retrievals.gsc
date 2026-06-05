@@ -176,24 +176,24 @@ retrieval_spawn_objective()
 	self.origin = (spawnloc[rand].origin);
 	self.startorigin = self.origin;
 	self.startangles = self.angles;
-	self.trigger.origin = (spawnloc[rand].origin);
-	self.trigger.startorigin = self.trigger.origin;
+	trigger.origin = (spawnloc[rand].origin);
+	trigger.startorigin = trigger.origin;
 	
     if(isdefined(self.objnum))
 		objective_position(self.objnum, self.origin);
-
-    trigger maps\mp\uox\_uox_loops::initEntityLoop();
-	trigger maps\mp\uox\_uox_loops::addToWaitTills(trigger, "trigger", ::retrieval_think, true);
-
-    goal maps\mp\uox\_uox_loops::initEntityLoop();
-    goal maps\mp\uox\_uox_loops::addToWaitTills(goal, "trigger", ::objective_carrier_atgoal_wait, true);
 	
 	//Set hintstring on the objectives trigger
 	wait 0;//required for level script to run and load the level.obj array
 	if((isdefined(self.script_objective_name)) && (isdefined(level.obj[self.script_objective_name])))
-		self.trigger setHintString(&"RE_PRESS_TO_PICKUP", level.obj[self.script_objective_name]);
+		trigger setHintString(&"RE_PRESS_TO_PICKUP", level.obj[self.script_objective_name]);
 	else
-		self.trigger setHintString(&"RE_PRESS_TO_PICKUP_GENERIC");
+		trigger setHintString(&"RE_PRESS_TO_PICKUP_GENERIC");
+	
+	trigger maps\mp\uox\_uox_loops::initEntityLoop();
+	trigger maps\mp\uox\_uox_loops::addToWaitTills(trigger, "trigger", ::retrieval_think, true);
+
+    goal maps\mp\uox\_uox_loops::initEntityLoop();
+    goal maps\mp\uox\_uox_loops::addToWaitTills(goal, "trigger", ::objective_carrier_atgoal_wait, true);
 }
 
 retrieval_think(other) //each objective model runs this to find it's trigger and goal
@@ -204,6 +204,8 @@ retrieval_think(other) //each objective model runs this to find it's trigger and
     if(!game["matchstarted"] || level.roundended || level.mapended)
         return;
 
+	other iprintlnbold("triggered");
+
     if((isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))
     {
         if((isdefined(objective.script_objective_name)) && (isdefined(level.obj[objective.script_objective_name])))
@@ -211,7 +213,7 @@ retrieval_think(other) //each objective model runs this to find it's trigger and
             if(![[level.getVars]]("scr_showcarrier"))
                 announcement(&"RE_OBJ_PICKED_UP_NOSTARS", level.obj[objective.script_objective_name]);
             else
-            announcement(&"RE_OBJ_PICKED_UP", level.obj[objective.script_objective_name]);
+				announcement(&"RE_OBJ_PICKED_UP", level.obj[objective.script_objective_name]);
         }
         else
         {
