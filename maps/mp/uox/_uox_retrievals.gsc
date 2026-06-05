@@ -186,7 +186,7 @@ retrieval_spawn_objective()
 	trigger maps\mp\uox\_uox_loops::addToWaitTills(trigger, "trigger", ::retrieval_think, true);
 
     goal maps\mp\uox\_uox_loops::initEntityLoop();
-    goal maps\mp\uox\_uox_loops::addToWaitTills(goal, "trigger", ::objective_carrier_attgoal_wait, true);
+    goal maps\mp\uox\_uox_loops::addToWaitTills(goal, "trigger", ::objective_carrier_atgoal_wait, true);
 	
 	//Set hintstring on the objectives trigger
 	wait 0;//required for level script to run and load the level.obj array
