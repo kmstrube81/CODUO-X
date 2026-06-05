@@ -29,7 +29,7 @@ initServerLoop()
 		}
 		level maps\mp\uox\_uox_arrays::arrayReadEach(level.fastLoop, ::doLoop );
 		
-		level maps\mp\uox\_uox_arrays::arrayReadEach(level.waitTills, ::startWait);
+		level maps\mp\uox\_uox_arrays::arrayReadEach(level.waitTills, ::startLevelWait);
 		wait 0.05;
 	}
 }
@@ -162,12 +162,22 @@ removeFromLoop(ent, loop, callbackName)
 **** USAGE: adds a callback to execute once the waittill notification has fired
 ****  
 ************************************************************************************************* */
-addToWaitTills(ent, msg, callback)
+addToWaitTills(ent, msg, callback, entFlag, responseFlag)
 {
+    if(!isDefined(ent)) ent = level;
+
+    if(!isDefined(entFlag))
+        entFlag = false;
+    
+    if(!isDefined(responseFlag))
+        responseFlag = false;
+
 	waiter = [];
 	waiter["msg"] = msg;
 	waiter["callback"] = callback;
 	waiter["waiting"] = false;
+    waiter["entFlag"] = entFlag;
+    waiter["responseFlag"] = responseFlag; 
 	ent.waitTills = maps\mp\uox\_uox_arrays::arrayPush(ent.waitTills, waiter, msg);
 	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL register: msg=" + msg + " new size=" + ent.waitTills["length"]);
 }
@@ -211,8 +221,21 @@ doWait(waiter)
 	self notify("kill_" + waiter["msg"]);
 	wait 0.05; //allow notifies to kill hanging threads
 
-	self waittill(waiter["msg"]);
-	self thread [[waiter["callback"]]]();
+    if(waiter["entFlag"] && waiter["responseFlag"])
+    {
+        self waittill(waiter["msg"], ent, response);   
+        self thread [[waiter["callback"]]](ent, response);
+    }
+    else if (waiter["entFlag"])
+    {
+        self waittill(waiter["msg"], ent);   
+        self thread [[waiter["callback"]]](ent);
+    }
+    else
+    {
+        self waittill(waiter["msg"]); 
+        self thread [[waiter["callback"]]]();
+    }
 	self.waitTills	= self maps\mp\uox\_uox_arrays::updateProperty(self.waitTills, waiter["msg"], "waiting",
 		false);
 }
@@ -239,4 +262,54 @@ startWait(waiter)
 {
 	thread doWait(waiter);
 	return waiter;
+}
+
+/* *************************************************************************************************
+**** startLevelWait(waiter)
+****
+**** USAGE: starts waittill
+****  
+************************************************************************************************* */
+startLevelWait(waiter)
+{
+	thread doLevelWait(waiter);
+	return waiter;
+}
+
+/* *************************************************************************************************
+**** doLevelWait(obj wait)
+****
+**** USAGE: waits for notification and executes callback and sets it back to waiter mode
+****  
+************************************************************************************************* */
+doLevelWait(waiter)
+{
+	if(waiter["waiting"])
+		return;
+	level.waitTills = level maps\mp\uox\_uox_arrays::updateProperty(level.waitTills, waiter["msg"], "waiting", true);
+	
+	level endon("kill_" + waiter["msg"]);
+	level endon("disconnect");
+	level endon("destroyed");
+
+	level notify("kill_" + waiter["msg"]);
+	wait 0.05; //allow notifies to kill hanging threads
+
+    if(waiter["entFlag"] && waiter["responseFlag"])
+    {
+        level waittill(waiter["msg"], ent, response);   
+        level thread [[waiter["callback"]]](ent, response);
+    }
+    else if (waiter["entFlag"])
+    {
+        level waittill(waiter["msg"], ent);   
+        level thread [[waiter["callback"]]](ent);
+    }
+    else
+    {
+        level waittill(waiter["msg"]); 
+        level thread [[waiter["callback"]]]();
+    }
+	level.waitTills	= level maps\mp\uox\_uox_arrays::updateProperty(level.waitTills, waiter["msg"], "waiting",
+		false);
 }

@@ -126,33 +126,39 @@ objective_think(type)
 
 retrieval_spawn_objective()
 {
+    //get all entities that target the objective
 	targeted = getentarray(self.target, "targetname");
-	for(i=0;i<targeted.size;i++)
+	for(i=0;i<targeted.size;i++) //loop through found ents
 	{
+        //add to spawloc array if classname is mp_retrieval_objective
 		if(targeted[i].classname == "mp_retrieval_objective")
 			spawnloc = maps\MP\_utility::add_to_array(spawnloc, targeted[i]);
-		else
+		else //set the pick up trigger if it is a trigger use
 		if(targeted[i].classname == "trigger_use")
-			self.trigger = (targeted[i]);
-		else
+        {
+                trigger = targeted[i];
+                trigger.objective = self;
+        }
+		else //set up the goal trigger if its a trigger_multiple
 		if(targeted[i].classname == "trigger_multiple")
 		{
-			self.goal = (targeted[i]);
-			self.goal thread objective_think("goal");
+			goal = targeted[i];
+			goal thread objective_think("goal");
+            goal.objectives = maps\mp\uox\_uox_arrays::arrayPush(goal.objectives, self);
 		}
 	}
-
+    //if any of the required ents weren't set up
 	if((!isdefined(spawnloc)) || (spawnloc.size < 1))
 	{
 		maps\mp\_utility::error("retrieval_objective does not target any mp_retrieval_objectives");
 		return;
 	}
-	if(!isdefined(self.trigger))
+	if(!isdefined(trigger))
 	{
 		maps\mp\_utility::error("retrieval_objective does not target a trigger_use");
 		return;
 	}
-	if(!isdefined(self.goal))
+	if(!isdefined(goal))
 	{
 		maps\mp\_utility::error("retrieval_objective trigger_use does not target a trigger_multiple");
 		return;
@@ -173,7 +179,14 @@ retrieval_spawn_objective()
 	self.trigger.origin = (spawnloc[rand].origin);
 	self.trigger.startorigin = self.trigger.origin;
 	
-	self thread retrieval_think();
+    if(isdefined(self.objnum))
+		objective_position(self.objnum, self.origin);
+
+    trigger maps\mp\uox\_uox_loops::initEntityLoop();
+	trigger maps\mp\uox\_uox_loops::addToWaitTills(trigger, "trigger", ::retrieval_think, true);
+
+    goal maps\mp\uox\_uox_loops::initEntityLoop();
+    goal maps\mp\uox\_uox_loops::addToWaitTills(goal, "trigger", ::objective_carrier_attgoal_wait, true);
 	
 	//Set hintstring on the objectives trigger
 	wait 0;//required for level script to run and load the level.obj array
@@ -183,67 +196,62 @@ retrieval_spawn_objective()
 		self.trigger setHintString(&"RE_PRESS_TO_PICKUP_GENERIC");
 }
 
-retrieval_think() //each objective model runs this to find it's trigger and goal
+retrieval_think(other) //each objective model runs this to find it's trigger and goal
 {
-	if(isdefined(self.objnum))
-		objective_position(self.objnum, self.origin);
 
-	for(;;)
-	{
-		self.trigger waittill ("trigger", other);
-		
-		if(!game["matchstarted"] || level.roundended || level.mapended)
-			return;
+    objective = self.objective;
 
-		if((isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))
-		{
-			if((isdefined(self.script_objective_name)) && (isdefined(level.obj[self.script_objective_name])))
-			{
-				if(![[level.getVars]]("scr_showcarrier"))
-					announcement(&"RE_OBJ_PICKED_UP_NOSTARS", level.obj[self.script_objective_name]);
-				else
-				announcement(&"RE_OBJ_PICKED_UP", level.obj[self.script_objective_name]);
-			}
-			else
-			{
-				if(![[level.getVars]]("scr_showcarrier"))
-					announcement(&"RE_OBJ_PICKED_UP_GENERIC_NOSTARS");
-				else
-					announcement(&"RE_OBJ_PICKED_UP_GENERIC");
-			}
-			self playsound ("re_pickup_paper");
-			self thread hold_objective(other);
-			other.hasobj[self.objnum] = self;
-			//println("SETTING HASOBJ[" + self.objnum + "] as the " + self.script_objective_name);
-			other.objs_held++;
-			/*
-			println("PUTTING OBJECTIVE " + self.objnum + " ON THE PLAYER ENTITY");
-			objective_onEntity(self.objnum, other);
-			*/
-			other thread display_holding_obj(self);
-			return;
+    if(!game["matchstarted"] || level.roundended || level.mapended)
+        return;
 
-		}
-		else if((isPlayer(other)) && (other.pers["team"] == game["re_defenders"]))
-		{
-			if((isdefined(self.script_objective_name)) && (isdefined(level.obj[self.script_objective_name])))
-			{
-				if(game["re_attackers"] == "allies")
-					other thread client_print(self, &"RE_PICKUP_ALLIES_ONLY", level.obj[self.script_objective_name]);
-				else if(game["re_attackers"] == "axis")
-					other thread client_print(self, &"RE_PICKUP_AXIS_ONLY", level.obj[self.script_objective_name]);
-			}
-			else
-			{
-				if(game["re_attackers"] == "allies")
-					other thread client_print(self, &"RE_PICKUP_ALLIES_ONLY_GENERIC");
-				else if(game["re_attackers"] == "axis")
-					other thread client_print(self, &"RE_PICKUP_AXIS_ONLY_GENERIC");
-			}
-		}
-		else
-			wait(.5);
-	}
+    if((isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))
+    {
+        if((isdefined(objective.script_objective_name)) && (isdefined(level.obj[objective.script_objective_name])))
+        {
+            if(![[level.getVars]]("scr_showcarrier"))
+                announcement(&"RE_OBJ_PICKED_UP_NOSTARS", level.obj[objective.script_objective_name]);
+            else
+            announcement(&"RE_OBJ_PICKED_UP", level.obj[objective.script_objective_name]);
+        }
+        else
+        {
+            if(![[level.getVars]]("scr_showcarrier"))
+                announcement(&"RE_OBJ_PICKED_UP_GENERIC_NOSTARS");
+            else
+                announcement(&"RE_OBJ_PICKED_UP_GENERIC");
+        }
+        objective playsound ("re_pickup_paper");
+        objective thread hold_objective(other);
+        other.hasobj[objective.objnum] = objective;
+        //println("SETTING HASOBJ[" + self.objnum + "] as the " + self.script_objective_name);
+        other.objs_held++;
+        /*
+        println("PUTTING OBJECTIVE " + self.objnum + " ON THE PLAYER ENTITY");
+        objective_onEntity(self.objnum, other);
+        */
+        other thread display_holding_obj(objective);
+        return;
+
+    }
+    else if((isPlayer(other)) && (other.pers["team"] == game["re_defenders"]))
+    {
+        if((isdefined(objective.script_objective_name)) && (isdefined(level.obj[objective.script_objective_name])))
+        {
+            if(game["re_attackers"] == "allies")
+                other thread client_print(objective, &"RE_PICKUP_ALLIES_ONLY", level.obj[objective.script_objective_name]);
+            else if(game["re_attackers"] == "axis")
+                other thread client_print(objective, &"RE_PICKUP_AXIS_ONLY", level.obj[objective.script_objective_name]);
+        }
+        else
+        {
+            if(game["re_attackers"] == "allies")
+                other thread client_print(objective, &"RE_PICKUP_ALLIES_ONLY_GENERIC");
+            else if(game["re_attackers"] == "axis")
+                other thread client_print(objective, &"RE_PICKUP_AXIS_ONLY_GENERIC");
+        }
+    }
+    else
+        wait(.5);
 }
 
 dropping(trigger)
@@ -274,7 +282,6 @@ hold_objective(player) //the objective model runs this to be held by 'player'
 	player.statusicon = game["headicon_carrier"];
 	objective_onEntity(self.objnum, player);
 
-	self thread objective_carrier_atgoal_wait(player);
 	player thread maps\mp\uox\_uox_inputs::addHoldUse("picked up", .3, 2, ::dropping, ::drop_objective, undefined, true, true, false, self );
 
 	if ( level.battlerank )
@@ -296,50 +303,57 @@ hold_objective(player) //the objective model runs this to be held by 'player'
 		player.headiconteam = "none";
 }
 
-objective_carrier_atgoal_wait(player)
+objective_carrier_atgoal_wait(other)
 {
-	self endon("dropped");
-	for(;;)
-	{
-		self.goal waittill("trigger", other);
-		if((other == player) && (isPlayer(player)) && (player.pers["team"] == game["re_attackers"]))
-		{
-			if ( level.battlerank )
-			{
-				player.pers["score"] += [[level.getVars]]("scr_objscorebonuspoints");
-				player.score = player.pers["score"];
-			}
-			level.objectives_done++;
-			level.defense_points--;
+    other.hasobj[objective.objnum] = objective;
+    if(other.objs_held < 1)
+        return;
 
-			objective_delete(self.objnum);
-			self notify("completed");
+	//loop objectives
+    for(i = 0; i = self.objectives.size; i++) {
+        objective = objectives[i];
+        hasObj = false;
 
-			//org = (player.origin);
-			player thread drop_objective_at_goal(self);
-			//remove drop addhold
-			player maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
+        if(isDefined(other.hasobj[objective.objnum]) && other.hasobj[objective.objnum] = objective) 
+            hasObj = true;
+        if(hasObj && (isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))
+        {
+            if ( level.battlerank )
+            {
+                other.pers["score"] += [[level.getVars]]("scr_objscorebonuspoints");
+                other.score = other.pers["score"];
+            }
+            level.objectives_done++;
+            level.defense_points--;
 
-			objective_delete(self.objnum);
+            objective_delete(objective.objnum);
+            objective notify("completed");
 
-			self delete();
+            //org = (player.origin);
+            other thread drop_objective_at_goal(objective);
+            //remove drop addhold
+            other maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 
-			if(level.objectives_done < level.retrieval_objective.size)
-			{
-				return;
-			}
-			else
-			{
-				announcement(&"RE_OBJ_CAPTURED_ALL");
-				level thread maps\mp\uox\_uox::endRound(game["re_attackers"]);
-				return;
-			}
-		}
-		else
-		{
-			wait .05;
-		}
-	}
+            objective_delete(objective.objnum);
+
+            objective delete();
+
+            if(level.objectives_done < level.retrieval_objective.size)
+            {
+                return;
+            }
+            else
+            {
+                announcement(&"RE_OBJ_CAPTURED_ALL");
+                level thread maps\mp\uox\_uox::endRound(game["re_attackers"]);
+                return;
+            }
+        }
+        else
+        {
+            wait .05;
+        }
+    }   
 }
 
 drop_objective(trigger)
