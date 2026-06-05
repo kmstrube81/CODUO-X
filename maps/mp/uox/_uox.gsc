@@ -2425,7 +2425,6 @@ initObjectives(objective)
 				game["attackers"] = "allies";
 			if(!isDefined(game["defenders"]))
 				game["defenders"] = "axis";
-			maps\mp\uox\_uox_bombs::precache();
 			maps\mp\uox\_uox_bombs::initVars();
 			thread maps\mp\uox\_uox_bombs::bombzones();
 			return;
@@ -2436,13 +2435,37 @@ initObjectives(objective)
 			if(!isdefined(game["re_defenders"]))
 				game["re_defenders"] = "axis";
 			game["defenders"] = game["re_defenders"];
-			maps\mp\uox\_uox_retrievals::precache();
 			maps\mp\uox\_uox_retrievals::initVars();
 			thread maps\mp\uox\_uox_retrievals::retrieval();
 			return;
 		default:
 			game["attackers"] = undefined;
 			game["defenders"] = undefined;
+			return;
+	}
+}
+
+/* **************************************************************************************************
+**** precacheObjectives(string objective)
+****
+**** sets up objectives for gametype.
+****
+*************************************************************************************************** */
+precacheObjectives(objective)
+{
+
+	if(!isDefined(objective))
+		objective = "none";
+
+	switch(objective)
+	{
+		case "bomb":
+			maps\mp\uox\_uox_bombs::precache();
+			return;
+		case "retrieval":
+			maps\mp\uox\_uox_retrievals::precache();
+			return;
+		default:
 			return;
 	}
 }

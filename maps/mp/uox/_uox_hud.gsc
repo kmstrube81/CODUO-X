@@ -1,112 +1,144 @@
 precache()
 {
+    /* Big Script Variable save by getting rid of this block and
+       just refering to them by the localized string*/
 	game["roundText"] = &"Round";
-	precacheString(game["roundText"]);
 	game["OTroundText"] = &"OT Round";
-	precacheString(game["OTroundText"]);
 	game["startingText"] = &"Starting";
-	precacheString(game["startingText"]);
 	game["resumingText"] = &"Resuming";
-	precacheString(game["resumingText"]);
 	game["respawnText"] = &"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN";
-	precacheString(game["respawnText"]);
 	game["killcamText"] = &"MPSCRIPT_KILLCAM";
-	precacheString(game["killcamText"]);
-	game["finalKillcamText"] = &"FINAL KILLCAM";
-	precacheString(game["finalKillcamText"]);
+    game["finalKillcamText"] = &"FINAL KILLCAM";
 	game["alliesWinText"] = &"MPSCRIPT_ALLIES_WIN";
-	precacheString(game["alliesWinText"]);
 	game["axisWinText"] = &"MPSCRIPT_AXIS_WIN";
-	precacheString(game["axisWinText"]);
 	game["ceasefireText"] = &"GMI_MP_CEASEFIRE";
-	precacheString(game["ceasefireText"]);
 	game["timeExpiredText"] = &"GMI_CTF_TIMEEXPIRED";
-	precacheString(game["timeExpiredText"]);
 	game["matchStartingText"] = &"SD_MATCHSTARTING";
-	precacheString(game["matchStartingText"]);
 	game["matchResumingText"] = &"SD_MATCHRESUMING";
-	precacheString(game["matchResumingText"]);
 	game["roundDrawText"] = &"SD_ROUNDDRAW";
-	precacheString(game["roundDrawText"]);
 	game["alliesEliminatedText"] = &"SD_ALLIESHAVEBEENELIMINATED";
-	precacheString(game["alliesEliminatedText"]);
 	game["axisEliminatedText"] = &"SD_AXISHAVEBEENELIMINATED";
-	precacheString(game["axisEliminatedText"]);
 	game["livesText"] = &"Lives Left";
-	precacheString(game["livesText"]);
 	game["dividerText"] = &"/";
-	precacheString(game["dividerText"]);
 	game["waitingText"] = &"Ready-Up Mode";
-	precacheString(game["waitingText"]);
 	game["warmupText"] = &"Warm-Up Mode";
-	precacheString(game["warmupText"]);
 	game["allreadyText"] = &"All Players Ready!";
-	precacheString(game["allreadyText"]);
 	game["1stHalfStartingText"] = &"1st Half Starting";
-	precacheString(game["1stHalfStartingText"]);
 	game["2ndHalfStartingText"] = &"2nd Half Starting";
-	precacheString(game["2ndHalfStartingText"]);
 	game["readyText"] = &"Ready";
-	precacheString(game["readyText"]);
 	game["notReadyText"] = &"Not Ready";
-	precacheString(game["notReadyText"]);
 	game["statusText"] = &"Your Status";
-	precacheString(game["statusText"]);
 	game["waitingOnText"] = &"Waiting on";
-	precacheString(game["waitingOnText"]);
 	game["playersText"] = &"Players";
-	precacheString(game["playersText"]);
 	game["scoreboardText"] = &"Scoreboard";
-	precacheString(game["scoreboardText"]);
 	game["team1Text"] = &"TEAM 1";
-	precacheString(game["team1Text"]);
 	game["team2Text"] = &"TEAM 2";
-	precacheString(game["team2Text"]);
 	game["team1WinText"] = &"Team 1 Wins!";
-	precacheString(game["team1WinText"]);
 	game["team2WinText"] = &"Team 2 Wins!";
-	precacheString(game["team2WinText"]);
 	game["tieText"] = &"Its a TIE!";
-	precacheString(game["tieText"]);
 	game["matchoverText"] = &"Match Over";
-	precacheString(game["matchoverText"]);
 	game["overtimeText"] = &"Going to Overtime";
-	precacheString(game["overtimeText"]);
 	game["overtimemodeText"] = &"Overtime";
-	precacheString(game["overtimemodeText"]);
 	game["halftimeText"] = &"Halftime";
-	precacheString(game["halftimeText"]);
 	game["switchingText"] = &"Switching Sides";
-	precacheString(game["switchingText"]);	
 	game["switchWaitText"] = &"Please wait";
-	precacheString(game["switchWaitText"]);
-	game["axisScoreText"] = &"AXIS SCORE";
-	precacheString(game["axisScoreText"]);		
+	game["axisScoreText"] = &"AXIS SCORE";		
 	game["alliesScoreText"] = &"ALLIES SCORE";
-	precacheString(game["alliesScoreText"]);
-	game["leaderText"] = &"LEADER";
-	precacheString(game["leaderText"]);
-	game["youText"] = &"YOU";
-	precacheString(game["youText"]);
+    if(!level.uox_teamplay) {
+        game["leaderText"] = &"LEADER";
+        game["youText"] = &"YOU";
+    }
 	game["1HText"] = &"1st Half";
-	precacheString(game["1HText"]);	
 	game["2HText"] = &"2nd Half";
-	precacheString(game["2HText"]);
-	game["OT1HText"] = &"OT 1H";
-	precacheString(game["OT1HText"]);	
+	game["OT1HText"] = &"OT 1H";	
 	game["OT2HText"] = &"OT 2H";
-	precacheString(game["OT2HText"]);
 	game["matchText"] = &"Match";
-	precacheString(game["matchText"]);	
 	game["1HScoresText"] = &"1st Half Scores:";
-	precacheString(game["1HScoresText"]);	
 	game["2HScoresText"] = &"2nd Half Scores:";
-	precacheString(game["2HScoresText"]);	
 	game["matchScoreText"] = &"Match Scores:";
-	precacheString(game["matchScoreText"]);	
+
+    /* //<-- Remove this and cntr H all references above for free script variable save
+    precacheString(&"Round");
+    precacheString(&"OT Round");
+    precacheString(&"Starting");
+    precacheString(&"Resuming");
+	precacheString(&"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN");
+    precacheString(&"MPSCRIPT_KILLCAM");
+    precacheString(&"FINAL KILLCAM");
+    precacheString(&"MPSCRIPT_ALLIES_WIN");
+	precacheString(&"MPSCRIPT_AXIS_WIN");
+	precacheString(&"GMI_MP_CEASEFIRE");
+	precacheString(&"GMI_CTF_TIMEEXPIRED");
+	precacheString(&"SD_MATCHSTARTING");
+	precacheString(&"SD_MATCHRESUMING");
+	precacheString(&"SD_ROUNDDRAW");
+	precacheString(&"SD_ALLIESHAVEBEENELIMINATED");
+	precacheString(game["waitingText"]);
+    //For free script variable save remove this --> */
+    	
+	precacheString(game["roundText"]);
+    precacheString(game["OTroundText"]);
+	precacheString(game["startingText"]);
+	precacheString(game["resumingText"]);
+	precacheString(game["respawnText"]);
+	precacheString(game["killcamText"]);
+	precacheString(game["finalKillcamText"]);
+	precacheString(game["alliesWinText"]);
+	precacheString(game["axisWinText"]);
+	precacheString(game["ceasefireText"]);
+	precacheString(game["timeExpiredText"]);
+	precacheString(game["matchStartingText"]);
+	precacheString(game["matchResumingText"]);
+	precacheString(game["roundDrawText"]);
+	precacheString(game["alliesEliminatedText"]);
+	precacheString(game["axisEliminatedText"]);
+	precacheString(game["livesText"]);
+	precacheString(game["dividerText"]);
+	precacheString(game["warmupText"]);
+	precacheString(game["allreadyText"]);
 	
-	game["objective_default"] = "gfx/hud/headicon@re_objcarrier.dds";
-	precacheShader(game["objective_default"]);
+	precacheString(game["readyText"]);
+	precacheString(game["notReadyText"]);
+	precacheString(game["statusText"]);
+	precacheString(game["waitingOnText"]);
+	precacheString(game["playersText"]);
+	precacheString(game["scoreboardText"]);
+	precacheString(game["team1Text"]);
+	precacheString(game["team2Text"]);
+	precacheString(game["team1WinText"]);
+	precacheString(game["team2WinText"]);
+	precacheString(game["tieText"]);
+	precacheString(game["matchoverText"]);
+	precacheString(game["overtimeText"]);
+	precacheString(game["overtimemodeText"]);
+	precacheString(game["halftimeText"]);
+	precacheString(game["switchingText"]);	
+	precacheString(game["switchWaitText"]);
+	precacheString(game["axisScoreText"]);
+	precacheString(game["alliesScoreText"]);
+    
+    precacheString(game["1HText"]);
+    precacheString(game["2HText"]);
+
+    precacheString(game["1HScoresText"]);
+    precacheString(game["2HScoresText"]);
+
+    precacheString(game["1stHalfStartingText"]);
+    precacheString(game["2ndHalfStartingText"]);
+
+	precacheString(game["OT1HText"]);
+	precacheString(game["OT2HText"]);
+	precacheString(game["matchText"]);
+	precacheString(game["matchScoreText"]);			
+
+    if(!level.uox_teamplay) {
+        precacheString(game["leaderText"]);
+        precacheString(game["youText"]);
+
+        game["objective_default"] = "gfx/hud/headicon@re_objcarrier.dds";
+        precacheShader(game["objective_default"]);
+    }
+
 	switch(game["allies"])
 	{
 		case "american":
@@ -122,12 +154,16 @@ precache()
 	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
 	precacheShader(game["headicon_allies"]);
 	precacheShader(game["headicon_axis"]);
+
+    /*
 	precacheShader("gfx/hud/hud@objectivegoal.tga");
 	precacheShader("gfx/hud/hud@objectivegoal_up.tga");
 	precacheShader("gfx/hud/hud@objectivegoal_down.tga");
 	precacheShader("gfx/hud/objective.tga");
 	precacheShader("gfx/hud/objective_up.tga");
-	precacheShader("gfx/hud/objective_down.tga");
+    precacheShader("gfx/hud/objective_down.tga");
+    */
+
 	precacheShader("hudScoreboard_mp");
 	precacheShader("gfx/hud/hud@mpflag_none.tga");
 	precacheShader("gfx/hud/hud@mpflag_spectator.tga");
