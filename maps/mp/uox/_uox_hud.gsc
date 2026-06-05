@@ -244,7 +244,7 @@ deleteClientHUDElement(name)
 	if(isDefined(element))
 		element destroy();
 	element = undefined;
-	self.uox_hud = maps\mp\uox\_uox_arrays::arrayPop(self.uox_hud, name);
+	self.uox_hud = maps\mp\uox\_uox_arrays::removeArrayKey(self.uox_hud, name);
 }
 
 animateClientHUDElement(name, type, options)

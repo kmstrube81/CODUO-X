@@ -348,7 +348,7 @@ drop_objective(trigger)
 	{
 		num = (16 - (trigger.hudnum));
 		//self drop_all();
-		
+		maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 		self maps\mp\uox\_uox_hud::deleteClientHUDElement("re" + num);
 	}
 
@@ -548,8 +548,8 @@ drop_objective_at_goal(trigger)
 	if(isPlayer(self))
 	{
 		num = (16 - (trigger.hudnum));
-		self drop_all();
-		
+		//self drop_all();
+		maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 		self maps\mp\uox\_uox_hud::deleteClientHUDElement("re" + num);
 	}
 
@@ -708,8 +708,7 @@ drop_all()
 	{
 		if(self.objs_held > 0)
 		{
-			maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
-			for(i = 0; i < (level.numobjectives + 1); i++)
+            for(i = 0; i < (level.numobjectives + 1); i++)
 			{
 				if(isdefined(self.hasobj[i]))
 				{
@@ -878,6 +877,7 @@ onPlayerKill(victim, attacker)
 {
 	if(isdefined(victim.objs_held))
 	{
+        victim maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
 		if(victim.objs_held > 0)
 		{
 			for(i = 0; i < (level.numobjectives + 1); i++)
