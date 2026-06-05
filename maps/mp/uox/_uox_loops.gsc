@@ -190,15 +190,10 @@ addToWaitTills(ent, msg, callback, entFlag, responseFlag)
 ************************************************************************************************* */
 removeFromWaitTills(ent, msg)
 {
-	if(ent == level)
-		return; //not implemented yet
-	else
-	{
-		maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL deregister: msg=" + msg + " current size=" + ent.waitTills["length"]);
-		ent.waitTills = maps\mp\uox\_uox_arrays::removeArrayKey(ent.waitTills, msg);
-		ent notify("kill_" + msg);
-		
-	}
+	if(!isDefined(ent)) ent = level;
+    maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL deregister: msg=" + msg + " current size=" + ent.waitTills["length"]);
+    ent.waitTills = maps\mp\uox\_uox_arrays::removeArrayKey(ent.waitTills, msg);
+    ent notify("kill_" + msg);
 	maps\mp\uox\_uox_debug::debugLog("info", "WAITTILL deregister: msg=" + msg + " new size=" + ent.waitTills["length"]);
 }
 
