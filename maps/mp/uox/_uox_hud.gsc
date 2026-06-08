@@ -324,7 +324,54 @@ animateClientHUDElement(name, type, options)
 		case "scaleShader":
 			element scaleOverTime(time, width, height);
 			break;
+        case "fade":
+            element fadeOverTime(time);
 	}
+}
+
+createBELSpawnClientHUDElements(didntkill)
+{
+    options = [];
+	if (!isdefined (didntkill))
+	{
+		options["sort"] = -1;
+		options["archived"] = false;
+		options["alignX"] = "center";
+		options["alignY"] = "middle";
+		options["x"] = 320;
+		options["y"] = 220;
+		self updateClientHUDElement("blackScreenText1", "text", &"BEL_BLACKSCREEN_KILLEDALLIED", options);
+	}
+	
+	options["sort"] = -1;
+    options["archived"] = false;
+    options["alignX"] = "center";
+    options["alignY"] = "middle";
+    options["x"] = 320;
+    options["y"] = 240;
+    self updateClientHUDElement("blackScreenText2", "text", &"BEL_BLACKSCREEN_WILLSPAWN", options);
+
+	options["y"] = 260;
+	self updateClientHUDElement("blackScreenTimer", "timer", 2, options);
+	
+	options["sort"] = -2;
+    options["archived"] = false;
+    options["alignX"] = "left";
+    options["alignY"] = "top";
+    options["x"] = 0;
+    options["y"] = 0;
+	options["alpha"] = 1;
+    options["height"] = 640;
+    options["width"] = 480;
+    blackscreen = self updateClientHUDElement("blackScreen", "shader", "black", options);
+
+	if (!isdefined (didntkill))
+	{
+		blackscreen = self updateHUDElementProperty(blackscreen, "alpha", 0);
+		self animateClientHUDElement("blackScreen", "fade", 1.5);
+	}
+	blackscreen = self updateHUDElementProperty(blackscreen, "alpha", 1);
+
 }
 
 clearClientHUD()

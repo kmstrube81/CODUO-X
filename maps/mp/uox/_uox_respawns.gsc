@@ -8,6 +8,8 @@ menu_spawn(weapon)
 	
 	wait 0; //trying this to allow threads to process
 	
+    myteam = self.pers["team"];
+
 	//set player lives
 	if([[level.getVars]]("scr_respawn_mode") == "obj")
 	{
@@ -21,6 +23,7 @@ menu_spawn(weapon)
 		if(isDefined(self.pers["weapon"]))
 		{
 			self.pers["weapon"] = weapon;
+            self.pers[myteam + "_weapon"] = weapon;
 	 		self.pers["weapon1"] = weapon;
 
 			// setup all the weapons
@@ -31,6 +34,7 @@ menu_spawn(weapon)
 		else
 		{
 			self.pers["weapon"] = weapon;
+            self.pers[myteam + "_weapon"] = weapon;
 	 		self.pers["weapon1"] = weapon;
 			spawnPlayer();
 			self thread maps\mp\uox\_uox::printJoinedTeam(self.pers["team"]);
@@ -43,6 +47,7 @@ menu_spawn(weapon)
 			if(level.graceperiod && !self.usedweapons)
 			{
 				self.pers["weapon"] = weapon;
+                self.pers[myteam + "_weapon"] = weapon;
 				self.pers["weapon1"] = weapon;
 
 				// setup all the weapons
@@ -53,6 +58,7 @@ menu_spawn(weapon)
 			else
 			{
 				self.pers["weapon"] = weapon;
+                self.pers[myteam + "_weapon"] = weapon;
 				
 				weaponname = maps\mp\gametypes\_teams::getWeaponName(self.pers["weapon"]);
 				
@@ -67,6 +73,7 @@ menu_spawn(weapon)
 			if(isDefined(self.lives) && self.lives == 0)
 			{
 				self.pers["weapon"] = weapon;
+                self.pers[myteam + "_weapon"] = weapon;
 				
 				weaponname = maps\mp\gametypes\_teams::getWeaponName(self.pers["weapon"]);
 
@@ -88,6 +95,7 @@ menu_spawn(weapon)
 			else
 			{
 				self.pers["weapon"] = weapon;
+                self.pers[myteam + "_weapon"] = weapon;
 				self.pers["weapon1"] = weapon;
 				respawn_mode = getRespawnMode();
 				self thread [[ respawn_mode ]]();
@@ -112,6 +120,7 @@ spawnIntermission()
 	self.sessionspawned = false;
 	self.spectatorclient = -1;
 	self.archivetime = 0;
+    self.god = false;
 
 	spawnpointname = getSpawnPointsIntermission(level.gametype);
 	spawnpoints = getentarray(spawnpointname, "classname");
@@ -134,6 +143,7 @@ spawnSpectator(origin, angles)
 	self.sessionspawned = false;
 	self.spectatorclient = -1;
 	self.archivetime = 0;
+    self.god = false;
 
 	if(self.pers["team"] == "spectator")
 		self.statusicon = "";
@@ -322,6 +332,40 @@ respawn_hq()
 	return;
 }
 
+resapwn_bel()
+{
+    self endon("end_respawn");
+
+    self maps\mp\uox\_uox_hud::deleteClienteHUDElem("hudPoints");
+    self maps\mp\uox\_uox_hud::deleteClienteHUDElem("hudClock");
+    self maps\mp\uox\_uox_hud::deleteClienteHUDElem("hudBgnd");
+
+    self notify ("Stop Blip");
+	objnum = ((self getEntityNumber()) + 1);
+	objective_delete(objnum);
+
+    self.lastteam = self.pers["team"];
+    if(self.pers["team"] == "allies" && !self.dontmove)
+    {       //move player to axis
+            moveTeams();
+    }
+	
+    self.respawnwait = false;
+
+    self maps\mp\uox\_uox_hud::deleteClientHUDElem("spawnMsg");
+
+    wait 0.05;
+	if (isdefined (self))
+	{
+        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreen");
+        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreenText1);
+        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreenText2");
+        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreenTimer");
+	}
+    //create hud elements
+    //create loops
+}
+
 getRespawnMode()
 {
 	gt = level.gametype;
@@ -339,6 +383,8 @@ getRespawnMode()
 			return ::respawn_wave;
 		case "obj": //objective respawn, typically none
 			return ::respawn_obj;
+        case "bel": //behind enemy lines spawn, switch teams on kill
+            return ::respawn_bel;
 		default: //get default gametype respawn mode
 			switch(gt)
 			{
@@ -354,7 +400,8 @@ getRespawnMode()
 					return ::respawn_obj;
 				case "dm":
 				case "tdm":
-				case "bel":
+                case "bel":
+                    return ::respawn_bel;
 				default:
 					return ::respawn_dm;
 			}
@@ -1015,3 +1062,4 @@ halftimeSpawn()
 	if (isdefined(self.pers["weapon"]) )
 		spawnPlayer();
 }
+

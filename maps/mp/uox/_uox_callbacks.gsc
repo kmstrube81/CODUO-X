@@ -189,6 +189,8 @@ Callback_PlayerConnect()
 	if(!isDefined(self.pers["2HScore"]))
 		self.pers["2HScore"] = 0;
 	self.sessionspawned = false;
+    self.god = false;
+    self.dontmove = false;
 	self.objs_held = 0;
 	
 	//init HUD
@@ -271,8 +273,11 @@ Callback_PlayerDisconnect()
 
 Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
 {
-	if(self.sessionteam == "spectator")
-		return;
+    if ( (isdefined (eAttacker)) && (isPlayer(eAttacker)) && (isdefined (eAttacker.god)) && (eAttacker.god == true) )
+		return; //ignore damage from god mode players
+
+	if(self.sessionteam == "spectator" || (self.god == true) )
+		return; //ignore damage to god mode players
 
 	// dont take damage during ceasefire mode
 	// but still take damage from ambient damage (water, minefields, fire)
@@ -394,8 +399,8 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 {
 	self endon("spawned");
 
-	if(self.sessionteam == "spectator")
-		return;
+	if(self.sessionteam == "spectator" || (self.god == true) )
+		return; //can't kill spectators or gods
 	
 	if(level.roundended)
 		return;
@@ -434,6 +439,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	{
 		if(attacker == self) // killed himself
 		{
+            self.dontmove = true;
 			doKillcam = false;	
 		}
 		else
@@ -445,6 +451,13 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattackguid = attacker getGuid();
 		lpattackname = attacker.name;
 		level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
+        if([[level.getVars]]("scr_respawn_mode") == "bel")
+        {
+            attacker.god = true;
+			iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
+            attacker maps\mp\uox\_uox_hud::createBELSpawnClientHUDElements();
+            maps\mp\uox\_uox::moveTeams();
+        }
 	}
 	else // If you weren't killed by a player, you were in the wrong place at the wrong time
 	{

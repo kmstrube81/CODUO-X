@@ -1084,25 +1084,14 @@ updateTeamStatus()
 	wait 0;	// Required for Callback_PlayerDisconnect to complete before updateTeamStatus can execute
 	
 	resettimeout(); //no idea what this does
-	
-	if(level.uox_teamplay) //if team game
-	{
-		oldvalue["allies"] = level.exist["allies"]; //store alive allies
-		oldvalue["axis"] = level.exist["axis"];		//store alive axis
-		level.exist["allies"] = 0; //reset alive allies
-		level.exist["axis"] = 0; //reset alive axis
-	}
-	else //if free for all game
-	{
-		oldvalue["2players"] = level.exist["2players"]; //store alive players
-		level.exist["2players"] = -1; //reset alive players
-	}
-/*	if(!isDefined(level.numexist["allies"]))
-		level.numexist["allies"] = oldvalue["allies"];
-	if(!isDefined(level.numexist["axis"]))
-		level.numexist["axis"] = oldvalue["axis"];
-	if(!isDefined(level.numexist["deathmatch"]))
-		level.numexist["deathmatch"] = oldvalue["2players"]; */
+
+    oldvalue["allies"] = level.exist["allies"]; //store alive allies
+    oldvalue["axis"] = level.exist["axis"];		//store alive axis
+    level.exist["allies"] = 0; //reset alive allies
+    level.exist["axis"] = 0; //reset alive axis
+    oldvalue["2players"] = level.exist["2players"]; //store alive players
+    level.exist["2players"] = -1; //reset alive players
+
 	//get players
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++) //loop players
@@ -1113,60 +1102,56 @@ updateTeamStatus()
 		//because reinforcements are set to unlimited
 		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!level.roundstarted || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && [[level.getVars]]("scr_reinforcements") == -1)))
 		{
-			if(level.uox_teamplay) //if team game
-			{
-				level.exist[player.pers["team"]]++; //increment number of alive players on team
-			}
-			else //if free for all
-			{
-				level.exist["2players"]++; //increment number of alive players in general
-			}
+            level.exist[player.pers["team"]]++; //increment number of alive players on team
+            level.exist["2players"]++; //increment number of alive players in general
 		}
-		
 	}
 
-	if(level.uox_teamplay) //if team game
-	{
-		if(level.exist["allies"]) //if allies have players allive
-			level.didexist["allies"] = true; //mark allied did exist flag as true
-		if(level.exist["axis"]) // if axis have players alive
-			level.didexist["axis"] = true; //mark axis did exist flag as true
-	}
-	else //if free for all game
-	{
-		if(level.exist["2players"]) //if there are 2 players alive
-			level.didexist["2players"] = true; //mark 2 players alive flag as true
-	}
+    if(level.exist["allies"]) //if allies have players allive
+        level.didexist["allies"] = true; //mark allied did exist flag as true
+    if(level.exist["axis"]) // if axis have players alive
+        level.didexist["axis"] = true; //mark axis did exist flag as true
+    if(level.exist["2players"]) //if there are 2 players alive
+        level.didexist["2players"] = true; //mark 2 players alive flag as true
 	
 	if(level.roundended) //if round already ended
 		return; //nothing else to do, return
-	/* if(level.uox_teamplay)
-	{
-		if(!isDefined(level.acesituation))
-		{
-			level.acesituation = [];
-		}
-		if(!isDefined(level.clutchsituation))
-		{
-			level.clutchsituation["allies"] = false;
-			level.clutchsituation["axis"] = false;
-		}
-		
-		if(level.exist["allies"] == 1 && level.exist["axis"] > 2)
-		{
-			level.clutchsituation["allies"] = true;
-			level.clutchplayer["allies"] = lastAlliesPlayer;
-		}
-		
-		if(level.exist["axis"] == 1 && level.exist["allies"] > 2)
-		{
-			level.clutchsituation["axis"] = true;
-			level.clutchplayer["axis"] = lastAxisPlayer;
-		}
-	} */
 	
+    if([[level.getVars]]("scr_respawn_mode") == "bel") //move players over if spawn type is bel
+    {
+        alliesallowed = level.exist["axis"] / [[level.getVars]]("scr_playerRatio");
+        if (level.exist["allies"] == alliesallowed)
+    	{
+    		return;
+    	}
+    	
+    	if (numOnTeam["allies"] < alliesallowed)
+    	{
+    		randomMoveTeams("axis");
+
+    		if (alliesallowed > 1)
+    			iprintln(&"BEL_ADDING_ALLIED");
+
+    		return;
+    	}
+    	
+    	if (numOnTeam["allies"] > (alliesallowed + 1))
+    	{
+    		randomMoveTeams("allies");
+    		iprintln(&"BEL_REMOVING_ALLIED");
+    		return;
+    	}
+    	if ( (numOnTeam["allies"] > alliesallowed) && (alliesallowed == 1) )
+    	{
+    		randomMoveTeams("allies");
+    		iprintln(&"BEL_REMOVING_ALLIED");
+    		return;
+    	}
+    }
+
 	if(level.uox_teamplay) //if  team game
-	{	//if allies did exist and now they don't and axis did exist and they don't either
+	{	
+        //if allies did exist and now they don't and axis did exist and they don't either
 		if(oldvalue["allies"] && !level.exist["allies"] && oldvalue["axis"] && !level.exist["axis"])
 		{	//for objective modes, if the bomb is not planted
 			if(!level.bombsites["A"]["planted"] && !level.bombsites["B"]["planted"])
@@ -2488,6 +2473,11 @@ getObjectiveText(objective)
 				return &"SD_OBJ_SPECTATOR_ALLIESATTACKING";
 			else if(game["attackers"] == "axis")
 				return &"SD_OBJ_SPECTATOR_AXISATTACKING";
+        case "bel":
+            if(self.pers["team"] == "allies")
+                return &"BEL_OBJ_ALLIED";
+            else if(self.pers["team"] == "axis")
+                return &"BEL_OBJ_AXIS";
 		default:
 			if(level.uox_teamplay)
 			{
@@ -2519,6 +2509,138 @@ checkObjective()
 			return true;
 	}
 	return true;
+}
+
+numOnTeam()
+{
+    numonteam["allies"] = 0;
+    numonteam["axis"] = 0;
+
+    players = getentarray("player", "classname");
+    for(i = 0; i < players.size; i++)
+    {
+        player = players[i];
+    
+        if(!isDefined(player.pers["team"]) || player.pers["team"] == "spectator" || player == self)
+            continue;
+
+        numonteam[player.pers["team"]]++;
+    }
+
+    return numonteam;
+}
+
+moveTeams(auto)
+{
+
+    if(isDefined(auto))
+    {
+        if(randomInt(2))
+            return;
+    }
+
+    if (self.pers["team"] == "spectator")
+		return;
+
+    myteam = self.pers["team"];
+
+    if(myteam == "allies")
+        newteam = "axis";
+    else
+        newteam - "allies";
+
+    player.pers["weapon"] = undefined;
+    player.pers["weapon1"] = undefined;
+    player.pers["weapon2"] = undefined;
+    player.pers["spawnweapon"] = undefined;
+    player.pers["selectedweapon"] = undefined;
+    player.pers["team"] = newteam;
+    player.sessionstate = newteam;
+    player.spectatorclient = -1;
+    player.archivetime = 0;
+    player.reflectdamage = undefined;
+
+	if(!isDefined(self.pers[newteam + "_weapon"]))
+	{
+
+		if(self.pers["team"] == "allies")
+		{
+			self setClientCvar("g_scriptMainMenu", game["menu_weapon_allies"]);
+			self openMenu(game["menu_weapon_allies"]);
+		}
+		else
+		{
+			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
+			self openMenu(game["menu_weapon_axis"]);
+		}
+	}
+	
+	if(isDefined(self.pers["isBot"]))
+	{
+		maps\mp\uox\_uox::giveBotWeapon();
+	}
+
+    timepassed = 0;
+	while (!isDefined(self.pers[newteam + "_weapon"]) )
+	{
+		if(self.pers["team"] != myteam && self.pers["team"] != "spectator")
+		{
+			self.pers["team"] = myteam;
+			if(self.pers["team"] == "allies")
+				self openMenu(game["menu_weapon_allies"]);
+			else
+				self openMenu(game["menu_weapon_axis"]);
+		}
+
+		if (self.pers["team"] == "spectator")
+			return;
+
+		wait .1;
+        timepassed += .1;
+
+        if(timepassed >= 6)
+        {
+            self spawnSpectator();
+            break;
+        }
+	}
+}
+
+randomMoveTeams(team)
+{
+    numonteam["both"] = [];
+    numonteam["allies"] = [];
+    numonteam["axis"] = [];
+    players = getentarray("player", "classname");
+    for(i = 0; i < players.size; i++)
+    {
+        player = players[i];
+    
+        if(player.dontmove)
+        {
+            player.dontmove = false;
+            continue;
+        }
+
+        if(!isDefined(player.pers["team"]) || player.pers["team"] == "spectator" || player == self)
+            continue;
+
+        numonteam[player.pers["team"]][numonteam[player.pers["team"]].size] = player;
+        numonteam["both"][numonteam["both"].size] = player;
+    }
+    if(!isDefined(team))
+    {
+        player = numonteam["both"][randomInt(numonteam["both"].size)];
+    }
+    else if(team == "axis")
+    {
+        player = numonteam["axis"][randomInt(numonteam["axis"].size)];
+    }
+    else if(team == "allies")
+    {
+        player = numonteam["allies"][randomInt(numonteam["allies"].size)];
+    }
+    player moveTeams();
 }
 
 /* **************************************************************************************************

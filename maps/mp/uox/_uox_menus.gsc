@@ -318,19 +318,7 @@ getAutoAssign()
 	
 	if(level.uox_teamplay)
 	{
-		numonteam["allies"] = 0;
-		numonteam["axis"] = 0;
-
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-		
-			if(!isDefined(player.pers["team"]) || player.pers["team"] == "spectator" || player == self)
-				continue;
-
-			numonteam[player.pers["team"]]++;
-		}
+		numonteam = maps\mp\uox\_uox::numOnTeam();
 		
 		// if teams are equal return the team with the lowest score
 		if(numonteam["allies"] == numonteam["axis"])

@@ -12,8 +12,8 @@ modtype(gt)
 		//UOX TEAM DEATHMATCH
 		case "tdm":
 			return maps\mp\gametypes\_uox_tdm::UOX_Main;
-		case "bel":
-			return;
+        case "bel":
+            return maps\mp\gametypes\_uox_bel::UOX_Main;
 		case "re":
 			return maps\mp\gametypes\_uox_re::UOX_Main;
 		case "sd":
