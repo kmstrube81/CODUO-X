@@ -313,3 +313,49 @@ handleMenuResponse(menu, response)
         maps\mp\gametypes\_teams::quickrequests(response);
 }
 
+getAutoAssign()
+{
+	
+	if(level.uox_teamplay)
+	{
+		numonteam["allies"] = 0;
+		numonteam["axis"] = 0;
+
+		players = getentarray("player", "classname");
+		for(i = 0; i < players.size; i++)
+		{
+			player = players[i];
+		
+			if(!isDefined(player.pers["team"]) || player.pers["team"] == "spectator" || player == self)
+				continue;
+
+			numonteam[player.pers["team"]]++;
+		}
+		
+		// if teams are equal return the team with the lowest score
+		if(numonteam["allies"] == numonteam["axis"])
+		{
+			if(game["alliedscore"] == game["axisscore"])
+			{
+				teams[0] = "allies";
+				teams[1] = "axis";
+				response = teams[randomInt(2)];
+			}
+			else if(game["alliedscore"] < game["axisscore"])
+				response = "allies";
+			else
+				response = "axis";
+		}
+		else if(numonteam["allies"] < numonteam["axis"])
+			response = "allies";
+		else
+			response = "axis";
+	}
+	else
+	{
+		teams[0] = "allies";
+		teams[1] = "axis";
+		response = teams[randomInt(2)];
+	}
+	return response;
+}
