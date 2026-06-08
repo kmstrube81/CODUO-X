@@ -124,7 +124,7 @@ Callback_StartGameType()
         maps\mp\uox\_uox_menus::defineMenus();
         maps\mp\uox\_uox_menus::precache();
 		maps\mp\uox\_uox_hud::precache();
-		maps\mp\uox\_uox::precacheObjective(level.objective);
+		maps\mp\uox\_uox::precacheObjectives(level.objective);
 		precacheItem("item_health");
 
 		maps\mp\gametypes\_teams::precache();

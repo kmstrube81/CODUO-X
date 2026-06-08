@@ -66,7 +66,7 @@ handleMenuResponse(menu, response)
     }
 
     if(response == "open" || response == "close")
-        continue;
+        return;
 
     if(menu == game["menu_team"])
     {
