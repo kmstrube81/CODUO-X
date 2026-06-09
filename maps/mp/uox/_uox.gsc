@@ -84,6 +84,10 @@ checkPlayerKilled(victim, attacker)
 		case "retrieval": //RE bonus
 			maps\mp\uox\_uox_retrievals::onPlayerKill(victim, attacker);
 			break;
+        case "bel":
+            doCheckScoreLimit = true;
+            maps\mp\uox\_uox_behindenemylines::onPlayerKill(victim, attacker);
+            break;
 	}
 	if(addKillToTeamScore) //if add to team score flag set.
 	{
@@ -139,7 +143,7 @@ checkScoreLimit()
 	}
 	else //if kill is in regulation
 	{
-		if(level.uox_teamplay) //if team game
+		if(level.uox_teamplay && level.objective != "bel") //if team game
 		{	//if one team has reached the halfscore and game is in the first half
 			if([[level.getVars]]("scr_halftime")
 			   && (alliedscore >= level.halfscore || axisscore >= level.halfscore) 
@@ -201,7 +205,7 @@ checkScoreLimit()
 			level thread endMap(); //end map
 			return;
 		}	//if resetting scores do regular end round shenanigans.
-		if(level.uox_teamplay) //if team game
+		if(level.uox_teamplay && level.objective != "bel") //if team game
 		{	//if allies are over the score limit
 			if(level.alliedscore >= [[level.getVars]]("scr_scorelimit"))
 				endRound("allies"); //end round in allies favor
@@ -1119,7 +1123,9 @@ updateTeamStatus()
 	
     if([[level.getVars]]("scr_respawn_mode") == "bel") //move players over if spawn type is bel
     {
-        alliesallowed = level.exist["axis"] / [[level.getVars]]("scr_playerRatio");
+        alliesallowed = (level.exist["axis"] * 1.0) / [[level.getVars]]("scr_playerRatio");
+        if(alliesallowed < 1)
+            alliesallowed = 1;
         if (level.exist["allies"] == alliesallowed)
     	{
     		return;
@@ -2423,6 +2429,9 @@ initObjectives(objective)
 			maps\mp\uox\_uox_retrievals::initVars();
 			thread maps\mp\uox\_uox_retrievals::retrieval();
 			return;
+        case "bel":
+            maps\mp\uox\_uox_behindenemylines::initVars();
+            return;
 		default:
 			game["attackers"] = undefined;
 			game["defenders"] = undefined;
@@ -2450,10 +2459,70 @@ precacheObjectives(objective)
 		case "retrieval":
 			maps\mp\uox\_uox_retrievals::precache();
 			return;
+        case "bel":
+            maps\mp\uox\_uox_behindenemylines::precache();
+            return;
 		default:
 			return;
 	}
 }
+
+/* **************************************************************************************************
+**** disconnectObjectives(string objective)
+****
+**** handles player disconnect for objectives
+****
+*************************************************************************************************** */
+disconnectObjectives(objective)
+{
+
+	if(!isDefined(objective))
+		objective = "none";
+
+	switch(objective)
+	{
+		case "bomb":
+			return;
+		case "retrieval":
+			self maps\mp\uox\_uox_retrievals::drop_all();
+			return;
+        case "bel":
+            self maps\mp\uox\_uox_behindenemylines::check_delete_objective();
+            return;
+        default:
+			return;
+	}
+}
+
+/* **************************************************************************************************
+**** spectateObjectives(string objective)
+****
+**** handles player spectate for objectives
+****
+*************************************************************************************************** */
+spectateObjectives(objective)
+{
+
+	if(!isDefined(objective))
+		objective = "none";
+
+    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
+
+	switch(objective)
+	{
+		case "bomb":
+			return;
+		case "retrieval":
+			self maps\mp\uox\_uox_retrievals::drop_all();
+			return;
+        case "bel":
+            self maps\mp\uox\_uox_behindenemylines::check_delete_objective();
+            return;
+        default:
+			return;
+	}
+}
+	
 
 /* **************************************************************************************************
 **** getObjectiveText()
@@ -2511,6 +2580,20 @@ checkObjective()
 	return true;
 }
 
+spawnPlayerObjective(objective)
+{
+    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
+
+    switch(objective)
+	{
+        case "bel":
+            self maps\mp\uox\_uox_behindenemylines::check_delete_objective();
+            if(self.pers["team"] == "allies")
+            {
+                self maps\mp\uox\_uox_behindenemylines::make_obj_marker();
+            }
+    }
+}
 numOnTeam()
 {
     numonteam["allies"] = 0;
@@ -2555,7 +2638,8 @@ moveTeams(auto)
     player.pers["spawnweapon"] = undefined;
     player.pers["selectedweapon"] = undefined;
     player.pers["team"] = newteam;
-    player.sessionstate = newteam;
+    player.sessionteam = newteam;
+    player.sessionstate = "spectator";
     player.spectatorclient = -1;
     player.archivetime = 0;
     player.reflectdamage = undefined;
@@ -2580,8 +2664,13 @@ moveTeams(auto)
 		maps\mp\uox\_uox::giveBotWeapon();
 	}
 
+    if([[level.getVars]]("scr_respawn_mode") == "bel")
+    {
+        self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", 2);
+    }
+
     timepassed = 0;
-	while (!isDefined(self.pers[newteam + "_weapon"]) )
+	while ( !isDefined(self.pers[newteam + "_weapon"]) )
 	{
 		if(self.pers["team"] != myteam && self.pers["team"] != "spectator")
 		{
@@ -2600,6 +2689,8 @@ moveTeams(auto)
 
         if(timepassed >= 6)
         {
+            player.pers["team"] = "spectator";
+            player.sessionteam = "spectator";
             self spawnSpectator();
             break;
         }
@@ -2630,17 +2721,24 @@ randomMoveTeams(team)
     }
     if(!isDefined(team))
     {
-        player = numonteam["both"][randomInt(numonteam["both"].size)];
+        numPlayers = numonteam["both"].size;
+        if(numPlayers > 0)
+            player = numonteam["both"][randomInt()];
     }
     else if(team == "axis")
     {
-        player = numonteam["axis"][randomInt(numonteam["axis"].size)];
+        numPlayers = numonteam["axis"].size;
+        if(numPlayers > 0)
+            player = numonteam["axis"][randomInt(numonteam["axis"].size)];
     }
     else if(team == "allies")
     {
-        player = numonteam["allies"][randomInt(numonteam["allies"].size)];
+        numPlayers = numonteam["allies"].size;
+        if(numPlayers > 0)
+            player = numonteam["allies"][randomInt(numonteam["allies"].size)];
     }
-    player moveTeams();
+    if(numPlayers > 0)
+        player moveTeams();
 }
 
 /* **************************************************************************************************

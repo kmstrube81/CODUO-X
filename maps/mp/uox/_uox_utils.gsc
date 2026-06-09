@@ -37,10 +37,11 @@ stringSplit(str, seperator)
 ************************************************************************************************* */
 notifyLater(msg, delay, ent)
 {
+    if(!isDefined(ent)) ent = level;
+
+    ent endon("kill_" + msg);
+
 	wait delay;
-	if(isDefined(ent)) //notify this ent
-		ent notify(msg);
-	else
-		level notify(msg); //notify server
+	ent notify(msg);
 }
 

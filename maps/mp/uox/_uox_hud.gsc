@@ -129,7 +129,13 @@ precache()
 	precacheString(game["OT1HText"]);
 	precacheString(game["OT2HText"]);
 	precacheString(game["matchText"]);
-	precacheString(game["matchScoreText"]);			
+	precacheString(game["matchScoreText"]);
+    
+    precacheString(&"BEL_TIME_TILL_SPAWN");
+	precacheString(&"BEL_PRESS_TO_RESPAWN");
+	precacheString(&"BEL_WONTBE_ALLIED");
+	precacheString(&"BEL_BLACKSCREEN_KILLEDALLIED");
+	precacheString(&"BEL_BLACKSCREEN_WILLSPAWN");			
 
     if(!level.uox_teamplay) {
         precacheString(game["leaderText"]);
@@ -154,15 +160,6 @@ precache()
 	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
 	precacheShader(game["headicon_allies"]);
 	precacheShader(game["headicon_axis"]);
-
-    /*
-	precacheShader("gfx/hud/hud@objectivegoal.tga");
-	precacheShader("gfx/hud/hud@objectivegoal_up.tga");
-	precacheShader("gfx/hud/hud@objectivegoal_down.tga");
-	precacheShader("gfx/hud/objective.tga");
-	precacheShader("gfx/hud/objective_up.tga");
-    precacheShader("gfx/hud/objective_down.tga");
-    */
 
 	precacheShader("hudScoreboard_mp");
 	precacheShader("gfx/hud/hud@mpflag_none.tga");
@@ -239,6 +236,8 @@ updateClientHUDElement(name, type, value, options)
 			element.archived = options["archived"];
 		if(isDefined(options["sort"]))
 			element.sort = options["sort"];
+        if(isDefined(options["label"]))
+            element.label = options["label"];
 	}
 	
 	//set value
@@ -250,6 +249,8 @@ updateClientHUDElement(name, type, value, options)
 		case "tenthsTimer":
 			element setTenthsTimer(value);
 			break;
+        case "timerUp":
+            element setTimerUp(value);
 		case "number":
 			element setValue(value);
 			break;
@@ -329,30 +330,23 @@ animateClientHUDElement(name, type, options)
 	}
 }
 
-createBELSpawnClientHUDElements(didntkill)
+blackoutClientHUD(text, timer, didkill, killtext)
 {
     options = [];
-	if (!isdefined (didntkill))
-	{
-		options["sort"] = -1;
-		options["archived"] = false;
-		options["alignX"] = "center";
-		options["alignY"] = "middle";
-		options["x"] = 320;
-		options["y"] = 220;
-		self updateClientHUDElement("blackScreenText1", "text", &"BEL_BLACKSCREEN_KILLEDALLIED", options);
-	}
-	
+
 	options["sort"] = -1;
     options["archived"] = false;
     options["alignX"] = "center";
     options["alignY"] = "middle";
     options["x"] = 320;
     options["y"] = 240;
-    self updateClientHUDElement("blackScreenText2", "text", &"BEL_BLACKSCREEN_WILLSPAWN", options);
+    self updateClientHUDElement("blackScreenText1", "text", text, options);
 
-	options["y"] = 260;
-	self updateClientHUDElement("blackScreenTimer", "timer", 2, options);
+    if(isDefined(timer))
+    {
+        options["y"] = 260;
+        self updateClientHUDElement("blackScreenTimer", "timer", timer, options);
+    }
 	
 	options["sort"] = -2;
     options["archived"] = false;
@@ -365,13 +359,31 @@ createBELSpawnClientHUDElements(didntkill)
     options["width"] = 480;
     blackscreen = self updateClientHUDElement("blackScreen", "shader", "black", options);
 
-	if (!isdefined (didntkill))
+    if(!isDefined(timer))
+        return;
+
+	if (isdefined (didkill))
 	{
 		blackscreen = self updateHUDElementProperty(blackscreen, "alpha", 0);
-		self animateClientHUDElement("blackScreen", "fade", 1.5);
+		self animateClientHUDElement("blackScreen", "fade", timer - 0.5);
+        options["sort"] = -1;
+		options["archived"] = false;
+		options["alignX"] = "center";
+		options["alignY"] = "middle";
+		options["x"] = 320;
+		options["y"] = 220;
+		self updateClientHUDElement("blackScreenText2", "text", killtext, options);
 	}
 	blackscreen = self updateHUDElementProperty(blackscreen, "alpha", 1);
 
+}
+
+clearBlackedoutClientHUD()
+{
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreen");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreenText1);
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreenText2");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreenTimer");
 }
 
 clearClientHUD()
@@ -425,6 +437,9 @@ updateHUDElementProperty(element, property, value)
 		case "sort":
 			element.sort = value;
 			break;
+        case "label":
+            element.lable = value;
+            break;
 	}
 	return element;
 }
@@ -464,6 +479,8 @@ updateHUDElement(element, type, value, options)
 			height = options["height"];
 		else
 			height = 16;
+        if(isDefined(options["label"]))
+            element.label = options["label"];
 	}
 	
 	//set value
@@ -472,6 +489,12 @@ updateHUDElement(element, type, value, options)
 		case "timer":
 			element setTimer(value);
 			break;
+        case "tenthsTimer":
+            element setTenthsTimer(value);
+            break;
+        case "timerUp":
+            element setTimerUp(value);
+            break;
 		case "number":
 			element setValue(value);
 			break;

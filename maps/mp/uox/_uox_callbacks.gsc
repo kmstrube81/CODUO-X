@@ -263,7 +263,7 @@ Callback_PlayerDisconnect()
 	lpselfguid = self getGuid();
 	logPrint("Q;" + lpselfguid + ";" + lpselfnum + ";" + self.name + "\n");
 	
-	self maps\mp\uox\_uox_retrievals::drop_all();
+	self maps\mp\uox\_uox::disconnectObjectives(level.objective);
 	
 	maps\mp\uox\_uox_warmup::OnPlayerDisconnect(lpselfnum);
 	
@@ -440,8 +440,13 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		if(attacker == self) // killed himself
 		{
             self.dontmove = true;
-			doKillcam = false;	
-		}
+			doKillcam = false;
+            if([[level.getVars]]("scr_respawn_mode") == "bel")
+            {
+                if(self.pers["team"] == "allies")
+                    self thread maps\mp\uox\_uox::moveTeams();
+            }
+        }
 		else
 		{
 			attackerNum = attacker getEntityNumber();
@@ -453,10 +458,17 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
         if([[level.getVars]]("scr_respawn_mode") == "bel")
         {
-            attacker.god = true;
-			iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
-            attacker maps\mp\uox\_uox_hud::createBELSpawnClientHUDElements();
-            maps\mp\uox\_uox::moveTeams();
+            if(self.pers["team"] == "allies") //killed an allied player
+            {
+                attacker.god = true;
+                iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
+                attacker maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", 2, true, &"BEL_BLACKSCREEN_KILLEDALLIED");
+                attacker thread maps\mp\uox\_uox::moveTeams();
+                
+                if (attacker.pers["team"] == "axis") // only move victim teams if killer is axis
+                {
+                    self thread maps\mp\uox\_uox::moveTeams();
+                } 
         }
 	}
 	else // If you weren't killed by a player, you were in the wrong place at the wrong time
@@ -467,6 +479,12 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattackguid = "";
 		lpattackname = "";
 		lpattackerteam = "world";
+
+        if([[level.getVars]]("scr_respawn_mode") == "bel")
+        {
+            if(self.pers["team"] == "allies")
+                self thread maps\mp\uox\_uox::moveTeams();
+        }
 	}
 	
 	if(!level.warmup)
@@ -494,7 +512,9 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	delay = 2;	// Delay the player becoming a spectator till after he's done dying
 	wait delay;	// ?? Also required for Callback_PlayerKilled to complete before respawn/killcam can execute
 	
-	if(([[level.getVars]]("scr_killcam") <= 0) || ([[level.getVars]]("scr_forcerespawn") > 0))
+    forcespawntimer = [[level.getVars]]("scr_forcerespawn");
+
+	if(([[level.getVars]]("scr_killcam") <= 0) || ( forcespawntimer > 0 && forcespawntimer < 9))
 		doKillcam = false;
 	
 	if(doKillcam)

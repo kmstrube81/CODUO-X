@@ -2,6 +2,8 @@ defineMenus()
 {
     game["menu_serverinfo"] = getServerInfoMenu();
     game["menu_team"] = "team_" + game["allies"] + game["axis"];
+    game["menu_german"] = "team_germanonly";
+    game["menu_weapon_all"] = "weapon_" + game["allies"] + game["axis"];
     game["menu_weapon_allies"] = "weapon_" + game["allies"];
     game["menu_weapon_axis"] = "weapon_" + game["axis"];
     game["menu_viewmap"] = "viewmap";
@@ -17,8 +19,10 @@ precache()
 {
     precacheMenu(game["menu_serverinfo"]);
     precacheMenu(game["menu_team"]);
+    precacheMenu(game["menu_german"]);
     precacheMenu(game["menu_weapon_allies"]);
     precacheMenu(game["menu_weapon_axis"]);
+    precacheMenu(game["menu_weapon_all"]);
     precacheMenu(game["menu_viewmap"]);
     precacheMenu(game["menu_callvote"]);
     precacheMenu(game["menu_quickcommands"]);
@@ -201,7 +205,10 @@ handleMenuResponse(menu, response)
                 self.pers["savedmodel"] = undefined;
                 
                 self.sessionteam = "spectator";
-                self setClientCvar("g_scriptMainMenu", game["menu_team"]);
+                if([[level.getVars]]("scr_respawn_mode") == "bel") 
+                    self setClientCvar("g_scriptMainMenu", game["menu_german"]);
+                else
+                    self setClientCvar("g_scriptMainMenu", game["menu_team"]);
                 self setClientCvar("ui_weapontab", "0");
                 maps\mp\uox\_uox_respawns::spawnSpectator();
             }
@@ -223,11 +230,14 @@ handleMenuResponse(menu, response)
             break;
         }
     }
-    else if(menu == game["menu_weapon_allies"] || menu == game["menu_weapon_axis"])
+    else if(menu == game["menu_weapon_allies"] || menu == game["menu_weapon_axis"] || menu == game["menu_weapon_all"])
     {
         if(response == "team")
         {
-            self openMenu(game["menu_team"]);
+            if([[level.getVars]]("scr_respawn_mode") == "bel") 
+                self openMenu(game["menu_german"]);
+            else
+                self openMenu(game["menu_team"]);
             return;
         }
         else if(response == "viewmap")
@@ -263,8 +273,11 @@ handleMenuResponse(menu, response)
     {
         switch(response)
         {
-        case "team":
-            self openMenu(game["menu_team"]);
+        case "team"
+            if([[level.getVars]]("scr_respawn_mode") == "bel") 
+                self openMenu(game["menu_german"]);
+            else
+                self openMenu(game["menu_team"]);
             break;
 
         case "weapon":
@@ -284,7 +297,10 @@ handleMenuResponse(menu, response)
         switch(response)
         {
         case "team":
-            self openMenu(game["menu_team"]);
+            if([[level.getVars]]("scr_respawn_mode") == "bel") 
+                self openMenu(game["menu_german"]);
+            else
+                self openMenu(game["menu_team"]);
             break;
 
         case "weapon":

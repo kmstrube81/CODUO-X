@@ -130,6 +130,8 @@ spawnIntermission()
 		self spawn(spawnpoint.origin, spawnpoint.angles);
 	else
 		maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
+
+    self clearBlackedoutClientHUD();
 }
 
 spawnSpectator(origin, angles)
@@ -165,7 +167,7 @@ spawnSpectator(origin, angles)
 	level maps\mp\uox\_uox::updateTeamStatus();
 	if(!game["matchstarted"])
 		level thread maps\mp\uox\_uox::checkMatchStart();
-	self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(level.objective));
+    self maps\mp\uox\_uox::spectateObjectives(level.objective);
 }
 
 respawn()
@@ -334,36 +336,38 @@ respawn_hq()
 
 resapwn_bel()
 {
-    self endon("end_respawn");
-
-    self maps\mp\uox\_uox_hud::deleteClienteHUDElem("hudPoints");
-    self maps\mp\uox\_uox_hud::deleteClienteHUDElem("hudClock");
-    self maps\mp\uox\_uox_hud::deleteClienteHUDElem("hudBgnd");
-
-    self notify ("Stop Blip");
-	objnum = ((self getEntityNumber()) + 1);
-	objective_delete(objnum);
-
-    self.lastteam = self.pers["team"];
-    if(self.pers["team"] == "allies" && !self.dontmove)
-    {       //move player to axis
-            moveTeams();
-    }
-	
-    self.respawnwait = false;
+    self endon("end_respawn");	
+    self.god = false;
 
     self maps\mp\uox\_uox_hud::deleteClientHUDElem("spawnMsg");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElem("spawnTimer");
 
-    wait 0.05;
-	if (isdefined (self))
+    myteam = self.pers["team"];
+    self.pers["weapon"] = self.pers[myteam + "_weapon"];
+    self setClientCvar("g_scriptMainMenu", game["menu_weapon_all"]);
+
+    if(self.pers["team"] != "allies" && self.pers["team"] != "axis")
 	{
-        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreen");
-        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreenText1);
-        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreenText2");
-        self maps\mp\uox\_uox_hud::deleteClientHUDElem("blackScreenTimer");
+		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
-    //create hud elements
-    //create loops
+	
+	death_wait_time = [[level.getVars]]("scr_spawndelay_time");
+		
+    options = [];
+    options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["x"] = 305;
+	options["y"] = 140;
+	options["fontScale"] = 1.5;
+	self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "text", &"BEL_TIME_TILL_SPAWN", options);
+	
+	options["y"] = 155;
+	self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnTimer", "timer", death_wait_time, options);
+
+	wait (death_wait_time);
+    self thread waitRespawnButton();
+
+	self clearBlackedoutClientHUD();
 }
 
 getRespawnMode()
@@ -460,7 +464,9 @@ removeRespawnText()
 {
 	self waittill("remove_respawntext");
 
-	maps\mp\uox\_uox_hud::deleteClientHUDElement("respawntext");
+	self maps\mp\uox\_uox_hud::deleteClientHUDElement("respawntext");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnTimer");
 }
 
 waitRemoveRespawnText(message)
@@ -548,7 +554,7 @@ spawnPlayer(farthest)
 	self.usedweapons = false;
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 	
-	self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(level.objective));
+    self maps\mp\uox\_uox::playerSpawnObjectives(level.objective);
 	
 	if(level.uox_teamplay)
 		drawfriend = [[level.getVars]]("scr_drawfriend");
