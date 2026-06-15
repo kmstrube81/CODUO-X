@@ -273,7 +273,7 @@ handleMenuResponse(menu, response)
     {
         switch(response)
         {
-        case "team"
+        case "team":
             if([[level.getVars]]("scr_respawn_mode") == "bel") 
                 self openMenu(game["menu_german"]);
             else
