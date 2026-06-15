@@ -381,7 +381,7 @@ blackoutClientHUD(text, timer, didkill, killtext)
 clearBlackedoutClientHUD()
 {
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreen");
-    self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreenText1);
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreenText1");
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreenText2");
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("blackScreenTimer");
 }
