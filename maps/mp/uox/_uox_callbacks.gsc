@@ -468,7 +468,8 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
                 if (attacker.pers["team"] == "axis") // only move victim teams if killer is axis
                 {
                     self thread maps\mp\uox\_uox::moveTeams();
-                } 
+                }
+            }
         }
 	}
 	else // If you weren't killed by a player, you were in the wrong place at the wrong time
