@@ -2630,7 +2630,7 @@ moveTeams(auto)
     if(myteam == "allies")
         newteam = "axis";
     else
-        newteam - "allies";
+        newteam = "allies";
 
     player.pers["weapon"] = undefined;
     player.pers["weapon1"] = undefined;
