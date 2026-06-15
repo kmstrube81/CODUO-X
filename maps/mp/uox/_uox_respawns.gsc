@@ -225,7 +225,7 @@ respawn_delayed()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	death_wait_time = [[level.getVars]]("scr_spawndelay_time");
+	death_wait_time = [[level.getVars]]("scr_spawn_delay_time");
 		
 	self thread maps\mp\uox\_uox_hud::stopwatch_start("respawn", death_wait_time);
 
@@ -351,7 +351,7 @@ respawn_bel()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	death_wait_time = [[level.getVars]]("scr_spawndelay_time");
+	death_wait_time = [[level.getVars]]("scr_spawn_delay_time");
 		
     options = [];
     options["alignX"] = "center";
