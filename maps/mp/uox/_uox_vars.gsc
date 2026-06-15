@@ -322,13 +322,14 @@ initGameTypeVars()
 		level.friendlyfire = varDef("scr", "friendlyfire", "int", true,
 										0, 0, 3, "Friendly Fire Mode",
 										maps\mp\uox\_uox::updateFriendlyFire);
-		level.teambalance = varDef("scr", "teambalance", "bool", true,
-										true, undefined, undefined, "Team Balance", 
-										maps\mp\uox\_uox::updateTeamBalance);
-		if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
-			maps\mp\uox\_uox_loops::addToLoop(level, "slow",
-					maps\mp\uox\_uox::TeamBalance_Check(), "TeamBalance_Check");
-
+        if(level.objective != "bel") {   
+    		level.teambalance = varDef("scr", "teambalance", "bool", true,
+    										true, undefined, undefined, "Team Balance", 
+    										maps\mp\uox\_uox::updateTeamBalance);
+    		if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
+    			maps\mp\uox\_uox_loops::addToLoop(level, "slow",
+    					maps\mp\uox\_uox::TeamBalance_Check(), "TeamBalance_Check");
+        }
 		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");
 		
 		varDef("scr", "freelook", "bool", true, true, undefined, undefined, "Free Spectate",
