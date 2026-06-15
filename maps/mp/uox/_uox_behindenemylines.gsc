@@ -125,7 +125,7 @@ give_allied_points()
 		self.god = false; //failsafe to fix a very rare bug
 		logPrint("A;" + lpselfnum + ";allies;" + self.name + ";bel_alive_tick\n");
 		self maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", self.hudpoints);
-		self checkScoreLimit();
+		self maps\mp\uox\_uox::checkScoreLimit();
 }
 
 give_allied_health()
