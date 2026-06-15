@@ -2691,7 +2691,7 @@ moveTeams(auto)
         {
             player.pers["team"] = "spectator";
             player.sessionteam = "spectator";
-            self spawnSpectator();
+            self maps\mp\uox\_uox_respawns::spawnSpectator();
             break;
         }
 	}
