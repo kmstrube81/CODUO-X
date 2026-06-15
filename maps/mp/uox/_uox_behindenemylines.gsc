@@ -27,9 +27,9 @@ check_delete_objective()
     self maps\mp\uox\_uox_loops::removeFromWaitTills(self, "bel update marker");
     self maps\mp\uox\_uox_loops::removeFromWaitTills(self, "bel survived");
 
-	self maps\mp\uox\_uox_hud::deleteClienteHUDElement("hudPoints");
-    self maps\mp\uox\_uox_hud::deleteClienteHUDElement("hudClock");
-    self maps\mp\uox\_uox_hud::deleteClienteHUDElement("hudBgnd");
+	self maps\mp\uox\_uox_hud::deleteClientHUDElement("hudPoints");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("hudClock");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("hudBgnd");
 
 	objnum = ((self getEntityNumber()) + 1);
 	objective_delete(objnum);
