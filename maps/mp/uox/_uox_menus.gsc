@@ -1,8 +1,10 @@
 defineMenus()
 {
     game["menu_serverinfo"] = getServerInfoMenu();
-    game["menu_team"] = "team_" + game["allies"] + game["axis"];
-    game["menu_german"] = "team_germanonly";
+    if(level.objective == "bel")
+        game["menu_team"] = "team_germanonly";
+    else
+        game["menu_team"] = "team_" + game["allies"] + game["axis"];
     game["menu_weapon_all"] = "weapon_" + game["allies"] + game["axis"];
     game["menu_weapon_allies"] = "weapon_" + game["allies"];
     game["menu_weapon_axis"] = "weapon_" + game["axis"];
@@ -19,7 +21,6 @@ precache()
 {
     precacheMenu(game["menu_serverinfo"]);
     precacheMenu(game["menu_team"]);
-    precacheMenu(game["menu_german"]);
     precacheMenu(game["menu_weapon_allies"]);
     precacheMenu(game["menu_weapon_axis"]);
     precacheMenu(game["menu_weapon_all"]);
@@ -334,7 +335,7 @@ getAutoAssign()
 	
 	if(level.uox_teamplay)
 	{
-		numonteam = maps\mp\uox\_uox::numOnTeam();
+		numonteam = level.exist; //maps\mp\uox\_uox::numOnTeam();
 		
 		// if teams are equal return the team with the lowest score
 		if(numonteam["allies"] == numonteam["axis"])

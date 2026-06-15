@@ -307,14 +307,12 @@ initGameTypeVars()
 	setCvar("cg_hudcompassMaxRange", game["compass_range"]);
 	makeCvarServerInfo("cg_hudcompassMaxRange", "0");
 	
-	if(!level.uox_teamplay)
-	{
-		level.drawfriend = 0;
-		level.teambalance = 0;
-		level.teamkill_penalty = false;
-		level.QuickMessageToAll = true;
-	}
-	else
+    level.drawfriend = 0;
+    level.teambalance = 0;
+    level.teamkill_penalty = false;
+    level.QuickMessageToAll = true;
+
+	if(level.uox_teamplay)
 	{
 		level.drawfriend = varDef("scr", "drawfriend", "bool", true,
 										true, undefined, undefined, "Draw Teams Icons",
