@@ -2522,6 +2522,35 @@ spectateObjectives(objective)
 			return;
 	}
 }
+
+/* **************************************************************************************************
+**** playerSpawnObjectives(string objective)
+****
+**** handles player spectate for objectives
+****
+*************************************************************************************************** */
+playerSpawnObjectives(objective)
+{
+
+	if(!isDefined(objective))
+		objective = "none";
+
+    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
+
+	switch(objective)
+	{
+		case "bomb":
+			return;
+		case "retrieval":
+			return;
+        case "bel":
+            if(self.pers["team"] == "allies")
+                self thread make_obj_marker();
+            return;
+        default:
+			return;
+	}
+}
 	
 
 /* **************************************************************************************************
