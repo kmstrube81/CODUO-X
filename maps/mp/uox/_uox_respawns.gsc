@@ -334,7 +334,7 @@ respawn_hq()
 	return;
 }
 
-resapwn_bel()
+respawn_bel()
 {
     self endon("end_respawn");	
     self.god = false;
