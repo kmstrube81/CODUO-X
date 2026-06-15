@@ -1131,7 +1131,7 @@ updateTeamStatus()
     		return;
     	}
     	
-    	if (numOnTeam["allies"] < alliesallowed)
+    	if (level.exist["allies"] < alliesallowed)
     	{
     		randomMoveTeams("axis");
 
@@ -1141,13 +1141,13 @@ updateTeamStatus()
     		return;
     	}
     	
-    	if (numOnTeam["allies"] > (alliesallowed + 1))
+    	if (level.exist["allies"] > (alliesallowed + 1))
     	{
     		randomMoveTeams("allies");
     		iprintln(&"BEL_REMOVING_ALLIED");
     		return;
     	}
-    	if ( (numOnTeam["allies"] > alliesallowed) && (alliesallowed == 1) )
+    	if ( (level.exist["allies"] > alliesallowed) && (alliesallowed == 1) )
     	{
     		randomMoveTeams("allies");
     		iprintln(&"BEL_REMOVING_ALLIED");
