@@ -131,7 +131,7 @@ spawnIntermission()
 	else
 		maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
 
-    self clearBlackedoutClientHUD();
+    self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
 }
 
 spawnSpectator(origin, angles)
