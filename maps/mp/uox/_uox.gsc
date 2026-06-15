@@ -2545,7 +2545,7 @@ playerSpawnObjectives(objective)
 			return;
         case "bel":
             if(self.pers["team"] == "allies")
-                self thread make_obj_marker();
+                self thread maps\mp\uox\_uox_behindenemylines::make_obj_marker();
             return;
         default:
 			return;
