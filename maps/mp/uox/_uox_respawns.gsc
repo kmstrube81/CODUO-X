@@ -339,8 +339,8 @@ resapwn_bel()
     self endon("end_respawn");	
     self.god = false;
 
-    self maps\mp\uox\_uox_hud::deleteClientHUDElem("spawnMsg");
-    self maps\mp\uox\_uox_hud::deleteClientHUDElem("spawnTimer");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnTimer");
 
     myteam = self.pers["team"];
     self.pers["weapon"] = self.pers[myteam + "_weapon"];
