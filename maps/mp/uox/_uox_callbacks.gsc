@@ -28,6 +28,7 @@ Callback_StartGameType()
         level.didexist["2players"] = false;
     }
 	
+    level.teambalancetimer = 0;
 	level.roundstarted = false;
 	level.roundended = false;
 	level.mapended = false;
