@@ -367,7 +367,7 @@ resapwn_bel()
 	wait (death_wait_time);
     self thread waitRespawnButton();
 
-	self clearBlackedoutClientHUD();
+	self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
 }
 
 getRespawnMode()
