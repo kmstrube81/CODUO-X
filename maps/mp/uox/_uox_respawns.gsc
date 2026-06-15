@@ -367,7 +367,9 @@ respawn_bel()
 	wait (death_wait_time);
     self thread waitRespawnButton();
 
+    self waittill("respawn");
 	self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
+	self thread spawnPlayer();
 }
 
 getRespawnMode()
