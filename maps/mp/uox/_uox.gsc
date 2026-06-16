@@ -2702,9 +2702,9 @@ moveTeams(auto)
     timepassed = 0;
 	while ( !isDefined(self.pers[newteam + "_weapon"]) )
 	{
-		if(self.pers["team"] != myteam && self.pers["team"] != "spectator")
+		if(self.pers["team"] != newteam && self.pers["team"] != "spectator")
 		{
-			self.pers["team"] = myteam;
+			self.pers["team"] = newteam;
 			if(self.pers["team"] == "allies")
 				self openMenu(game["menu_weapon_allies"]);
 			else
