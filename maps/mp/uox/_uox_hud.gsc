@@ -355,8 +355,8 @@ blackoutClientHUD(text, timer, didkill, killtext)
     options["x"] = 0;
     options["y"] = 0;
 	options["alpha"] = 1;
-    options["height"] = 640;
-    options["width"] = 480;
+    options["width"] = 640;
+    options["height"] = 480;
     blackscreen = self updateClientHUDElement("blackScreen", "shader", "black", options);
 
     if(!isDefined(timer))

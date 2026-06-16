@@ -2661,17 +2661,17 @@ moveTeams(auto)
     else
         newteam = "allies";
 
-    player.pers["weapon"] = undefined;
-    player.pers["weapon1"] = undefined;
-    player.pers["weapon2"] = undefined;
-    player.pers["spawnweapon"] = undefined;
-    player.pers["selectedweapon"] = undefined;
-    player.pers["team"] = newteam;
-    player.sessionteam = newteam;
-    player.sessionstate = "spectator";
-    player.spectatorclient = -1;
-    player.archivetime = 0;
-    player.reflectdamage = undefined;
+    self.pers["weapon"] = undefined;
+    self.pers["weapon1"] = undefined;
+    self.pers["weapon2"] = undefined;
+    self.pers["spawnweapon"] = undefined;
+    self.pers["selectedweapon"] = undefined;
+    self.pers["team"] = newteam;
+    self.sessionteam = newteam;
+    self.sessionstate = "spectator";
+    self.spectatorclient = -1;
+    self.archivetime = 0;
+    self.reflectdamage = undefined;
 
 	if(!isDefined(self.pers[newteam + "_weapon"]))
 	{
@@ -2695,6 +2695,7 @@ moveTeams(auto)
 
     if([[level.getVars]]("scr_respawn_mode") == "bel")
     {
+		self notify("remove_respawntext");
         self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", 2);
     }
 
@@ -2718,8 +2719,8 @@ moveTeams(auto)
 
         if(timepassed >= 6)
         {
-            player.pers["team"] = "spectator";
-            player.sessionteam = "spectator";
+            self.pers["team"] = "spectator";
+            self.sessionteam = "spectator";
             self maps\mp\uox\_uox_respawns::spawnSpectator();
             break;
         }
