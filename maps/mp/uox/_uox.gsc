@@ -2672,6 +2672,7 @@ moveTeams(auto)
     self.spectatorclient = -1;
     self.archivetime = 0;
     self.reflectdamage = undefined;
+    self closeMenu();
 
 	if(!isDefined(self.pers[newteam + "_weapon"]))
 	{
