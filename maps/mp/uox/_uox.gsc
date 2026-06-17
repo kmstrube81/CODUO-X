@@ -2697,7 +2697,7 @@ moveTeams(auto)
     if([[level.getVars]]("scr_respawn_mode") == "bel")
     {
 		self notify("remove_respawntext");
-        self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", 2);
+        self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN");
     }
 
     if(isDefined(self.pers[newteam + "_weapon"])) 

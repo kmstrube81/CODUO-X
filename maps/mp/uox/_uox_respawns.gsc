@@ -558,6 +558,8 @@ spawnPlayer(farthest)
 	
 	self.usedweapons = false;
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
+
+    self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
 	
     self maps\mp\uox\_uox::playerSpawnObjectives(level.objective);
 	
