@@ -2661,8 +2661,6 @@ moveTeams(auto)
     else
         newteam = "allies";
 
-    self suicide();
-
     self.pers["weapon"] = undefined;
     self.pers["weapon1"] = undefined;
     self.pers["weapon2"] = undefined;
@@ -2674,8 +2672,8 @@ moveTeams(auto)
     self.spectatorclient = -1;
     self.archivetime = 0;
     self.reflectdamage = undefined;
-    self closeMenu();
-
+    
+    /*
 	if(!isDefined(self.pers[newteam + "_weapon"]))
 	{
 
@@ -2689,7 +2687,7 @@ moveTeams(auto)
 			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
 			self openMenu(game["menu_weapon_axis"]);
 		}
-	}
+	} */
 	
 	if(isDefined(self.pers["isBot"]))
 	{
@@ -2702,11 +2700,19 @@ moveTeams(auto)
         self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", 2);
     }
 
+    if(isDefined(self.pers[newteam + "_weapon"])) 
+    {
+        self.pers["weapon"] = self.pers[newteam + "_weapon"];
+        self maps\mp\uox\_uox_respawns::respawn();
+        return;
+    }
+
     timepassed = 0;
 	while ( !isDefined(self.pers[newteam + "_weapon"]) )
 	{
 		if(self.pers["team"] != newteam && self.pers["team"] != "spectator" && timepassed > 1)
 		{
+            self closeMenu();
 			self.pers["team"] = newteam;
 			if(self.pers["team"] == "allies")
 				self openMenu(game["menu_weapon_allies"]);
