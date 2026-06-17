@@ -208,7 +208,7 @@ respawn()
 
 respawn_dm()
 {
-	self thread waitRespawnButton([[level.getVars]("scr_forcerespawn")]);
+	self thread waitRespawnButton([[level.getVars]]("scr_forcerespawn"));
 	self waittill("respawn");
 	self thread spawnPlayer();
 }
@@ -216,7 +216,7 @@ respawn_dm()
 respawn_forced()
 {
 	self thread waitForceRespawnTime();
-	self thread waitRespawnButton([[level.getVars]("scr_forcerespawn"));
+	self thread waitRespawnButton([[level.getVars]]("scr_forcerespawn"));
 	self waittill("respawn");
 	self thread spawnPlayer();
 }
