@@ -251,6 +251,7 @@ updateClientHUDElement(name, type, value, options)
 			break;
         case "timerUp":
             element setTimerUp(value);
+            break;
 		case "number":
 			element setValue(value);
 			break;
