@@ -46,7 +46,7 @@ allied_hud_element()
     options["y"] = 382;
     options["sort"] = -1;
     options["width"] = 130;
-    options["height"] = 135;
+    options["height"] = 35;
     self maps\mp\uox\_uox_hud::updateClientHUDElement("hudBgnd", "shader", "black", options);
 
 	
@@ -59,7 +59,7 @@ allied_hud_element()
 	
 	options = [];
 	options["x"] = 505;
-    options["y"] = 382;
+    options["y"] = 401;
 	options["label"] = &"BEL_POINTS_EARNED";
 
 	self.hudpoints = 0;
