@@ -2673,6 +2673,8 @@ moveTeams(auto)
     self.archivetime = 0;
     self.reflectdamage = undefined;
     
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " moving teams from " + myteam + " to " + newteam);
+
     /*
 	if(!isDefined(self.pers[newteam + "_weapon"]))
 	{
@@ -2712,6 +2714,7 @@ moveTeams(auto)
 	{
 		if(self.pers["team"] != "spectator" && timepassed > 1)
 		{
+            maps\mp\uox\_uox_debug::debugLog("info", self.name + " no saved " + self.pers["team"] + " weapon.  Opening " + newteam + " weapon menu");
             self closeMenu();
 			self.pers["team"] = newteam;
 			if(self.pers["team"] == "allies")
