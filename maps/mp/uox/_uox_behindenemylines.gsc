@@ -19,6 +19,7 @@ initVars()
 onPlayerKill(victim, attacker)
 {
     victim check_delete_objective();
+    maps\mp\uox\_uox_debug::debugLog("info", "BEL kill: clearing god then moveTeams, attacker god=" + attacker.god);
 }
 
 check_delete_objective()
@@ -95,6 +96,9 @@ make_obj_marker()
 
 update_obj_marker()
 {
+
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " update_obj_marker tick");
+
     if((isplayer (self)) && (isalive(self)))
 	{
         if([[level.getVars]]("scr_showoncompass"))
@@ -114,7 +118,9 @@ survived()
         give_allied_points();
         give_allied_health();
     }
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " survived FIRED, about to rearm");
     thread maps\mp\uox\_uox_utils::notifyLater("bel survived", [[level.getVars]]("scr_alivepointtime"), self );
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " survived rearm queued");
 }
 
 give_allied_points()

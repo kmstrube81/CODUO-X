@@ -275,7 +275,7 @@ initGameTypeVars()
 			varDef("scr", "respawn_wave_time", "int", true, 7, 1, 60, "Respawn Wave Timer");
 			break;
         case "bel":
-            varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
+            varDef("scr", "forcerespawn", "int", true, 0, -1, 60, "Force Respawn");
             varDef("scr", "spawn_delay_time", "int", true, 7, 1, 60, "Delayed Spawn Timer");
             varDef("scr", "playerRatio", "int", true, 1, 1, 10, "Axis to Allies Ratio");
             break;

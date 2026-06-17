@@ -208,7 +208,7 @@ respawn()
 
 respawn_dm()
 {
-	self thread waitRespawnButton();
+	self thread waitRespawnButton([[level.getVars]("scr_forcerespawn")]);
 	self waittill("respawn");
 	self thread spawnPlayer();
 }
@@ -216,7 +216,7 @@ respawn_dm()
 respawn_forced()
 {
 	self thread waitForceRespawnTime();
-	self thread waitRespawnButton();
+	self thread waitRespawnButton([[level.getVars]("scr_forcerespawn"));
 	self waittill("respawn");
 	self thread spawnPlayer();
 }
@@ -340,6 +340,7 @@ respawn_hq()
 respawn_bel()
 {
     self endon("end_respawn");	
+    maps\mp\uox\_uox_debug::debugLog("info", "respawn_bel ENTER god=" + self.god + " team=" + self.pers["team"]);
     self.god = false;
 
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
@@ -368,7 +369,7 @@ respawn_bel()
 	self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnTimer", "timer", death_wait_time, options);
 
 	wait (death_wait_time);
-    self thread waitRespawnButton();
+    self thread waitRespawnButton(-1);
 
     self waittill("respawn");
 	self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
@@ -419,25 +420,29 @@ getRespawnMode()
 	return ::respawn_dm;
 }
 
-waitForceRespawnTime()
+waitForceRespawnTime(timer)
 {
 	self endon("end_respawn");
 	self endon("respawn");
 
-	wait [[level.getVars]]("scr_forcerespawn");
-	self notify("respawn");
+    if(timer > 0)
+        wait timer;
+   
+    self notify("respawn");
 }
 
-waitRespawnButton()
+waitRespawnButton(forcespawn)
 {
 	self endon("end_respawn");
 	self endon("respawn");
 
 	wait 0; // Required or the "respawn" notify could happen before it's waittill has begun
 
-	if ( [[level.getVars]]("scr_forcerespawn") >= 1 )
+	if ( forcespawn != 0 )
 	{
-		thread waitForceRespawnTime();
+
+        maps\mp\uox\_uox_debug::debugLog("info", "waitRespawnButton forcerespawn branch, scr_forcerespawn=" + forcespawn);
+		thread waitForceRespawnTime(forcespawn);
 		return;
 	}
 	
