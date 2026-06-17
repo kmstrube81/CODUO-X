@@ -62,7 +62,7 @@ allied_hud_element()
     options["y"] = 382;
 	options["label"] = &"BEL_POINTS_EARNED";
 
-	sel.hudpoints = 0;
+	self.hudpoints = 0;
     self maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", self.hudpoints, options);
 	
 
