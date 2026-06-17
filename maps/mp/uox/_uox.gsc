@@ -2661,6 +2661,8 @@ moveTeams(auto)
     else
         newteam = "allies";
 
+    self suicide();
+
     self.pers["weapon"] = undefined;
     self.pers["weapon1"] = undefined;
     self.pers["weapon2"] = undefined;

@@ -16,7 +16,7 @@ initVars()
     maps\mp\uox\_uox_vars::varDef("scr", "survivalHealthBonus", int, true, 0, 0, 100, "Survival Health Bonus");
 }
 
-onPlayerKill()
+onPlayerKill(victim, attacker)
 {
     victim check_delete_objective();
 }
@@ -27,12 +27,12 @@ check_delete_objective()
     self maps\mp\uox\_uox_loops::removeFromWaitTills(self, "bel update marker");
     self maps\mp\uox\_uox_loops::removeFromWaitTills(self, "bel survived");
 
-	self maps\mp\uox\_uox_hud::deleteClientHUDElement("hudPoints");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("hudPoints");
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("hudClock");
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("hudBgnd");
 
-	objnum = ((self getEntityNumber()) + 1);
-	objective_delete(objnum);
+    objnum = ((self getEntityNumber()) + 1);
+    objective_delete(objnum);
 }
 
 allied_hud_element()
