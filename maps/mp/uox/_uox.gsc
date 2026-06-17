@@ -2710,7 +2710,7 @@ moveTeams(auto)
     timepassed = 0;
 	while ( !isDefined(self.pers[newteam + "_weapon"]) )
 	{
-		if(self.pers["team"] != newteam && self.pers["team"] != "spectator" && timepassed > 1)
+		if(self.pers["team"] != "spectator" && timepassed > 1)
 		{
             self closeMenu();
 			self.pers["team"] = newteam;

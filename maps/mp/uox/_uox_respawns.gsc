@@ -164,10 +164,13 @@ spawnSpectator(origin, angles)
 			maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
 	}
 
+    self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
+
 	level maps\mp\uox\_uox::updateTeamStatus();
 	if(!game["matchstarted"])
 		level thread maps\mp\uox\_uox::checkMatchStart();
     self maps\mp\uox\_uox::spectateObjectives(level.objective);
+
 }
 
 respawn()
