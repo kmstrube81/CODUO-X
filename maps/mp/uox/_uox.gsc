@@ -2675,21 +2675,8 @@ moveTeams(auto)
     
     maps\mp\uox\_uox_debug::debugLog("info", self.name + " moving teams from " + myteam + " to " + newteam);
 
-    /*
-	if(!isDefined(self.pers[newteam + "_weapon"]))
-	{
-
-		if(self.pers["team"] == "allies")
-		{
-			self setClientCvar("g_scriptMainMenu", game["menu_weapon_allies"]);
-			self openMenu(game["menu_weapon_allies"]);
-		}
-		else
-		{
-			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
-			self openMenu(game["menu_weapon_axis"]);
-		}
-	} */
+    
+	
 	
 	if(isDefined(self.pers["isBot"]))
 	{
@@ -2709,24 +2696,30 @@ moveTeams(auto)
         return;
     }
 
-    timepassed = 0;
-	while ( !isDefined(self.pers[newteam + "_weapon"]) )
+    self closeMenu();
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " no saved " + self.pers["team"] + " weapon.  Opening " + newteam + " weapon menu");
+    if(!isDefined(self.pers[newteam + "_weapon"]))
 	{
-		if(self.pers["team"] != "spectator" && timepassed > 1)
+
+		if(self.pers["team"] == "allies")
 		{
-            maps\mp\uox\_uox_debug::debugLog("info", self.name + " no saved " + self.pers["team"] + " weapon.  Opening " + newteam + " weapon menu");
-            self closeMenu();
-			self.pers["team"] = newteam;
-			if(self.pers["team"] == "allies")
-				self openMenu(game["menu_weapon_allies"]);
-			else
-				self openMenu(game["menu_weapon_axis"]);
+			self setClientCvar("g_scriptMainMenu", game["menu_weapon_allies"]);
+			self openMenu(game["menu_weapon_allies"]);
 		}
+		else
+		{
+			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
+			self openMenu(game["menu_weapon_axis"]);
+		}
+	}
 
-		if (self.pers["team"] == "spectator")
-			return;
+	timepassed = 0;
+    while ( !isDefined(self.pers[newteam + "_weapon"]) )
+    {
+        if (self.pers["team"] == "spectator")
+            return;
 
-		wait .1;
+        wait .1;
         timepassed += .1;
 
         if(timepassed >= 6)
@@ -2736,7 +2729,7 @@ moveTeams(auto)
             self maps\mp\uox\_uox_respawns::spawnSpectator();
             break;
         }
-	}
+    }
 }
 
 randomMoveTeams(team)
