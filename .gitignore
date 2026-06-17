@@ -1,7 +1,13 @@
 ################################
 # Slick Edit Project files
 ################################
-*.vpj 
+*.vpj
 *.vpw
 *.vpwhistuxml
 *.vpwwildcardcache
+
+################################
+# Deploy script (local only)
+################################
+deploy.ps1
+deploy.cfg
