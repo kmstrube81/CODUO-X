@@ -80,8 +80,7 @@ make_obj_marker()
 		objective_icon(objnum,"gfx/hud/hud@objective_bel.tga");
 		objective_team(objnum,"axis");
 		objective_position(objnum, self.origin);
-		lastobjpos = self.origin;
-		newobjpos = self.origin;
+		self.lastobjpos = self.origin;
 	}
 	
 	self thread allied_hud_element();
@@ -103,9 +102,8 @@ update_obj_marker()
 	{
         if([[level.getVars]]("scr_showoncompass"))
         {
-            lastobjpos = newobjpos;
-            newobjpos = ( ((lastobjpos[0] + self.origin[0]) * 0.5), ((lastobjpos[1] + self.origin[1]) * 0.5), ((lastobjpos[2] + self.origin[2]) * 0.5) );
-            objective_position(objnum, newobjpos);
+            self.lastobjpos = ( ((self.lastobjpos[0] + self.origin[0]) * 0.5), ((self.lastobjpos[1] + self.origin[1]) * 0.5), ((self.lastobjpos[2] + self.origin[2]) * 0.5) );
+            objective_position(objnum, self.lastobjpos);
         }
 	}
     thread maps\mp\uox\_uox_utils::notifyLater("bel update marker", [[level.getVars]]("scr_positiontime"), self );
