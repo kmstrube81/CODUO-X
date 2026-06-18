@@ -2666,6 +2666,9 @@ moveTeams(auto)
     self.pers["weapon2"] = undefined;
     self.pers["spawnweapon"] = undefined;
     self.pers["selectedweapon"] = undefined;
+    
+    self notify("end_respawn");
+    
     self.pers["team"] = newteam;
     self.sessionteam = newteam;
     self.sessionstate = "spectator";
@@ -2674,8 +2677,6 @@ moveTeams(auto)
     self.reflectdamage = undefined;
     
     maps\mp\uox\_uox_debug::debugLog("info", self.name + " moving teams from " + myteam + " to " + newteam);
-
-    
 	
 	
 	if(isDefined(self.pers["isBot"]))

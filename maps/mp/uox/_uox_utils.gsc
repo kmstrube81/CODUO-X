@@ -39,7 +39,7 @@ notifyLater(msg, delay, ent)
 {
     if(!isDefined(ent)) ent = level;
 
-    ent endon("kill_" + msg);
+    ent endon("kill_later_" + msg);
 
 	wait delay;
 	ent notify(msg);
