@@ -102,6 +102,8 @@ update_obj_marker()
 	{
         if([[level.getVars]]("scr_showoncompass"))
         {
+	     objnum = ((self getEntityNumber()) + 1);
+
             self.lastobjpos = ( ((self.lastobjpos[0] + self.origin[0]) * 0.5), ((self.lastobjpos[1] + self.origin[1]) * 0.5), ((self.lastobjpos[2] + self.origin[2]) * 0.5) );
             objective_position(objnum, self.lastobjpos);
         }
