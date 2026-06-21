@@ -2609,20 +2609,6 @@ checkObjective()
 	return true;
 }
 
-spawnPlayerObjective(objective)
-{
-    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
-
-    switch(objective)
-	{
-        case "bel":
-            self maps\mp\uox\_uox_behindenemylines::check_delete_objective();
-            if(self.pers["team"] == "allies")
-            {
-                self maps\mp\uox\_uox_behindenemylines::make_obj_marker();
-            }
-    }
-}
 numOnTeam()
 {
     numonteam["allies"] = 0;

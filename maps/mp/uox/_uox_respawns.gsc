@@ -489,6 +489,7 @@ waitRemoveRespawnText(message)
 
 spawnPlayer(farthest)
 {
+	
 	self notify("spawned");
 	self notify("end_respawn");
 	
@@ -547,7 +548,7 @@ spawnPlayer(farthest)
 		}
 	}
 	
-	level maps\mp\uox\_uox::updateTeamStatus();
+
 	if(!game["matchstarted"])
 		level thread maps\mp\uox\_uox::checkMatchStart();
 	self.pers["rank"] = maps\mp\gametypes\_rank_gmi::DetermineBattleRank(self);
@@ -565,7 +566,7 @@ spawnPlayer(farthest)
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 
     self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
-	
+	maps\mp\uox\_uox_debug::debugLog("info", "spawnPlayer RUN team=" + self.pers["team"] + " state=" + self.sessionstate);
     self maps\mp\uox\_uox::playerSpawnObjectives(level.objective);
 	
 	if(level.uox_teamplay)
@@ -601,7 +602,9 @@ spawnPlayer(farthest)
 	}	
 
 	// setup the hud rank indicator
-	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();	
+	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();
+
+		level maps\mp\uox\_uox::updateTeamStatus();	
 
 }
 

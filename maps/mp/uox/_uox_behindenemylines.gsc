@@ -65,9 +65,6 @@ allied_hud_element()
 
 	self.hudpoints = 0;
     self maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", self.hudpoints, options);
-	
-
-	self thread give_allied_points();
 }
 
 make_obj_marker()
