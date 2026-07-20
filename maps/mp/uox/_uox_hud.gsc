@@ -331,7 +331,7 @@ animateClientHUDElement(name, type, options)
 	}
 }
 
-blackoutClientHUD(text, timer, didkill, killtext)
+blackoutClientHUD(text, didkill, killtext)
 {
     options = [];
 
@@ -341,12 +341,8 @@ blackoutClientHUD(text, timer, didkill, killtext)
     options["alignY"] = "middle";
     options["x"] = 320;
     options["y"] = 240;
-    self updateClientHUDElement("blackScreenText1", "text", text, options);
-
-    if(isDefined(timer))
-    {
-        options["y"] = 260;
-        self updateClientHUDElement("blackScreenTimer", "timer", timer, options);
+    if(isDefined(text)) {
+        self updateClientHUDElement("blackScreenText1", "text", text, options);
     }
 	
 	options["sort"] = -2;
@@ -360,13 +356,10 @@ blackoutClientHUD(text, timer, didkill, killtext)
     options["height"] = 480;
     blackscreen = self updateClientHUDElement("blackScreen", "shader", "black", options);
 
-    if(!isDefined(timer))
-        return;
-
 	if (isdefined (didkill))
 	{
 		blackscreen = self updateHUDElementProperty(blackscreen, "alpha", 0);
-		self animateClientHUDElement("blackScreen", "fade", timer - 0.5);
+		self animateClientHUDElement("blackScreen", "fade", 1.5);
         options["sort"] = -1;
 		options["archived"] = false;
 		options["alignX"] = "center";

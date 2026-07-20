@@ -19,6 +19,8 @@ initVars()
 onPlayerKill(victim, attacker)
 {
     victim check_delete_objective();
+    if(attacker.pers["team"] == "allies" && victim.pers["team"] == "allies") //also delete objective on team kill
+        attacker check_delete_objective();
     maps\mp\uox\_uox_debug::debugLog("info", "BEL kill: clearing god then moveTeams, attacker god=" + attacker.god);
 }
 
@@ -125,6 +127,7 @@ give_allied_points()
         lpselfnum = self getEntityNumber();
 
 		self.score++;
+        self.pers["score"]++;
 		self.hudpoints++;
 		self.god = false; //failsafe to fix a very rare bug
 		logPrint("A;" + lpselfnum + ";allies;" + self.name + ";bel_alive_tick\n");

@@ -462,8 +462,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
             {
                 attacker.god = true;
                 iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
-                attacker maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", 2, true, &"BEL_BLACKSCREEN_KILLEDALLIED");
-                attacker thread maps\mp\uox\_uox::moveTeams();
+                attacker thread maps\mp\uox\_uox::moveTeams(true, &"BEL_BLACKSCREEN_KILLEDALLIED");
                 
                 if (attacker.pers["team"] == "axis") // only move victim teams if killer is axis
                 {
