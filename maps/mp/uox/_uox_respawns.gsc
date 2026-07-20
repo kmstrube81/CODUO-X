@@ -566,6 +566,8 @@ spawnPlayer(farthest)
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 
     self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
+	self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
+	self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnTimer");
 	maps\mp\uox\_uox_debug::debugLog("info", "spawnPlayer RUN team=" + self.pers["team"] + " state=" + self.sessionstate);
     self maps\mp\uox\_uox::playerSpawnObjectives(level.objective);
 	
