@@ -360,7 +360,7 @@ respawn_bel()
     options = [];
     options["alignX"] = "center";
 	options["alignY"] = "middle";
-	options["x"] = 305;
+	options["x"] = 320;
 	options["y"] = 140;
 	options["fontScale"] = 1.5;
 	self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "text", &"BEL_TIME_TILL_SPAWN", options);

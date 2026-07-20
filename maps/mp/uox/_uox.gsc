@@ -1947,6 +1947,8 @@ setPlayerScore(victim, attacker)
 			else
 			{
 				attacker.pers["score"]++;
+                if(isDefined(attacker.hudpoints))
+                    attacker.hudpoints++;
 				attacker.score = attacker.pers["score"];
 				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
@@ -2299,7 +2301,10 @@ addBotClients()
 
 		if(isPlayer(ent[i]))
 		{
-			
+			ent[i] notify("menuresponse", game["menu_team"], "autoassign");
+            wait 0.5;
+			ent[i] giveBotWeapon();
+            /*
 			if(i & 1)
 			{
 				ent[i] notify("menuresponse", game["menu_team"], "axis");
@@ -2311,7 +2316,8 @@ addBotClients()
 				ent[i] notify("menuresponse", game["menu_team"], "allies");
 				wait 0.5;
 				ent[i] giveBotWeapon();
-			}
+            }
+            */
 		}
 	}
 }
@@ -2628,13 +2634,12 @@ numOnTeam()
     return numonteam;
 }
 
-moveTeams(auto)
+moveTeams(didkill, reason)
 {
 
-    if(isDefined(auto))
+    if(!isDefined(didkill))
     {
-        if(randomInt(2))
-            return;
+        didkill = false;
     }
 
     if (self.pers["team"] == "spectator")
@@ -2643,9 +2648,15 @@ moveTeams(auto)
     myteam = self.pers["team"];
 
     if(myteam == "allies")
-        newteam = "axis";
+    {
+            newteam = "axis";
+            alliedsavedmodel = self.pers["savedmodel"];
+    }
     else
-        newteam = "allies";
+    {
+            newteam = "allies";
+            axissavedmodel = player.pers["savedmodel"];
+    }
 
     self.pers["weapon"] = undefined;
     self.pers["weapon1"] = undefined;
@@ -2663,6 +2674,12 @@ moveTeams(auto)
     self.spectatorclient = -1;
     self.archivetime = 0;
     self.reflectdamage = undefined;
+
+    //Swap Models
+    if ( (isdefined(self.pers["team"]) ) && (self.pers["team"] == "axis") )
+         self.pers["savedmodel"] = axissavedmodel;
+    else if ( (isdefined(self.pers["team"])) && (self.pers["team"] == "allies") )
+        self.pers["savedmodel"] = alliedsavedmodel;
     
     maps\mp\uox\_uox_debug::debugLog("info", self.name + " moving teams from " + myteam + " to " + newteam);
 	
@@ -2675,7 +2692,7 @@ moveTeams(auto)
     if([[level.getVars]]("scr_respawn_mode") == "bel")
     {
 		self notify("remove_respawntext");
-        self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN");
+        self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", didkill, reason);
     }
 
     if(isDefined(self.pers[newteam + "_weapon"])) 
