@@ -2301,7 +2301,10 @@ addBotClients()
 
 		if(isPlayer(ent[i]))
 		{
-			ent[i] notify("menuresponse", game["menu_team"], "autoassign");
+            if(level.objective == "bel")
+                ent[i] notify("menuresponse", game["menu_team"], "axis");
+            else
+                ent[i] notify("menuresponse", game["menu_team"], "autoassign");
             wait 0.5;
 			ent[i] giveBotWeapon();
             /*
