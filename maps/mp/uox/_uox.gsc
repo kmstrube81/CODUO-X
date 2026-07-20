@@ -2637,11 +2637,6 @@ numOnTeam()
 moveTeams(didkill, reason)
 {
 
-    if(!isDefined(didkill))
-    {
-        didkill = false;
-    }
-
     if (self.pers["team"] == "spectator")
 		return;
 
