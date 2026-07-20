@@ -285,14 +285,15 @@ deleteClientHUDElement(name)
 	self.uox_hud = maps\mp\uox\_uox_arrays::removeArrayKey(self.uox_hud, name);
 }
 
-animateClientHUDElement(name, type, options)
+animateClientHUDElement(name, type, options, time)
 {
 	//get hud element
 	element = getClientHUDElement(name);
 	
 	if(!isDefined(element)) //nothing to animate if no hudelement exists
 		return;
-	
+	if(!isDefined(time))
+		time = 0;
 	//process options
 	if(isDefined(options))
 	{
@@ -300,9 +301,6 @@ animateClientHUDElement(name, type, options)
 			x = options["x"];
 		if(isDefined(options["y"]))
 			y = options["y"];
-		if(isDefined(options["time"]))
-			time = options["time"];
-		else time = 0;
 		if(isDefined(options["color"]))
 			color = options["color"];
 		if(isDefined(options["fontscale"]))
@@ -355,9 +353,10 @@ blackoutClientHUD(text, timer, didkill, killtext)
     options["alignY"] = "top";
     options["x"] = 0;
     options["y"] = 0;
-	options["alpha"] = 1;
+    options["alpha"] = 1;
     options["width"] = 640;
     options["height"] = 480;
+
     blackscreen = self updateClientHUDElement("blackScreen", "shader", "black", options);
 
     if(!isDefined(timer))
@@ -366,8 +365,9 @@ blackoutClientHUD(text, timer, didkill, killtext)
 	if (isdefined (didkill))
 	{
 		blackscreen = self updateHUDElementProperty(blackscreen, "alpha", 0);
-		self animateClientHUDElement("blackScreen", "fade", timer - 0.5);
-        options["sort"] = -1;
+		
+		self animateClientHUDElement("blackScreen", "fade", options, timer - 0.5);
+        	options["sort"] = -1;
 		options["archived"] = false;
 		options["alignX"] = "center";
 		options["alignY"] = "middle";
@@ -519,11 +519,14 @@ deleteHUDElement(element)
 	return element;
 }
 
-animateHUDElement(element, type, options)
+animateHUDElement(element, type, options, time)
 {
 	if(!isDefined(element)) //nothing to animate if no hudelement exists
 		return;
 	
+	if(!isDefined(time))
+		time = 0;
+
 	//process options
 	if(isDefined(options))
 	{
@@ -531,9 +534,7 @@ animateHUDElement(element, type, options)
 			x = options["x"];
 		if(isDefined(options["y"]))
 			y = options["y"];
-		if(isDefined(options["time"]))
-			time = options["time"];
-		else time = 0;
+		
 		if(isDefined(options["color"]))
 			color = options["color"];
 		if(isDefined(options["fontscale"]))
@@ -754,9 +755,9 @@ createClientHUDProgressBar(timer)
 		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbar",
 			"shader", "white", barOptions);
 			
-	barAnimOptions["time"] = timer;
+
 	self maps\mp\uox\_uox_hud::animateClientHUDElement("progressbar", "scaleShader",
-		barAnimOptions);
+		barAnimOptions, timer);
 }
 
 deleteClientHUDProgressBar()
