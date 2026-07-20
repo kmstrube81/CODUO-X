@@ -2655,7 +2655,7 @@ moveTeams(didkill, reason)
     else
     {
             newteam = "allies";
-            axissavedmodel = player.pers["savedmodel"];
+            axissavedmodel = self.pers["savedmodel"];
     }
 
     self.pers["weapon"] = undefined;
