@@ -349,7 +349,7 @@ respawn_bel()
     myteam = self.pers["team"];
     self.sessionteam = myteam;
     self.pers["weapon"] = self.pers[myteam + "_weapon"];
-    self setClientCvar("g_scriptMainMenu", game["menu_weapon_all"]);
+    self setClientCvar("g_scriptMainMenu", game["menu_weapon_" + myteam]);
 
     if(self.pers["team"] != "allies" && self.pers["team"] != "axis")
 	{
