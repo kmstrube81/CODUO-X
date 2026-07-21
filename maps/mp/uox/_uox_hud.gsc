@@ -137,7 +137,7 @@ precache()
 	precacheString(&"BEL_BLACKSCREEN_KILLEDALLIED");
 	precacheString(&"BEL_BLACKSCREEN_WILLSPAWN");			
 
-    if(!level.uox_teamplay) {
+    if(!level.uox_teamplay || level.objective == "bel") {
         precacheString(game["leaderText"]);
         precacheString(game["youText"]);
 
