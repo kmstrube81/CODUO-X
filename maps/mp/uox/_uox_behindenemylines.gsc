@@ -21,11 +21,11 @@ onPlayerKill(victim, attacker)
     victim check_delete_objective();
     if(attacker.pers["team"] == "allies" && victim.pers["team"] == "allies") //also delete objective on team kill
         attacker check_delete_objective();
+    if(attacker.pers["team"] == "axis" && victim.pers["team"] == "allies")
+        maps\mp\uox\_uox_debug::debugLog("info", "BEL kill: clearing god then moveTeams, attacker god=" + attacker.god);
     else
         //update hud element
         attacker maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", self.hudpoints);
-    if(attacker.pers["team"] == "axis" && victim.pers["team"] == "allies")
-        maps\mp\uox\_uox_debug::debugLog("info", "BEL kill: clearing god then moveTeams, attacker god=" + attacker.god);
 }
 
 check_delete_objective()
