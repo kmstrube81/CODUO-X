@@ -1125,9 +1125,10 @@ updateTeamStatus()
     {
         ratio = [[level.getVars]]("scr_playerRatio");
 
-        // allies = ceil(axis / ratio), floored at 1
-        alliesallowed = (level.exist["axis"] + ratio - 1) / ratio;
-        alliesallowed = alliesallowed - (alliesallowed % 1);   // drop any fractional part
+        axis = level.exist["axis"];
+        alliesallowed = (axis - (axis % ratio)) / ratio;   // floor(axis/ratio)
+        if(axis % ratio != 0)
+            alliesallowed++;                                // bump to ceiling
         if(alliesallowed < 1)
             alliesallowed = 1;
 
@@ -1136,6 +1137,9 @@ updateTeamStatus()
             randomMoveTeams("axis");
             if(alliesallowed > 1)
                 iprintln(&"BEL_ADDING_ALLIED");
+
+            maps\mp\uox\_uox_debug::debugLog("info","belratio","alliesallowed",alliesallowed);
+
             return;
         }
 
@@ -1143,6 +1147,9 @@ updateTeamStatus()
         {
             randomMoveTeams("allies");
             iprintln(&"BEL_REMOVING_ALLIED");
+
+            maps\mp\uox\_uox_debug::debugLog("info","belratio","alliesallowed",alliesallowed);
+
             return;
         }
 
