@@ -347,6 +347,7 @@ respawn_bel()
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnTimer");
 
     myteam = self.pers["team"];
+    self.sessionteam = myteam;
     self.pers["weapon"] = self.pers[myteam + "_weapon"];
     self setClientCvar("g_scriptMainMenu", game["menu_weapon_all"]);
 
