@@ -194,7 +194,7 @@ handleMenuResponse(menu, response)
                 break;
             if(self.pers["team"] != "spectator")
             {
-                if(isAlive(self))
+                if(isAlive(self) && [[level.getVars]]("scr_respawn_mode") != "bel")
                     self suicide();
 
                 self.pers["team"] = "spectator";
