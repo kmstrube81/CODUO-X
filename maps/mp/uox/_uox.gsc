@@ -1138,7 +1138,7 @@ updateTeamStatus()
             if(alliesallowed > 1)
                 iprintln(&"BEL_ADDING_ALLIED");
 
-            maps\mp\uox\_uox_debug::debugLog("info","adding allies, belratio: " + ratio + " alliesallowed = "+alliesallowed);
+            maps\mp\uox\_uox_debug::debugLog("info","adding allies, belratio: " + ratio + " alliesallowed = "+alliesallowed + " level.exist[allies] " + level.exist["allies"] + " level.exist[axis] " + level.exist["axis"]);
 
             return;
         }
@@ -1148,7 +1148,7 @@ updateTeamStatus()
             randomMoveTeams("allies");
             iprintln(&"BEL_REMOVING_ALLIED");
 
-            maps\mp\uox\_uox_debug::debugLog("info","adding allies, belratio: " + ratio + " alliesallowed = "+alliesallowed);
+            maps\mp\uox\_uox_debug::debugLog("info","removing allies, belratio: " + ratio + " alliesallowed = "+alliesallowed + " level.exist[allies] " + level.exist["allies"] + " level.exist[axis] " + level.exist["axis"]);
 
             return;
         }
