@@ -1123,36 +1123,30 @@ updateTeamStatus()
 	
     if([[level.getVars]]("scr_respawn_mode") == "bel") //move players over if spawn type is bel
     {
-        alliesallowed = (level.exist["axis"] * 1.0) / [[level.getVars]]("scr_playerRatio");
+        ratio = [[level.getVars]]("scr_playerRatio");
+
+        // allies = ceil(axis / ratio), floored at 1
+        alliesallowed = (level.exist["axis"] + ratio - 1) / ratio;
+        alliesallowed = alliesallowed - (alliesallowed % 1);   // drop any fractional part
         if(alliesallowed < 1)
             alliesallowed = 1;
-        if (level.exist["allies"] == alliesallowed)
-    	{
-    		return;
-    	}
-    	
-    	if (level.exist["allies"] < alliesallowed)
-    	{
-    		randomMoveTeams("axis");
 
-    		if (alliesallowed > 1)
-    			iprintln(&"BEL_ADDING_ALLIED");
+        if(level.exist["allies"] < alliesallowed)
+        {
+            randomMoveTeams("axis");
+            if(alliesallowed > 1)
+                iprintln(&"BEL_ADDING_ALLIED");
+            return;
+        }
 
-    		return;
-    	}
-    	
-    	if (level.exist["allies"] > (alliesallowed + 1))
-    	{
-    		randomMoveTeams("allies");
-    		iprintln(&"BEL_REMOVING_ALLIED");
-    		return;
-    	}
-    	if ( (level.exist["allies"] > alliesallowed) && (alliesallowed == 1) )
-    	{
-    		randomMoveTeams("allies");
-    		iprintln(&"BEL_REMOVING_ALLIED");
-    		return;
-    	}
+        if(level.exist["allies"] > alliesallowed)
+        {
+            randomMoveTeams("allies");
+            iprintln(&"BEL_REMOVING_ALLIED");
+            return;
+        }
+
+        return;   // allies == alliesallowed, correct
     }
 
 	if(level.uox_teamplay) //if  team game

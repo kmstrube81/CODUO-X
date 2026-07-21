@@ -773,7 +773,7 @@ updateServerScoreboard()
 	options["height"] = 24;
 	options["fontScale"] = 1.6;
 	
-	if(level.uox_teamplay)
+	if(level.uox_teamplay && level.objective != "bel")
 		shader = game["headicon_" + game["team1"]];
 	else 
 		shader = game["objective_default"];
@@ -783,7 +783,7 @@ updateServerScoreboard()
 	options["x"] = 58;
 	options["alignX"] = "right";
 	
-	if(level.uox_teamplay)
+	if(level.uox_teamplay && level.objective != "bel")
 		value = maps\mp\uox\_uox::getTeam1Score();
 	else
 	{
@@ -842,7 +842,7 @@ updateServerScoreboard()
 		level.scoreboardTeam1Limit = updateHUDElement(level.scoreboardTeam1Limit, "number", value, options);
 	}
 	
-	if(level.uox_teamplay)
+	if(level.uox_teamplay && level.objective != "bel")
 	{
 		options["x"] = 10;
 		options["y"] = 270;
