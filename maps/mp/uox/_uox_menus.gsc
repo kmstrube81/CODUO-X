@@ -206,10 +206,7 @@ handleMenuResponse(menu, response)
                 self.pers["savedmodel"] = undefined;
                 
                 self.sessionteam = "spectator";
-                if([[level.getVars]]("scr_respawn_mode") == "bel") 
-                    self setClientCvar("g_scriptMainMenu", game["menu_german"]);
-                else
-                    self setClientCvar("g_scriptMainMenu", game["menu_team"]);
+                self setClientCvar("g_scriptMainMenu", game["menu_team"]);
                 self setClientCvar("ui_weapontab", "0");
                 maps\mp\uox\_uox_respawns::spawnSpectator();
             }
@@ -235,10 +232,7 @@ handleMenuResponse(menu, response)
     {
         if(response == "team")
         {
-            if([[level.getVars]]("scr_respawn_mode") == "bel") 
-                self openMenu(game["menu_german"]);
-            else
-                self openMenu(game["menu_team"]);
+            self openMenu(game["menu_team"]);
             return;
         }
         else if(response == "viewmap")
@@ -275,10 +269,7 @@ handleMenuResponse(menu, response)
         switch(response)
         {
         case "team":
-            if([[level.getVars]]("scr_respawn_mode") == "bel") 
-                self openMenu(game["menu_german"]);
-            else
-                self openMenu(game["menu_team"]);
+            self openMenu(game["menu_team"]);
             break;
 
         case "weapon":
@@ -298,10 +289,7 @@ handleMenuResponse(menu, response)
         switch(response)
         {
         case "team":
-            if([[level.getVars]]("scr_respawn_mode") == "bel") 
-                self openMenu(game["menu_german"]);
-            else
-                self openMenu(game["menu_team"]);
+            self openMenu(game["menu_team"]);
             break;
 
         case "weapon":
