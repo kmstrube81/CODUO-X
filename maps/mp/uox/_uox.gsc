@@ -1128,15 +1128,15 @@ updateTeamStatus()
 
         total = level.exist["allies"] + level.exist["axis"];
 
-        // allies = round(total / denom), integer-only:
-        // round(a/b) == (2a + b) \ (2b)  using integer floor division
-        num = (total * 2) + denom;
-        den = denom * 2;
-        alliesallowed = (num - (num % den)) / den;   // integer floor
+        // allies = ceil(total / (ratio + 1)), floored at 1.
+        // One allied defender holds up to `ratio` axis, so ratio+1 players
+        // per defender. Depends only on total, so it's a stable fixed point.
+        num = total + denom - 1;
+        alliesallowed = (num - (num % denom)) / denom;   // floor(num/denom) = ceil(total/denom)
         if(alliesallowed < 1)
             alliesallowed = 1;
 
-        maps\mp\uox\_uox_debug::debugLog("info","bel check: total="+total+" allowed="+alliesallowed+" allies="+level.exist["allies"]+" axis="+level.exist["axis"]);
+        maps\mp\uox\_uox_debug::debugLog("info","bel check: total="+total+" ratio="+ratio+" allowed="+alliesallowed+" allies="+level.exist["allies"]+" axis="+level.exist["axis"]);
 
         if(level.exist["allies"] < alliesallowed)
         {
