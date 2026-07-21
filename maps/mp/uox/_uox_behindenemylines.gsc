@@ -25,7 +25,7 @@ onPlayerKill(victim, attacker)
         maps\mp\uox\_uox_debug::debugLog("info", "BEL kill: clearing god then moveTeams, attacker god=" + attacker.god);
     else
         //update hud element
-        attacker maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", self.hudpoints);
+        attacker maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", attacker.hudpoints);
 }
 
 check_delete_objective()
