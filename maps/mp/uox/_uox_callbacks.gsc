@@ -458,7 +458,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
         if([[level.getVars]]("scr_respawn_mode") == "bel")
         {
-            if(self.pers["team"] == "allies") //killed an allied player
+            if(self.pers["team"] == "allies" && attacker != self) //killed an allied player
             {
                 attacker.god = true;
                 iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
