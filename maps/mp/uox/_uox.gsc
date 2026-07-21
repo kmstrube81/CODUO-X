@@ -1124,22 +1124,25 @@ updateTeamStatus()
     if([[level.getVars]]("scr_respawn_mode") == "bel") //move players over if spawn type is bel
     {
         ratio = [[level.getVars]]("scr_playerRatio");
+        denom = ratio + 1;
 
-        axis = level.exist["axis"];
-        alliesallowed = (axis - (axis % ratio)) / ratio;   // floor(axis/ratio)
-        if(axis % ratio != 0)
-            alliesallowed++;                                // bump to ceiling
+        total = level.exist["allies"] + level.exist["axis"];
+
+        // allies = round(total / denom), integer-only:
+        // round(a/b) == (2a + b) \ (2b)  using integer floor division
+        num = (total * 2) + denom;
+        den = denom * 2;
+        alliesallowed = (num - (num % den)) / den;   // integer floor
         if(alliesallowed < 1)
             alliesallowed = 1;
+
+        maps\mp\uox\_uox_debug::debugLog("info","bel check: total="+total+" allowed="+alliesallowed+" allies="+level.exist["allies"]+" axis="+level.exist["axis"]);
 
         if(level.exist["allies"] < alliesallowed)
         {
             randomMoveTeams("axis");
             if(alliesallowed > 1)
                 iprintln(&"BEL_ADDING_ALLIED");
-
-            maps\mp\uox\_uox_debug::debugLog("info","adding allies, belratio: " + ratio + " alliesallowed = "+alliesallowed + " level.exist[allies] " + level.exist["allies"] + " level.exist[axis] " + level.exist["axis"]);
-
             return;
         }
 
@@ -1147,13 +1150,10 @@ updateTeamStatus()
         {
             randomMoveTeams("allies");
             iprintln(&"BEL_REMOVING_ALLIED");
-
-            maps\mp\uox\_uox_debug::debugLog("info","removing allies, belratio: " + ratio + " alliesallowed = "+alliesallowed + " level.exist[allies] " + level.exist["allies"] + " level.exist[axis] " + level.exist["axis"]);
-
             return;
         }
 
-        return;   // allies == alliesallowed, correct
+        return;
     }
 
 	if(level.uox_teamplay) //if  team game
