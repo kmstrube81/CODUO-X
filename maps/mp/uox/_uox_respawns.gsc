@@ -396,6 +396,8 @@ getRespawnMode()
 			return ::respawn_obj;
         case "bel": //behind enemy lines spawn, switch teams on kill
             return ::respawn_bel;
+        case "hq": //headquarters spawning, waiting until objective notify to spawn
+            return ::respawn_hq;
 		default: //get default gametype respawn mode
 			switch(gt)
 			{

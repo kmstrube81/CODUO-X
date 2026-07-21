@@ -237,8 +237,8 @@ initGameTypeVars()
 	makeCvarServerInfo("ui_" + gt + "_roundlimit", 1);
 	
 	level.roundlength = varDef("scr", "roundlength", "float", true, 2.5, 0, 60, "Round Length");
-	setCvar("ui_dm_roundlength", [[level.getVars]]("scr_roundlength"));
-	makeCvarServerInfo("ui_dm_roundlength", "30");
+	setCvar("ui_" + gt + "_roundlength", [[level.getVars]]("scr_roundlength"));
+	makeCvarServerInfo("ui_" + gt + "_roundlength", "30");
 	
 	varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
 

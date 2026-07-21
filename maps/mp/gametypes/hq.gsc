@@ -81,6 +81,14 @@
 
 main()
 {
+    modtype = uox\modtype::modtype(getCvar("g_gametype"));
+	
+	if(isDefined(modtype))
+	{
+		[[modtype]]();
+		return;
+	}
+
 	spawnpointname = "mp_teamdeathmatch_spawn";
 	spawnpoints = getentarray(spawnpointname, "classname");
 
