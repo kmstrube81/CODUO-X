@@ -1121,7 +1121,7 @@ updateTeamStatus()
 	if(level.roundended) //if round already ended
 		return; //nothing else to do, return
 	
-    if([[level.getVars]]("scr_respawn_mode") == "bel") //move players over if spawn type is bel
+    if(level.respawn_mode == "bel") //move players over if spawn type is bel
     {
         ratio = [[level.getVars]]("scr_playerRatio");
         denom = ratio + 1;
@@ -2442,6 +2442,10 @@ initObjectives(objective)
         case "bel":
             maps\mp\uox\_uox_behindenemylines::initVars();
             return;
+        case "radio":
+            maps\mp\uox\_uox_radios::initVars();
+            maps\mp\uox\_uox_radios::hq_setup();
+            return;
 		default:
 			game["attackers"] = undefined;
 			game["defenders"] = undefined;
@@ -2586,6 +2590,8 @@ getObjectiveText(objective)
                 return &"BEL_OBJ_ALLIED";
             else if(self.pers["team"] == "axis")
                 return &"BEL_OBJ_AXIS";
+        case "radios":
+            return &"HQ_OBJ_TEXT" + [[level.getVars]]("scr_scorelimit");
 		default:
 			if(level.uox_teamplay)
 			{
@@ -2688,7 +2694,7 @@ moveTeams(didkill, reason)
 		maps\mp\uox\_uox::giveBotWeapon();
 	}
 
-    if([[level.getVars]]("scr_respawn_mode") == "bel")
+    if(level.respawn_mode == "bel")
     {
 		self notify("remove_respawntext");
         self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", didkill, reason);

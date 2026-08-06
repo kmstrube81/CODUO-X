@@ -261,7 +261,7 @@ initGameTypeVars()
 	else if([[level.getVars]]("scr_halftime") > 0)
 		game["roundbased"] = true;
 	
-	switch([[level.getVars]]("scr_respawn_mode"))
+	switch(level.respawn_mode)
 	{
 		case "spawndelay":
 			varDef("scr", "spawn_delay_time", "int", true, 7, 1, 60, "Delayed Spawn Timer");
@@ -278,6 +278,11 @@ initGameTypeVars()
             varDef("scr", "forcerespawn", "int", true, 0, -1, 60, "Force Respawn");
             varDef("scr", "spawn_delay_time", "int", true, 7, 1, 60, "Delayed Spawn Timer");
             varDef("scr", "playerRatio", "int", true, 1, 1, 10, "Axis to Allies Ratio");
+        case "hq":
+            if(!isDefined(level.wavetime))
+                level.wavetime = varDef("scr", "wavetimer", "int", true,
+                                    60, 3, 120, "Wave Timer", maps\mp\uox\_uox_respawns::updateWaveTimer);
+            level.wavenumber = 0;
             break;
 	}
 	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);

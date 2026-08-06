@@ -360,7 +360,7 @@ bomb_think(bomb)
 					"shader", "ui_mp/assets/hud@defusebomb.tga", iconOptions);			
 			}
 			
-			other maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
+			other maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
 				::defusing, ::defuseBomb, ::check_bomb, true, true, true, self, "MP_bomb_defuse");
 			
 		}

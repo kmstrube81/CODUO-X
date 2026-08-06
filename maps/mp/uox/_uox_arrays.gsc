@@ -708,3 +708,26 @@ getNextKey(arr, startIndex)
 			return undefined;
 	}
 }
+
+/* *************************************************************************************************
+**** randomizeArray(array arr)
+****
+**** returns an array with the numeric indexes randomized
+****  
+************************************************************************************************* */
+randomizeArray(arr)
+{
+    if(isSuperArray(arr))
+    {
+        return arr;
+    }
+    for (i=0; i<arr.size; i++) //walk trhough 
+	{
+		rand = randomint(arr.size);
+    	temp = arr[i];
+    	arr[i] = arr[rand];
+    	arr[rand] = temp;
+	}
+    return arr;
+}
+

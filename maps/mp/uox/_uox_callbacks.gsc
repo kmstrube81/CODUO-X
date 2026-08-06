@@ -441,7 +441,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		{
             self.dontmove = true;
 			doKillcam = false;
-            if([[level.getVars]]("scr_respawn_mode") == "bel")
+            if(level.respawn_mode == "bel")
             {
                 if(self.pers["team"] == "allies")
                     self thread maps\mp\uox\_uox::moveTeams();
@@ -456,7 +456,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattackguid = attacker getGuid();
 		lpattackname = attacker.name;
 		level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
-        if([[level.getVars]]("scr_respawn_mode") == "bel")
+        if(level.respawn_mode == "bel")
         {
             if(self.pers["team"] == "allies" && attacker != self) //killed an allied player
             {
@@ -480,7 +480,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattackname = "";
 		lpattackerteam = "world";
 
-        if([[level.getVars]]("scr_respawn_mode") == "bel")
+        if(level.respawn_mode == "bel")
         {
             if(self.pers["team"] == "allies")
                 self thread maps\mp\uox\_uox::moveTeams();
@@ -507,6 +507,16 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	//immediately deduct life when its your last one
 	if(isDefined(self.lives) && self.lives == 0)
 		self.lives--;
+
+    if(level.respawn_mode == "hq")
+    {
+        (level.counter <= 2) //if killed in the last 2 seconds of the wave
+        self.freerespawn = true;
+        //mark which wave you are a part of
+        if(isDefined(level.wavenumber))
+            self.wavenumber = level.wavenumber;
+    }
+    
 	maps\mp\uox\_uox::updateTeamStatus();
 
 	delay = 2;	// Delay the player becoming a spectator till after he's done dying

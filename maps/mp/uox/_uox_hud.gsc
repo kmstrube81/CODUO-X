@@ -294,7 +294,13 @@ animateClientHUDElement(name, type, options, time)
 		return;
 	if(!isDefined(time))
 		time = 0;
-	//process options
+
+	animateHUDElement(element, type, options, time);
+}
+
+animateHUDElement(element, type, options, time)
+{
+    //process options
 	if(isDefined(options))
 	{
 		if(isDefined(options["x"]))
@@ -444,6 +450,70 @@ updateHUDElement(element, type, value, options)
 	if(!isDefined(element))
 	{
 		element = newHudElem();
+	}
+	
+	//process options
+	if(isDefined(options))
+	{
+		if(isDefined(options["x"]))
+			element.x = options["x"];
+		if(isDefined(options["y"]))
+			element.y = options["y"];
+		if(isDefined(options["alignX"]))
+			element.alignX = options["alignX"];
+		if(isDefined(options["alignY"]))
+			element.alignY = options["alignY"];
+		if(isDefined(options["font"]))
+			element.font = options["font"];
+		if(isDefined(options["color"]))
+			element.color = options["color"];
+		if(isDefined(options["fontscale"]))
+			element.fontscale = options["fontscale"];
+		if(isDefined(options["alpha"]))
+			element.alpha = options["alpha"];
+		if(isDefined(options["width"]))
+			width = options["width"];
+		else
+			width = 16;
+		if(isDefined(options["height"]))
+			height = options["height"];
+		else
+			height = 16;
+        if(isDefined(options["label"]))
+            element.label = options["label"];
+	}
+	
+	//set value
+	switch(type)
+	{
+		case "timer":
+			element setTimer(value);
+			break;
+        case "tenthsTimer":
+            element setTenthsTimer(value);
+            break;
+        case "timerUp":
+            element setTimerUp(value);
+            break;
+		case "number":
+			element setValue(value);
+			break;
+		case "shader":
+			element setShader(value, width, height);
+			break;
+		default:
+			element setText(value);
+	}
+	
+	return element;
+}
+
+updateTeamHUDElement(element, team, type, value, options)
+{
+	//create element if it doesn't exist
+	if(!isDefined(element))
+	{
+		element = newTeamHudElem(team);
 	}
 	
 	//process options
@@ -705,7 +775,7 @@ deleteHUDSecondaryBombClock()
 	level.secondBombClock = deleteHUDElement(level.secondBombClock);
 }
 
-createClientHUDProgressBar(timer)
+createClientHUDProgressBar(timer, text, time)
 {
 	barsize = 288;
 		
@@ -734,29 +804,146 @@ createClientHUDProgressBar(timer)
 	barOptions["height"] = 8;
 	barOptions["width"] = 0;
 	
-	barAnimOptions = [];
-	barAnimOptions["height"] = 8;
-	barAnimOptions["width"] = barsize;
-	
 	//test if element already exists, don't spam hud updates
-	if(!isDefined(self maps\mp\uox\_uox_hud::getClientHUDElement("progressbackground")))
-		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbackground",
+	if(!isDefined(self getClientHUDElement("progressbackground")))
+		self updateClientHUDElement("progressbackground",
 			"shader", "black", backgroundOptions);
 
 	//test if element already exists, don't spam hud updates
-	if(!isDefined(self maps\mp\uox\_uox_hud::getClientHUDElement("progressbar")))
-		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbar",
+	if(!isDefined(self getClientHUDElement("progressbar")))
+		self updateClientHUDElement("progressbar",
 			"shader", "white", barOptions);
 			
+    //if text exists, add it to the progress bar
+    if(isDefined(text))
+    {
+        textOptions = [];
+        textOptions["alignX"] = "center";
+        textOptions["alignY"] = "middle";
+        textOptions["x"] = 320;
+        textOptions["y"] = 384;
+        textOptions["fontscale"] = 0.8;
+        textOptions["color"] = (.5,.5,.5);
 
-	self maps\mp\uox\_uox_hud::animateClientHUDElement("progressbar", "scaleShader",
-		barAnimOptions, timer);
+        if(!isDefined(self getClientHUDElement("progresstext")))
+		self updateClientHUDElement("progresstext",
+			"text", text, textOptions);
+    }
+
+    if(isDefined(time))
+    {
+        if(time > timer)
+            time = timer;
+        barOptions["width"] = (barsize * time/timer);
+        self updateClientHUDElement("progressbar",
+			"shader", "white", barOptions);
+    }
+    else
+    {
+        barAnimOptions = [];
+    	barAnimOptions["height"] = 8;
+    	barAnimOptions["width"] = barsize;
+        self maps\mp\uox\_uox_hud::animateClientHUDElement("progressbar", "scaleShader",
+            barAnimOptions, timer);
+    }
+}
+
+createTeamHUDProgressBar(elem, team, timer, text, time)
+{
+
+    if(!isDefined(elem))
+    {
+        elem = [];
+    }
+	barsize = 288;
+		
+	iconOptions = [];
+	iconOptions["alignX"] = "center";
+	iconOptions["alignY"] = "middle";
+	iconOptions["x"] = 320;
+	iconOptions["y"] = 400;
+	iconOptions["width"] = 64;
+	iconOptions["height"] = 64;
+	
+	backgroundOptions = [];
+	backgroundOptions["alignX"] = "center";
+	backgroundOptions["alignY"] = "middle";
+	backgroundOptions["x"] = 320;
+	backgroundOptions["y"] = 400;
+	backgroundOptions["alpha"] = 0.5;
+	backgroundOptions["height"] = 12;
+	backgroundOptions["width"] = (barsize + 4);
+	
+	barOptions = [];
+	barOptions["alignX"] = "left";
+	barOptions["alignY"] = "middle";
+	barOptions["x"] = (320 - (barsize / 2.0));
+	barOptions["y"] = 400;
+    barOptions["color"] = (0.8, 0, 0);
+	barOptions["height"] = 8;
+	barOptions["width"] = 0;
+	
+	//test if element already exists, don't spam hud updates
+	if(!isDefined(elem[0]))
+		elem[0] = updateTeamHUDElement(elem[0], team,
+			"shader", "black", backgroundOptions);
+
+	//test if element already exists, don't spam hud updates
+	if(!isDefined(elem[1]))
+		elem[1] = updateTeamHUDElement(elem[1], team,
+			"shader", "white", barOptions);
+			
+    //if text exists, add it to the progress bar
+    if(isDefined(text))
+    {
+        textOptions = [];
+        textOptions["alignX"] = "center";
+        textOptions["alignY"] = "middle";
+        textOptions["x"] = 320;
+        textOptions["y"] = 399;
+        textOptions["fontscale"] = 0.8;
+        textOptions["color"] = (.5,.5,.5);
+
+        if(!isDefined(elem[2]))
+		elem[2] = updateTeamHUDElement(elem[2], team,
+			"text", text, textOptions);
+    }
+
+    if(isDefined(time))
+    {
+        if(time > timer)
+            time = timer;
+        barOptions["width"] = (barsize * time/timer);
+        elem[1] = updateTeamHUDElement(elem[1], team
+			"shader", "white", barOptions);
+    }
+    else
+    {
+        barAnimOptions = [];
+    	barAnimOptions["height"] = 8;
+    	barAnimOptions["width"] = barsize;
+        maps\mp\uox\_uox_hud::animateHUDElement(elem[1], "scaleShader",
+            barAnimOptions, timer);
+    }
+    return elem;
 }
 
 deleteClientHUDProgressBar()
 {
 	self deleteClientHUDElement("progressbackground");
 	self deleteClientHUDElement("progressbar");
+    self deleteClientHUDElement("progresstext");
+}
+
+deleteTeamHUDProgressBar(element)
+{
+    for(i = 0; i < element.size; i++ )
+    {
+        if(isDefined(element[i]))
+            element[i] destroy();
+        element[i] = undefined;
+    }
+    element = undefined;
 }
 
 updateServerScoreboard()
@@ -1746,3 +1933,60 @@ updateScoreboard()
 			return;
 	}
 }
+
+/* **************************************************************************************************
+**** hq_reinforcement_hud()
+****
+**** runs the wave timer for scoring and hq respawning
+****
+*************************************************************************************************** */
+createWaveTimerHUD()
+{
+    if(isDefined(level.reinforcement_hud_bgnd) && isDefined(level.reinforcement_hud))
+        return;
+
+    options = [];
+    options["archived"] = false;
+    options["alpha"] = 0.4;
+    options["x"] = 495;
+    options["y"] = 410;
+    options["sort"] = -1;
+	level.reinforcement_hud_bgnd = updateHUDElement(level.reinforcement_hud_bgnd, "shader", "black", options);
+	
+    options = [];
+    options["archived"] = false;
+    options["alignX"] = "left";
+    options["alignY"] = "top";
+    options["x"] = 497;
+    options["y"] = 411;
+    options["color"] = (1, 1, 1);
+    if(level.respawn_mode == "hq")
+        options["label"] = &"HQ_REINFORCEMENTS_HUD";
+    else
+        options["label"] = &"Radio Timer:"
+	level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+}
+
+tickWaveTimerHUD()
+{
+		
+    if (level.wavecounter <= 10) // if less than 10 seconds on the timer
+    {
+        options = [];
+        options["color"] = (1, 0, 0);
+        level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+    }
+    else
+    {
+        options = [];
+        options["color"] = (1, 1, 1);
+        level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+    }
+}
+
+deleteWaveTimerHUD()
+{
+    level.reinforcement_hud_bgnd = deleteHUDElement(level.reinforcement_hud_bgnd);
+    level.reinforcement_hud = deleteHUDElement(level.reinforcement_hud);
+}
+

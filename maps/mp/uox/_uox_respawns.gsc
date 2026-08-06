@@ -334,7 +334,107 @@ getMidRoundLives()
 
 respawn_hq()
 {
-	return;
+	self endon("end_respawn");//kill current respawn if this notifies
+	
+	currentorigin = self.origin; //set spectate location
+	currentangles = self.angles;
+	self spawnSpectator(currentorigin + (0, 0, 60), currentangles);
+	
+	if ( (level.graceperiod) && (self.deaths == 0) ) //skip wait if graceperiod is active
+		instant = "instant";
+	if ( self.pers["team"] != level.defenseTeam ) //skip wait if not on defense
+        instant = "instant";
+    if ( self.wavenumber < level.wavenumber) //skip wait if killed during previous wave
+        instant = "instant";
+
+	if (isdefined (instant)) //if wait was skipped
+	{
+		//self.wavespawner = true; //mark that the player got spawned in this wave
+		//self thread respawn_hq_wavespawner_flag_remove(); 
+		//if (isdefined (self.ignoretimer)) //remove ignore timer flag
+		//	self.ignoretimer = undefined;
+		self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg"); //delete the respawn timer
+		self thread spawnPlayer(); //spawn in
+		return; //end respawn
+	}
+
+    //if not allowed to spawn instantly, need to wait for a wave event, either the attackers acheived their goal or defense defended for long enough
+	//draw spawn msg
+    options = [];
+    options["alignX"] = "center";
+    options["alignY"] = "middle";
+    options["x"] = 320;
+    options["y"] = 150;
+    options["archived"] = false;
+    self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "text", &"HQ_REINFORCEMENTS", options);
+
+    level waittill("hq_reinforcements");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
+    if(isDefined(self.freerespawn))
+    {
+        self.freerespawn = undefined;
+        self thread spawnPlayer(true);
+    }
+    else
+        thread spawnPlayer();
+	/*self.respawnwait = true; //mark player as waiting for respawn
+	
+	if ( (!isdefined (self.ignoretimer)) || ( (isdefined (self.ignoretimer)) && (self.ignoretimer == false) ) ) //if ignore timer wasn't set
+	{
+		if ( (level.counter > 0) && (!isdefined (self.freerespawn)) ) //the next wave hasn't ended
+		{
+			if (!isdefined (self.respawntimer)) //make the timer if it doesn't exist
+			{
+				self.respawntimer = newClientHudElem(self);
+				self.respawntimer.alignX = "center";
+				self.respawntimer.alignY = "middle";
+				self.respawntimer.x = 320;
+				self.respawntimer.y = 150;
+				self.respawntimer.archived = false;
+				self.respawntimer.label = (&"HQ_REINFORCEMENTS");
+				self.respawntimer setTimer (level.counter);
+			}
+			
+			if ( (!isdefined (self.respawnwait)) || ( (isdefined (self.respawnwait)) && (self.respawnwait == false) ) ) //if somehow the player got marked as not waiting for spawn
+				return; //abort respawn
+			level waittill ("timer tick"); //wait until the next timer tick
+			if (isdefined (self.respawntimer)) //if the timer has already been set
+			{
+				if (level.counter > 1) //and there is more than one second left
+					self.respawntimer setTimer (level.counter); //set timer
+				else //other wise put one second on the clock
+					self.respawntimer setTimer (1);
+			}
+			
+			self.spawnwait = level.spawnframe;
+			level.spawnframe++;
+			wait level.counter;
+						
+			if ( (!isdefined (self.respawnwait)) || ( (isdefined (self.respawnwait)) && (self.respawnwait == false) ) )
+				return;
+			
+			if (isdefined (self.respawntimer))
+				self.respawntimer destroy();
+		}
+		self.wavespawner = true;
+		self thread hq_wavespawner_flag_remove();
+	}
+	
+	if (isdefined (self.ignoretimer))
+		self.ignoretimer = undefined;
+	
+	if (!isdefined (self.freerespawn))
+	{
+		if (isdefined (self.spawnwait))
+		{
+			wait (0.05 * self.spawnwait);
+			self.spawnwait = undefined;
+		}
+		self thread spawnPlayer();
+	}
+	else
+		self thread spawnPlayer(true);
+    */
 }
 
 respawn_bel()
@@ -380,7 +480,7 @@ respawn_bel()
 getRespawnMode()
 {
 	gt = level.gametype;
-	respawn_mode_override = [[level.getVars]]("scr_respawn_mode");
+	respawn_mode_override = level.respawn_mode;
 	
 	switch(respawn_mode_override)
 	{
@@ -532,7 +632,7 @@ spawnPlayer(farthest)
 	self.maxhealth = 100;
 	self.health = self.maxhealth;
 		
-	if([[level.getVars]]("scr_respawn_mode") == "obj")
+	if(level.respawn_mode == "obj")
 	{
 		if(!isDefined(self.lives))
 		{
@@ -623,7 +723,7 @@ getSpawn(gt, farthest)
 		case "near_team":
 		case "random":
 		case "middle":
-		case "near_team_hq":
+		case "hq":
 		case "farthest":
 			spawn_type = spawn_type_override;
 			break;
@@ -789,7 +889,7 @@ getSpawn(gt, farthest)
 		case "middle":
 			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_MiddleThird(spawnpoints);
 			break;
-		case "near_team_hq":
+		case "hq":
 			if (isdefined (farthest))
 				spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Farthest(spawnpoints);
 			else
@@ -818,7 +918,7 @@ getDefaultSpawnType(gt)
 		case "bel":
 			return "middle";
 		case "hq":
-			return "near_team_hq";
+			return "hq";
 		case "sd":
 		case "re":
 			return "random";
@@ -1087,5 +1187,48 @@ halftimeSpawn()
 
 	if (isdefined(self.pers["weapon"]) )
 		spawnPlayer();
+}
+
+/* **************************************************************************************************
+**** updateWaveTimer(timer)
+****
+**** var callback
+**** updates the radio time
+****
+*************************************************************************************************** */
+updateWaveTimer(timer)
+{
+	level.wavetime = timer;
+    level.reinforcement_time = level.wavetime;
+    level.wavecounter = timer;
+
+    maps\mp\uox\_uox_loops::addToLoop(level, "slow", :tickWaveTimer, "tickWaveTimer");
+}
+
+tickWaveTimer()
+{
+    if(!level.mapended || !level.roundended)
+    {
+        maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "tickWaveTimer");
+        return;
+    }
+
+    level.wavecounter--; //remove a second from the timer
+    maps/mp/uox/_uox_hud::tickWaveTimerHUD();
+    if (level.wavecounter >= 0) //loop until counter is 0
+    {
+        if ( (level.wavecounter == 15) && (level.teambalance > 0) ) //start team balancing with less than 15 secondsd on the timer
+        {
+            level.checkteambalance = false; //set teambalance flag to false
+            level thread maps\mp\gametypes\_teams::TeamBalance_Check(); //check for balanced teams
+        }
+    }
+    else
+    {
+        level.wavecounter = level.wavetime;
+        level notify("wave timer finished");
+        level notify("hq_reinforcements");
+        level.wavenumber++;
+    }
 }
 
