@@ -914,7 +914,7 @@ createTeamHUDProgressBar(elem, team, timer, text, time)
         if(time > timer)
             time = timer;
         barOptions["width"] = (barsize * time/timer);
-        elem[1] = updateTeamHUDElement(elem[1], team
+        elem[1] = updateTeamHUDElement(elem[1], team,
 			"shader", "white", barOptions);
     }
     else
