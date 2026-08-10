@@ -1963,7 +1963,7 @@ createWaveTimerHUD()
     if(level.respawn_mode == "hq")
         options["label"] = &"HQ_REINFORCEMENTS_HUD";
     else
-        options["label"] = &"Radio Timer:"
+        options["label"] = &"Radio Timer:";
 	level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
 }
 
