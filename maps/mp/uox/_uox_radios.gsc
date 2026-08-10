@@ -17,6 +17,7 @@ precache()
 	precacheString(&"HQ_PRESS_ACTIVATE_TO_SKIP");
 	precacheString(&"HQ_MAXHOLDTIME_ALLIES");
 	precacheString(&"HQ_MAXHOLDTIME_AXIS");
+    precacheString(&"Radio Timer:");
 	precacheShader("gfx/hud/hud@objective_bel.tga");
 	precacheShader("gfx/hud/hud@objective_bel_up.tga");
 	precacheShader("gfx/hud/hud@objective_bel_down.tga");
