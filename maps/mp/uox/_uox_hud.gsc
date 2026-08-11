@@ -300,6 +300,12 @@ animateClientHUDElement(name, type, options, time)
 
 animateHUDElement(element, type, options, time)
 {
+    if(!isDefined(element)) //nothing to animate if no hudelement exists
+		return;
+	
+	if(!isDefined(time))
+		time = 0;
+
     //process options
 	if(isDefined(options))
 	{
@@ -580,48 +586,6 @@ deleteHUDElement(element)
 	element = undefined;
 	
 	return element;
-}
-
-animateHUDElement(element, type, options, time)
-{
-	if(!isDefined(element)) //nothing to animate if no hudelement exists
-		return;
-	
-	if(!isDefined(time))
-		time = 0;
-
-	//process options
-	if(isDefined(options))
-	{
-		if(isDefined(options["x"]))
-			x = options["x"];
-		if(isDefined(options["y"]))
-			y = options["y"];
-		
-		if(isDefined(options["color"]))
-			color = options["color"];
-		if(isDefined(options["fontscale"]))
-			fontscale = options["fontscale"];
-		if(isDefined(options["alpha"]))
-			alpha = options["alpha"];
-		if(isDefined(options["width"]))
-			width = options["width"];
-		else width = 16;
-		if(isDefined(options["height"]))
-			height = options["height"];
-		else height = 16;
-	}
-	
-	if(time <= 0) //if no timer, nothing to animate
-		return;
-		
-	//do animation
-	switch(type)
-	{
-		case "scaleShader":
-			element scaleOverTime(time, width, height);
-			break;
-	}
 }
 
 /* ****************************************************************************************************
