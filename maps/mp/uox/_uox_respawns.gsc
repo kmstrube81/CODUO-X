@@ -1214,7 +1214,7 @@ tickWaveTimer()
     }
 
     level.wavecounter--; //remove a second from the timer
-    maps/mp/uox/_uox_hud::tickWaveTimerHUD();
+    maps\mp\uox\_uox_hud::tickWaveTimerHUD();
     if (level.wavecounter >= 0) //loop until counter is 0
     {
         if ( (level.wavecounter == 15) && (level.teambalance > 0) ) //start team balancing with less than 15 secondsd on the timer
