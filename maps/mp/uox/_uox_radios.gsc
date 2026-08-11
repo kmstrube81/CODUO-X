@@ -538,7 +538,7 @@ hq_removhudelem_allplayers(radio)
 	for(i = 0; i < players.size; i++) //walk players
 	{
         player = players[i];
-		if (!isdefined (player) //skip undefined players, could happen if a player disconnects inbetween server frames
+		if (!isdefined (player)) //skip undefined players, could happen if a player disconnects inbetween server frames
 			continue;
 		player maps\mp\uox\_uox_hud::deleteClientHUDElement("radio_icon"); //destroy the radio icon
         player maps\mp\uox\_uox_hud::deleteClientHUDProgressBar(); //destroy the progress bar
