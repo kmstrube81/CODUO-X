@@ -34,7 +34,7 @@ varDef(prefix, varname, type, shouldMonitor, defValue, minVal, maxVal, hrName, c
 	var["callback"] = callback;
 
     if(isdefined(var["callback"]))
-        ::var["callback"](var["value"]);
+        [[var["callback"]]](var["value"]);
 	
 	level.vars = maps\mp\uox\_uox_arrays::arrayPush(level.vars, var, cvarname);
 	return value;
