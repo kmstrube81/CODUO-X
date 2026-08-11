@@ -2895,7 +2895,11 @@ updateBattleRank(battlerank)
 		drawfriend = [[level.getVars]]("scr_drawfriend");
 	else
 		drawfriend = false;
-	
+
+    //if drawfriend hasn't been defined, abort
+    if(!isdefined(drawfriend)) 
+        return;
+    
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
 	{	//if rank change check is not in loop, add it
@@ -2980,9 +2984,12 @@ updateDrawFriend(drawfriend)
 		return;
 	else
 		battlerank = [[level.getVars]]("scr_battlerank");
-	
+    
 	level.drawfriend = drawfriend;
 	
+    if(!isdefined(battlerank)) 
+        return;
+
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
 	{
