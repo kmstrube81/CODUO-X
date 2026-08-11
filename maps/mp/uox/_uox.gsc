@@ -2798,20 +2798,23 @@ updateTimeLimit(timer)
 {
 	gt = level.gametype;
 	setCvar("ui_" + gt + "_timelimit", timer);
+    roundlimit = [[level.getVars]]("scr_roundlimit");
+    if(!isDefined(roundlimit))
+        return;
 	game["timepassed"] = 0;
 	if(timer > 0)
 	{
 		//int game timer [[level.getVars]]("scr_timelimit") is in minutes, so is game["timepassed"] convert to seconds; 
 		//subtract timed pass from time limit to get correct time instead of re-initing the timer after
 		gameTimer = (timer * 60) - (game["timepassed"] * 60); //each round
-		if([[level.getVars]]("scr_roundlimit") == 1) //if game is a single round, set game clock in bottom center
+		if(roundlimit == 1) //if game is a single round, set game clock in bottom center
 			maps\mp\uox\_uox_hud::updateHUDMainClock(gameTimer);
 		else //if game will last multiple rounds then set game clock above the compass
 			maps\mp\uox\_uox_hud::updateHUDCompassClock(gameTimer);
 	}
 	else
 	{
-		if([[level.getVars]]("scr_roundlimit") == 1) //if game is a single round, set game clock in bottom center
+		if(roundlimit == 1) //if game is a single round, set game clock in bottom center
 			maps\mp\uox\_uox_hud::deleteHUDMainClock();
 		else //if game will last multiple rounds then set game clock above the compass
 			maps\mp\uox\_uox_hud::deleteHUDCompassClock();
@@ -2833,9 +2836,7 @@ updateScoreLimit(scorelimit)
 	gt = level.gametype;
 	setCvar("ui_" + gt +"_scorelimit", scorelimit);
 
-	players = getentarray("player", "classname");
-	for(i = 0; i < players.size; i++)
-		players[i] maps\mp\uox\_uox::checkScoreLimit();
+	checkScoreLimit();
 }
 
 /* **************************************************************************************************
@@ -2847,9 +2848,14 @@ updateScoreLimit(scorelimit)
 *************************************************************************************************** */
 updateKillcam(enableKillcam)
 {
+    finalkillcam = [[level.getVars]]("scr_final_killcam");
+
+
 	if(enableKillcam)
 		setarchive(true);
-	else if([[level.getVars]]("scr_final_killcam"))
+    else if(!isdefined(finalkillcam))
+        return;
+	else if(finalkillcam)
 		setarchive(true);
 	else
 		setarchive(false);
