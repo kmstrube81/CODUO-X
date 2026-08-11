@@ -76,7 +76,7 @@ initVars()
 		10, 3, 20, "Radio Destroy Time");
     maps\mp\uox\_uox_vars::varDef("scr", "radiomaxhold", "int", true,
 		6, 1, 10, "Max Radio Holds");
-    level.wavetime = varDef("scr", "wavetimer", "int", true,
+    level.wavetime = maps\mp\uox\_uox_vars::varDef("scr", "wavetimer", "int", true,
                                     60, 3, 120, "Wave Timer", maps\mp\uox\_uox_respawns::updateWaveTimer);
 		
 	/* Radio Capture Bonus Points:
