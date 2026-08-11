@@ -510,7 +510,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
     if(level.respawn_mode == "hq")
     {
-        (level.counter <= 2) //if killed in the last 2 seconds of the wave
+        if(level.counter <= 2) //if killed in the last 2 seconds of the wave
         self.freerespawn = true;
         //mark which wave you are a part of
         if(isDefined(level.wavenumber))
