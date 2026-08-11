@@ -333,6 +333,7 @@ initGameTypeVars()
     		level.teambalance = varDef("scr", "teambalance", "bool", true,
     										true, undefined, undefined, "Team Balance", 
     										maps\mp\uox\_uox::updateTeamBalance);
+            maps\mp\uox\_uox::updateTeamBalance(level.teambalance);
     		if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
     			maps\mp\uox\_uox_loops::addToLoop(level, "slow",
     					maps\mp\uox\_uox::TeamBalance_Check(), "TeamBalance_Check");

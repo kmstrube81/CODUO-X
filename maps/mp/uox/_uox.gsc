@@ -2799,8 +2799,6 @@ updateTimeLimit(timer)
 	gt = level.gametype;
 	setCvar("ui_" + gt + "_timelimit", timer);
     roundlimit = [[level.getVars]]("scr_roundlimit");
-    if(!isDefined(roundlimit))
-        return;
 	game["timepassed"] = 0;
 	if(timer > 0)
 	{
@@ -2848,14 +2846,10 @@ updateScoreLimit(scorelimit)
 *************************************************************************************************** */
 updateKillcam(enableKillcam)
 {
-    finalkillcam = [[level.getVars]]("scr_final_killcam");
-
 
 	if(enableKillcam)
 		setarchive(true);
-    else if(!isdefined(finalkillcam))
-        return;
-	else if(finalkillcam)
+	else if([[level.getVars]]("scr_final_killcam"))
 		setarchive(true);
 	else
 		setarchive(false);
@@ -2901,10 +2895,6 @@ updateBattleRank(battlerank)
 		drawfriend = [[level.getVars]]("scr_drawfriend");
 	else
 		drawfriend = false;
-
-    //if drawfriend hasn't been defined, abort
-    if(!isdefined(drawfriend)) 
-        return;
     
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
@@ -2992,9 +2982,6 @@ updateDrawFriend(drawfriend)
 		battlerank = [[level.getVars]]("scr_battlerank");
     
 	level.drawfriend = drawfriend;
-	
-    if(!isdefined(battlerank)) 
-        return;
 
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
