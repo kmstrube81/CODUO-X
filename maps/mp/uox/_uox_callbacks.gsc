@@ -7,7 +7,11 @@ Callback_StartGameType()
 	level.gametype = getCvar("g_gametype");
 	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
-	
+
+    //init hud
+    maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
+	maps\mp\uox\_uox_hud::initServerHUD();
+
     //precache
     if(!isDefined(game["gamestarted"]))
 	{
@@ -128,9 +132,6 @@ Callback_StartGameType()
 		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
 	else
 		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
-						
-	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
-	maps\mp\uox\_uox_hud::initServerHUD();
 	
 	maps\mp\gametypes\_teams::modeltype();
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
