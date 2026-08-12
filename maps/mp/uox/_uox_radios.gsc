@@ -184,8 +184,8 @@ hq_obj_think(radio)
 			level maps\mp\uox\_uox::updateTeamStatus();
 		}
 		
-		if ( (isdefined (level.counter)) && (level.counter >= 0) ) //if a current objective counter still has time remaining
-			wait level.counter; //wait for counter to expire
+		if ( (isdefined (level.wavecounter)) && (level.wavecounter >= 0) ) //if a current objective counter still has time remaining
+			wait level.wavecounter; //wait for counter to expire
 		else //else if no current objective counter
 			wait level.RadioSpawnDelay; //wait the full spawn delay time
 		
