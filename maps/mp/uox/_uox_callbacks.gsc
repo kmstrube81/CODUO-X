@@ -8,57 +8,8 @@ Callback_StartGameType()
 	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
 	
-    //init objectives
-	maps\mp\uox\_uox::initObjectives(level.objective);
-	//init vars
-	maps\mp\uox\_uox_vars::initGameTypeVars();
-	maps\mp\gametypes\_teams::initGlobalCvars();
-	maps\mp\gametypes\_teams::initWeaponCvars();
-	
-    if(level.uox_teamplay) {
-        level.exist["allies"] = 0;
-        level.exist["axis"] = 0;
-        level.exist["teams"] = false;
-        level.didexist["allies"] = false;
-        level.didexist["axis"] = false;
-    }
-    else 
-    {
-        level.exist["2players"] = -1;
-        level.didexist["2players"] = false;
-    }
-	
-	level.roundstarted = false;
-	level.roundended = false;
-	level.mapended = false;
-	level.warmup = false;
-	level.doingReadyUp = false;
-	level.playersready = false;
-	level.playerLock = false;
-	level.lockteams = false;
-	level.healthqueue = [];
-	level.healthqueuecurrent = 0;
-	level.alliedscore = 0;
-	level.axisscore = 0;
-	level.defense_points = 0;
-	level.didFinalKillcam = false;
-	
-	if (!isdefined (game["BalanceTeamsNextRound"]))
-		game["BalanceTeamsNextRound"] = false;
-	
-	if([[level.getVars]]("scr_roundlimit") % 2)
-		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
-	else
-		level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
-	if([[level.getVars]]("scr_scorelimit") % 2)
-		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
-	else
-		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
-						
-	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
-	maps\mp\uox\_uox_hud::initServerHUD();
-		
-	if(!isDefined(game["gamestarted"]))
+    //precache
+    if(!isDefined(game["gamestarted"]))
 	{
 	
 		if(!isDefined(game["timepassed"]))
@@ -130,6 +81,56 @@ Callback_StartGameType()
 		maps\mp\gametypes\_teams::precache();
 		maps\mp\gametypes\_teams::scoreboard();
 	}
+
+    //init objectives
+	maps\mp\uox\_uox::initObjectives(level.objective);
+	//init vars
+	maps\mp\uox\_uox_vars::initGameTypeVars();
+	maps\mp\gametypes\_teams::initGlobalCvars();
+	maps\mp\gametypes\_teams::initWeaponCvars();
+	
+    if(level.uox_teamplay) {
+        level.exist["allies"] = 0;
+        level.exist["axis"] = 0;
+        level.exist["teams"] = false;
+        level.didexist["allies"] = false;
+        level.didexist["axis"] = false;
+    }
+    else 
+    {
+        level.exist["2players"] = -1;
+        level.didexist["2players"] = false;
+    }
+	
+	level.roundstarted = false;
+	level.roundended = false;
+	level.mapended = false;
+	level.warmup = false;
+	level.doingReadyUp = false;
+	level.playersready = false;
+	level.playerLock = false;
+	level.lockteams = false;
+	level.healthqueue = [];
+	level.healthqueuecurrent = 0;
+	level.alliedscore = 0;
+	level.axisscore = 0;
+	level.defense_points = 0;
+	level.didFinalKillcam = false;
+	
+	if (!isdefined (game["BalanceTeamsNextRound"]))
+		game["BalanceTeamsNextRound"] = false;
+	
+	if([[level.getVars]]("scr_roundlimit") % 2)
+		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
+	else
+		level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
+	if([[level.getVars]]("scr_scorelimit") % 2)
+		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
+	else
+		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
+						
+	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
+	maps\mp\uox\_uox_hud::initServerHUD();
 	
 	maps\mp\gametypes\_teams::modeltype();
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
