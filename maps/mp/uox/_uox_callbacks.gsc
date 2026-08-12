@@ -82,6 +82,7 @@ Callback_StartGameType()
 		precacheItem("item_health");
 
 		maps\mp\gametypes\_teams::precache();
+        maps\mp\gametypes\_teams::modeltype();
 		maps\mp\gametypes\_teams::scoreboard();
 	}
 
@@ -135,7 +136,6 @@ Callback_StartGameType()
     //init objectives
 	maps\mp\uox\_uox::initObjectives(level.objective);
 	
-	maps\mp\gametypes\_teams::modeltype();
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
 	thread maps\mp\gametypes\_teams::updateGlobalCvars();
 	thread maps\mp\gametypes\_teams::updateWeaponCvars();
