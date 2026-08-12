@@ -282,6 +282,7 @@ initGameTypeVars()
             if(!isDefined(level.wavetime))
                 level.wavetime = varDef("scr", "wavetimer", "int", true,
                                     60, 3, 120, "Wave Timer", maps\mp\uox\_uox_respawns::updateWaveTimer);
+            level.defenseTeam = "none";
             level.wavenumber = 0;
             break;
 	}
