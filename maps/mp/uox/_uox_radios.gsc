@@ -128,7 +128,7 @@ hq_setup()
 		else
 			level.radio[i].radius = level.radio[i].script_radius; //else use preset radius
 
-        level.radio[i] maps\mp\uox\_uox_loops::initEntityLoop(); //spawn a loop for radio
+        level.radio[i] thread maps\mp\uox\_uox_loops::initEntityLoop(); //spawn a loop for radio
 		
 		maps\mp\uox\_uox_loops::addToLoop(level.radio[i], "fast", ::hq_radio_think, "hq_radio_think"); // add think thread to fast (every frame) loop.
 	}
