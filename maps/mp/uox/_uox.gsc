@@ -2520,7 +2520,7 @@ spectateObjectives(objective)
 	if(!isDefined(objective))
 		objective = "none";
 
-    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
+    self setObjectiveText(objective);
 
 	switch(objective)
 	{
@@ -2549,7 +2549,7 @@ playerSpawnObjectives(objective)
 	if(!isDefined(objective))
 		objective = "none";
 
-    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
+    self setObjectiveText(objective);
 
 	switch(objective)
 	{
@@ -2577,35 +2577,57 @@ getObjectiveText(objective)
 {
 	if(!isDefined(objective))
 		objective = "none";
+
+    array = [];
 	
 	switch(objective)
 	{
 		case "bomb":
 			if(game["attackers"] == "allies")
-				return &"SD_OBJ_SPECTATOR_ALLIESATTACKING";
+				array["text"] = &"SD_OBJ_SPECTATOR_ALLIESATTACKING";
 			else if(game["attackers"] == "axis")
-				return &"SD_OBJ_SPECTATOR_AXISATTACKING";
+				array["text"] = &"SD_OBJ_SPECTATOR_AXISATTACKING";
         case "bel":
             if(self.pers["team"] == "allies")
-                return &"BEL_OBJ_ALLIED";
+                array["text"] = &"BEL_OBJ_ALLIED";
             else if(self.pers["team"] == "axis")
-                return &"BEL_OBJ_AXIS";
+                array["text"] = &"BEL_OBJ_AXIS";
         case "radios":
-            return &"HQ_OBJ_TEXT" + [[level.getVars]]("scr_scorelimit");
+            array["text"] = &"HQ_OBJ_TEXT";
+            array["value"] = [[level.getVars]]("scr_scorelimit");
 		default:
 			if(level.uox_teamplay)
 			{
 				if(self.pers["team"] == "allies")
-					return &"TDM_KILL_AXIS_PLAYERS";
+					array["text"] = &"TDM_KILL_AXIS_PLAYERS";
 				else if(self.pers["team"] == "axis")
-					return &"TDM_KILL_ALLIED_PLAYERS";
+					array["text"] = &"TDM_KILL_ALLIED_PLAYERS";
 				else
-					return &"TDM_ALLIES_KILL_AXIS_PLAYERS";
+					array["text"] = &"TDM_ALLIES_KILL_AXIS_PLAYERS";
 			}
 			else
-				return &"DM_KILL_OTHER_PLAYERS";
+				array["text"] = &"DM_KILL_OTHER_PLAYERS";
 	}
-	return &"DM_KILL_OTHER_PLAYERS";
+	return array;
+}
+
+/* **************************************************************************************************
+**** setObjectiveText(objective)
+****
+**** sets client cvar for objective text for scoreboard
+****
+*************************************************************************************************** */
+setObjectiveText(objective)
+{
+    array = getObjectiveText(objective);
+
+    text = array["text"];
+    value = array["value"];
+
+    if(isDefined(value))
+        self setClientCvar("cg_objectiveText", text, value);
+    else
+        self setClientCvar("cg_objectiveText", text);
 }
 
 checkObjective()
