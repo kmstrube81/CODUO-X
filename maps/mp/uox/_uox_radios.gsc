@@ -11,6 +11,7 @@ precache()
 		game["radio_allies"] = "gfx/hud/hud@objective_american.tga";
 
 	precacheString(&"HQ_REINFORCEMENTS");
+    precacheString(&"HQ_REINFORCEMENTS_HUD");
 	precacheString(&"HQ_CAPTURNING_RADIO");
 	precacheString(&"HQ_DESTROYING_RADIO");
 	precacheString(&"HQ_LOSING_RADIO");
