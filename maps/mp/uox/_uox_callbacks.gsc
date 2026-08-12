@@ -85,8 +85,6 @@ Callback_StartGameType()
 		maps\mp\gametypes\_teams::scoreboard();
 	}
 
-    //init objectives
-	maps\mp\uox\_uox::initObjectives(level.objective);
 	//init vars
 	maps\mp\uox\_uox_vars::initGameTypeVars();
 	maps\mp\gametypes\_teams::initGlobalCvars();
@@ -133,6 +131,9 @@ Callback_StartGameType()
 		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
 	else
 		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
+
+    //init objectives
+	maps\mp\uox\_uox::initObjectives(level.objective);
 	
 	maps\mp\gametypes\_teams::modeltype();
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
