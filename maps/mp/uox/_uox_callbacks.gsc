@@ -8,9 +8,8 @@ Callback_StartGameType()
 	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
 
-    //init hud
+    //init battle rank
     maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
-	maps\mp\uox\_uox_hud::initServerHUD();
 
     //precache
     if(!isDefined(game["gamestarted"]))
@@ -92,6 +91,8 @@ Callback_StartGameType()
 	maps\mp\uox\_uox_vars::initGameTypeVars();
 	maps\mp\gametypes\_teams::initGlobalCvars();
 	maps\mp\gametypes\_teams::initWeaponCvars();
+    //init hud
+	maps\mp\uox\_uox_hud::initServerHUD();
 	
     if(level.uox_teamplay) {
         level.exist["allies"] = 0;
