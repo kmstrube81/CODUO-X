@@ -108,5 +108,5 @@ UOX_Main()
 	allowed[1] = "hq";
     maps\mp\gametypes\_gameobjects::main(allowed);
 	maps\mp\gametypes\_secondary_gmi::Initialize();
-    level.objective = "radios";
+    level.objective = "radio";
 }

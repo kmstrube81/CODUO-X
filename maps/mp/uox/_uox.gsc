@@ -2476,6 +2476,8 @@ precacheObjectives(objective)
         case "bel":
             maps\mp\uox\_uox_behindenemylines::precache();
             return;
+        case "radio":
+            maps\mp\uox\_uox_radios::precache();
 		default:
 			return;
 	}
@@ -2592,7 +2594,7 @@ getObjectiveText(objective)
                 array["text"] = &"BEL_OBJ_ALLIED";
             else if(self.pers["team"] == "axis")
                 array["text"] = &"BEL_OBJ_AXIS";
-        case "radios":
+        case "radio":
             array["text"] = &"HQ_OBJ_TEXT";
             array["value"] = [[level.getVars]]("scr_scorelimit");
 		default:
