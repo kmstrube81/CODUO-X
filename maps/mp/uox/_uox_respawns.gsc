@@ -344,7 +344,7 @@ respawn_hq()
 		instant = "instant";
 	if ( self.pers["team"] != level.defenseTeam ) //skip wait if not on defense
         instant = "instant";
-    if ( self.wavenumber < level.wavenumber) //skip wait if killed during previous wave
+    if ( isDefined(self.wavenumber) && self.wavenumber < level.wavenumber) //skip wait if killed during previous wave
         instant = "instant";
 
 	if (isdefined (instant)) //if wait was skipped
