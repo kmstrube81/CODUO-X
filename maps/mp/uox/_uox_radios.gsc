@@ -314,7 +314,7 @@ hq_radio_think()
                     if ( (level.captured_radios["allies"] > 0) && (self.team != "none") ) //if a radio is already captured and this radio is not neutral, (dont see how this is ever true)
                         level hq_radio_capture(self, "none"); //set radio to neutral
                     else if (level.captured_radios["allies"] <= 0) //if no radios have been captured
-                        level hq_radio_capture(radio, "allies"); //set radio to allies
+                        level hq_radio_capture(self, "allies"); //set radio to allies
                 }
             }
             else if ( (self.axis > 0) && (self.allies <= 0) && (self.team != "axis") ) //else if axis are on site and there are no allies and radio is not captured by axis
@@ -323,9 +323,9 @@ hq_radio_think()
                 if (self.holdtime_axis >= 250)
                 {
                     if ( (level.captured_radios["axis"] > 0) && (self.team != "none") )
-                        level hq_radio_capture(radio, "none");
+                        level hq_radio_capture(self, "none");
                     else if (level.captured_radios["axis"] <= 0)
-                        level hq_radio_capture(radio, "axis");
+                        level hq_radio_capture(self, "axis");
                 }
             }
             else //reset counters if point is contested 
