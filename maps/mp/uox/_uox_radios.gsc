@@ -248,8 +248,8 @@ hq_radio_think()
                 	iconOptions["width"] = 40;
                 	iconOptions["height"] = 32;
                     //test if element already exists, don't spam hud updates
-        			if(!isDefined(other maps\mp\uox\_uox_hud::getClientHUDElement("radio_icon")))
-        				other maps\mp\uox\_uox_hud::updateClientHUDElement("radio_icon", "shader",
+        			if(!isDefined(player maps\mp\uox\_uox_hud::getClientHUDElement("radio_icon")))
+        				player maps\mp\uox\_uox_hud::updateClientHUDElement("radio_icon", "shader",
         					"gfx/hud/hud@field_radio.tga", iconOptions);
                     
                     if ( (level.captured_radios[player.pers["team"]] <= 0) && (self.team == "none") ) //if no radios are currently captured
