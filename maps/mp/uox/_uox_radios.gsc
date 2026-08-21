@@ -64,7 +64,6 @@ initVars()
 
 	level.RadioSpawnDelay = 30;
 	level.radioradius = 120;
-	level.wavetime = 45;
 	level.respawngracetime = 5;
 	level.RadioMaxHold = 6;
 	level.timesCaptured = 0;
