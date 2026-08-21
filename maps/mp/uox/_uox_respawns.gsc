@@ -1207,6 +1207,7 @@ updateWaveTimer(timer)
 
 tickWaveTimer()
 {
+    maps\mp\uox\_uox_debug::debugLog("info", "tickWaveTimer level.wavecounter=" + level.wavecounter);
     if(level.mapended || level.roundended)
     {
         maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "tickWaveTimer");

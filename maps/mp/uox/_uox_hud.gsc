@@ -1915,6 +1915,8 @@ createWaveTimerHUD()
     options["x"] = 495;
     options["y"] = 410;
     options["sort"] = -1;
+    options["width"] = 135;
+    options["height"] = 15;
 	level.reinforcement_hud_bgnd = updateHUDElement(level.reinforcement_hud_bgnd, "shader", "black", options);
 	
     options = [];

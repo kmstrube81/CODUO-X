@@ -79,7 +79,9 @@ initVars()
 		10, 3, 20, "Radio Destroy Time");
     maps\mp\uox\_uox_vars::varDef("scr", "radiomaxhold", "int", true,
 		6, 1, 10, "Max Radio Holds");
-    level.wavetime = maps\mp\uox\_uox_vars::varDef("scr", "wavetimer", "int", true,
+
+    if(!isDefined(level.wavetime))
+        level.wavetime = maps\mp\uox\_uox_vars::varDef("scr", "wavetimer", "int", true,
                                     60, 3, 120, "Wave Timer", maps\mp\uox\_uox_respawns::updateWaveTimer);
 		
 	/* Radio Capture Bonus Points:
@@ -140,6 +142,7 @@ hq_setup()
 	
 	level thread hq_obj_think(); //start game logic
 
+    level maps\mp\uox\_uox_respawns::updateWaveTimer(level.wavetime);
     maps\mp\uox\_uox_hud::createWaveTimerHUD(); //create HQ hud
 	thread hq_wave_timer(); //start HQ wave timer
 }
