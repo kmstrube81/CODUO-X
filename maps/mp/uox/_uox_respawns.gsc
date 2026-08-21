@@ -1198,6 +1198,7 @@ halftimeSpawn()
 *************************************************************************************************** */
 updateWaveTimer(timer)
 {
+    maps\mp\uox\_uox_debug::debugLog("info", "updateWaveTimer level.wavecounter=" + timer);
 	level.wavetime = timer;
     level.reinforcement_time = level.wavetime;
     level.wavecounter = timer;
@@ -1210,6 +1211,7 @@ tickWaveTimer()
     maps\mp\uox\_uox_debug::debugLog("info", "tickWaveTimer level.wavecounter=" + level.wavecounter);
     if(level.mapended || level.roundended)
     {
+        maps\mp\uox\_uox_debug::debugLog("info", "cancel wave timer" + level.wavecounter);
         maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "tickWaveTimer");
         return;
     }
