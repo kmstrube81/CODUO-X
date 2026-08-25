@@ -12,6 +12,8 @@ precache()
 
     precacheShader("gfx/hud/hud@field_radio.tga");
 
+    level._effect["radioexplosion"] = loadfx("fx/explosions/grenade1.efx");
+
     game["radioTimerText"] = &"Radio Timer";
     game["nextRadioText"] = &"Next Radio";
 
@@ -651,8 +653,6 @@ hq_wave_timer()
 	//because the current wave needs to abort when a timer is create, can't use the loop manager
 	if (!level.mapended && !level.roundended) //check as long as the match is going
 	{	
-        //restart wait for next timer
-        level thread hq_wave_timer();
 		//after timer has expired
 		if (level.captured_radios["axis"] > 0) //if axis has a radio
 		{
@@ -677,6 +677,8 @@ hq_wave_timer()
 			}
 		}
 		level.spawnframe = 0; //set spawn frame to 0;
+        //restart wait for next timer
+        level thread hq_wave_timer();
 	}
 }
 
