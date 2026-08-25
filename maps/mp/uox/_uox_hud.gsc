@@ -1931,7 +1931,7 @@ createWaveTimerHUD(msg)
     options["x"] = 497;
     options["y"] = 411;
     options["color"] = (1, 1, 1);
-    if(level.respawn_mode != "hq")
+    if(level.respawn_mode != "hq" && level.objective == "radio")
         options["label"] = &"Radio Timer:";
     else
         options["label"] = msg;
