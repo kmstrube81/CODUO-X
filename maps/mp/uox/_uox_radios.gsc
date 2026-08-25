@@ -12,6 +12,9 @@ precache()
 
     precacheShader("gfx/hud/hud@field_radio.tga");
 
+    game["radioTimerText"] = &"Radio Timer";
+    game["nextRadioText"] = &"Next Radio";
+
 	precacheString(&"HQ_REINFORCEMENTS");
     precacheString(&"HQ_REINFORCEMENTS_HUD");
 	precacheString(&"HQ_CAPTURNING_RADIO");
@@ -20,7 +23,7 @@ precache()
 	precacheString(&"HQ_PRESS_ACTIVATE_TO_SKIP");
 	precacheString(&"HQ_MAXHOLDTIME_ALLIES");
 	precacheString(&"HQ_MAXHOLDTIME_AXIS");
-    precacheString(&"Radio Timer:");
+    precacheString(&"Radio Timer");
 	precacheShader("gfx/hud/hud@objective_bel.tga");
 	precacheShader("gfx/hud/hud@objective_bel_up.tga");
 	precacheShader("gfx/hud/hud@objective_bel_down.tga");
@@ -142,7 +145,6 @@ hq_setup()
 	level thread hq_obj_think(); //start game logic
 
     level maps\mp\uox\_uox_respawns::updateWaveTimer(level.wavetime);
-    maps\mp\uox\_uox_hud::createWaveTimerHUD(); //create HQ hud
 	thread hq_wave_timer(); //start HQ wave timer
 }
 
@@ -187,6 +189,8 @@ hq_obj_think(radio)
 			wait 2;
 			level maps\mp\uox\_uox::updateTeamStatus();
 		}
+
+        maps\mp\uox\_uox_hud::createWaveTimerHUD(game["nextRadioText"]); //create HQ hud
 		
 		if ( (isdefined (level.wavecounter)) && (level.wavecounter >= 0) ) //if a current objective counter still has time remaining
 			wait level.wavecounter; //wait for counter to expire
@@ -207,6 +211,8 @@ hq_obj_think(radio)
 			objective_team(0, "none");
 		
 		level.nextradio++; //increment active radio
+        //delete radio timer
+         maps\mp\uox\_uox_hud::deleteWaveTimerHUD();
 	}
 }
 
@@ -414,6 +420,7 @@ hq_radio_capture(radio, team)
 		playfx(level._effect["radioexplosion"], radio.origin); //blow up the radio
 		level.timesCaptured = 0; //reset the capture counter
         level.defenseTeam = "none";
+        maps\mp\uox\_uox_hud::deleteWaveTimerHUD(); //create HQ hud
         level notify ("hq_reinforcements");
 		// Give points to the team that neutralized it and print some text
 		if (radio.team == "allies")
@@ -461,6 +468,7 @@ hq_radio_capture(radio, team)
 		
 		level.captured_radios[team] = 1; //flag capturing team as having a captured radio
         level.defenseTeam = team;
+        maps\mp\uox\_uox_hud::createWaveTimerHUD(game["reinforcementsText"]); //create HQ hud
         level notify ("hq_reinforcements");
 		radio setmodel ("xmodel/german_field_radio_notsolid"); //set the radio to not have a hit box
 		
@@ -606,11 +614,25 @@ hq_score_update(team, points)
 		iprintln (&"HQ_SCORED_ALLIES", points);
 	else //otherwise announce that axis scored
 		iprintln (&"HQ_SCORED_AXIS", points);
+
+    newscore = (getTeamScore(team) + points);
 	
-	if( (getTeamScore(team) + points) >  scorelimit)
-		setTeamScore(team, scorelimit);
+	if( newscore > scorelimit )
+    {
+            if(team == "allies")
+                game["alliedscore"] = scorelimit;
+            else if(team == "axis")
+                game["axisscore"] = scorelimit;
+            setTeamScore(team, scorelimit);
+    }
 	else
-		setTeamScore(team, (getTeamScore(team) + points));
+    {
+            if(team == "allies")
+                game["alliedscore"] = newscore;
+            else if(team == "axis")
+                game["axisscore"] = newscore;
+            setTeamScore(team, newscore);
+    }
 	level thread hq_playsound_onplayers("hq_score");
 	
 }
@@ -693,6 +715,7 @@ hq_radio_resetall(team)
 		playfx(level._effect["radioexplosion"], radio.origin); //blow up the radio
 		level.timesCaptured = 0; //reset the number of times radio was held
         level.defenseTeam = "none";
+        maps\mp\uox\_uox_hud::deleteWaveTimerHUD(); //create HQ hud
 		
 		if (radio.team == "allies") //if radio was captured by allies
 		{

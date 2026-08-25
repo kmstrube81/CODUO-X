@@ -57,6 +57,9 @@ precache()
 	game["2HScoresText"] = &"2nd Half Scores:";
 	game["matchScoreText"] = &"Match Scores:";
 
+    game["reinforcementsText"] = &"HQ_REINFORCEMENTS_HUD";
+
+
     /* //<-- Remove this and cntr H all references above for free script variable save
     precacheString(&"Round");
     precacheString(&"OT Round");
@@ -135,7 +138,9 @@ precache()
 	precacheString(&"BEL_PRESS_TO_RESPAWN");
 	precacheString(&"BEL_WONTBE_ALLIED");
 	precacheString(&"BEL_BLACKSCREEN_KILLEDALLIED");
-	precacheString(&"BEL_BLACKSCREEN_WILLSPAWN");			
+	precacheString(&"BEL_BLACKSCREEN_WILLSPAWN");
+    
+    precacheString(game["reinforcementsText"]);			
 
     if(!level.uox_teamplay || level.objective == "bel") {
         precacheString(game["leaderText"]);
@@ -1936,13 +1941,13 @@ createWaveTimerHUD()
 tickWaveTimerHUD()
 {
 		
-    if (level.wavecounter <= 10) // if less than 10 seconds on the timer
+    if (level.wavecounter <= 10 && level.wavecounter >= 0) // if less than 10 seconds on the timer
     {
         options = [];
         options["color"] = (1, 0, 0);
         level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
     }
-    else
+    else 
     {
         options = [];
         options["color"] = (1, 1, 1);
