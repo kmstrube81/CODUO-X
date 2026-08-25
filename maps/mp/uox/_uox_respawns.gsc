@@ -1203,7 +1203,7 @@ updateWaveTimer(timer)
     level.reinforcement_time = level.wavetime;
     level.wavecounter = timer;
 
-    maps\mp\uox\_uox_loops::addToLoop(level, "slow", ::tickWaveTimer, "tickWaveTimer");
+    level maps\mp\uox\_uox_loops::addToLoop(level, "slow", ::tickWaveTimer, "tickWaveTimer");
 }
 
 tickWaveTimer()

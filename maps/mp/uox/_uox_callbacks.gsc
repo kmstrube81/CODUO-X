@@ -151,7 +151,7 @@ Callback_StartGameType()
 	thread maps\mp\uox\_uox::addBotClients(); // For development testing
 	
 	thread maps\mp\uox\_uox::startGame();
-	maps\mp\uox\_uox_loops::addToLoop(level, "slow", maps\mp\uox\_uox_vars::updateVars);
+	maps\mp\uox\_uox_loops::addToLoop(level, "slow", maps\mp\uox\_uox_vars::updateVars, "updateVars");
 }
 
 Callback_PlayerConnect()

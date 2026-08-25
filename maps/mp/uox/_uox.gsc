@@ -2987,7 +2987,7 @@ updateBattleRank(battlerank)
 	}
 	if(battlerank == 0)
 	{
-		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "CheckPlayersForRankChanges");
+		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "checkPlayersForRankChanges");
 	}
 }
 

@@ -144,13 +144,13 @@ removeFromLoop(ent, loop, callbackName)
 	switch(loop)
 	{
 		case "slow":
-			ent.slowLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.slowLoop, callbackName);
+			ent.slowLoop = maps\mp\uox\_uox_arrays::removeArrayKey(ent.slowLoop, callbackName);
 			break;
 		case "medium":
-			ent.mediumLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.mediumLoop, callbackName);
+			ent.mediumLoop = maps\mp\uox\_uox_arrays::removeArrayKey(ent.mediumLoop, callbackName);
 			break;
 		case "fast":
-			ent.fastLoop = maps\mp\uox\_uox_arrays::arraySlice(ent.fastLoop, callbackName);
+			ent.fastLoop = maps\mp\uox\_uox_arrays::removeArrayKey(ent.fastLoop, callbackName);
 			break;
 	}
 	

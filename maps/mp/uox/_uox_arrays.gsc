@@ -247,6 +247,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 				tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 				tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 			}
+            tempArr["length"] = tempArr["keys"].size;
 			return tempArr;
 		}
 		if(numToRemove > 0) abs = numToRemove; else abs = numToRemove * -1;
