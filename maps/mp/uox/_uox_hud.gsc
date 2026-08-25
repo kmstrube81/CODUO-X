@@ -1909,7 +1909,7 @@ updateScoreboard()
 **** runs the wave timer for scoring and hq respawning
 ****
 *************************************************************************************************** */
-createWaveTimerHUD()
+createWaveTimerHUD(msg)
 {
     if(isDefined(level.reinforcement_hud_bgnd) && isDefined(level.reinforcement_hud))
         return;
@@ -1931,10 +1931,10 @@ createWaveTimerHUD()
     options["x"] = 497;
     options["y"] = 411;
     options["color"] = (1, 1, 1);
-    if(level.respawn_mode == "hq")
-        options["label"] = &"HQ_REINFORCEMENTS_HUD";
-    else
+    if(level.respawn_mode != "hq")
         options["label"] = &"Radio Timer:";
+    else
+        options["label"] = msg;
 	level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
 }
 
@@ -1945,13 +1945,15 @@ tickWaveTimerHUD()
     {
         options = [];
         options["color"] = (1, 0, 0);
-        level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+        if(isDefined(level.reinforcement_hud))
+            level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
     }
     else 
     {
         options = [];
         options["color"] = (1, 1, 1);
-        level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+        if(isDefined(level.reinforcement_hud))
+            level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
     }
 }
 
