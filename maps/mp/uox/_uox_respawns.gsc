@@ -366,7 +366,7 @@ respawn_hq()
     options["x"] = 320;
     options["y"] = 150;
     options["archived"] = false;
-    options["label"] = game["reinforcementsMsg"]
+    options["label"] = game["reinforcementsMsg"];
     self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "timer", level.wavecounter, options);
 
     level waittill("hq_reinforcements");
