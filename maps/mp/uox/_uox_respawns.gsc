@@ -349,12 +349,12 @@ respawn_hq()
 
 	if (isdefined (instant)) //if wait was skipped
 	{
-		//self.wavespawner = true; //mark that the player got spawned in this wave
-		//self thread respawn_hq_wavespawner_flag_remove(); 
-		//if (isdefined (self.ignoretimer)) //remove ignore timer flag
-		//	self.ignoretimer = undefined;
+        self.wavespawner = true; //mark that the player got spawned in this wave
 		self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg"); //delete the respawn timer
 		self thread spawnPlayer(); //spawn in
+        wait 1;
+        if ( (isdefined (self)) && (isdefined (self.wavespawner)) )
+		self.wavespawner = false;
 		return; //end respawn
 	}
 
@@ -366,10 +366,12 @@ respawn_hq()
     options["x"] = 320;
     options["y"] = 150;
     options["archived"] = false;
-    self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "text", &"HQ_REINFORCEMENTS", options);
+    options["label"] = game["reinforcementsMsg"]
+    self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "timer", level.wavecounter, options);
 
     level waittill("hq_reinforcements");
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
+    self.wavespawner = true;
     if(isDefined(self.freerespawn))
     {
         self.freerespawn = undefined;
@@ -377,64 +379,9 @@ respawn_hq()
     }
     else
         thread spawnPlayer();
-	/*self.respawnwait = true; //mark player as waiting for respawn
-	
-	if ( (!isdefined (self.ignoretimer)) || ( (isdefined (self.ignoretimer)) && (self.ignoretimer == false) ) ) //if ignore timer wasn't set
-	{
-		if ( (level.counter > 0) && (!isdefined (self.freerespawn)) ) //the next wave hasn't ended
-		{
-			if (!isdefined (self.respawntimer)) //make the timer if it doesn't exist
-			{
-				self.respawntimer = newClientHudElem(self);
-				self.respawntimer.alignX = "center";
-				self.respawntimer.alignY = "middle";
-				self.respawntimer.x = 320;
-				self.respawntimer.y = 150;
-				self.respawntimer.archived = false;
-				self.respawntimer.label = (&"HQ_REINFORCEMENTS");
-				self.respawntimer setTimer (level.counter);
-			}
-			
-			if ( (!isdefined (self.respawnwait)) || ( (isdefined (self.respawnwait)) && (self.respawnwait == false) ) ) //if somehow the player got marked as not waiting for spawn
-				return; //abort respawn
-			level waittill ("timer tick"); //wait until the next timer tick
-			if (isdefined (self.respawntimer)) //if the timer has already been set
-			{
-				if (level.counter > 1) //and there is more than one second left
-					self.respawntimer setTimer (level.counter); //set timer
-				else //other wise put one second on the clock
-					self.respawntimer setTimer (1);
-			}
-			
-			self.spawnwait = level.spawnframe;
-			level.spawnframe++;
-			wait level.counter;
-						
-			if ( (!isdefined (self.respawnwait)) || ( (isdefined (self.respawnwait)) && (self.respawnwait == false) ) )
-				return;
-			
-			if (isdefined (self.respawntimer))
-				self.respawntimer destroy();
-		}
-		self.wavespawner = true;
-		self thread hq_wavespawner_flag_remove();
-	}
-	
-	if (isdefined (self.ignoretimer))
-		self.ignoretimer = undefined;
-	
-	if (!isdefined (self.freerespawn))
-	{
-		if (isdefined (self.spawnwait))
-		{
-			wait (0.05 * self.spawnwait);
-			self.spawnwait = undefined;
-		}
-		self thread spawnPlayer();
-	}
-	else
-		self thread spawnPlayer(true);
-    */
+	wait 1;
+    if ( (isdefined (self)) && (isdefined (self.wavespawner)) )
+    self.wavespawner = false;
 }
 
 respawn_bel()

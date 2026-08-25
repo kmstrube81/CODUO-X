@@ -58,7 +58,7 @@ precache()
 	game["matchScoreText"] = &"Match Scores:";
 
     game["reinforcementsText"] = &"HQ_REINFORCEMENTS_HUD";
-
+    game["reinforcementsMsg"] = &"HQ_REINFORCEMENTS";
 
     /* //<-- Remove this and cntr H all references above for free script variable save
     precacheString(&"Round");
@@ -1940,20 +1940,22 @@ createWaveTimerHUD(msg)
 
 tickWaveTimerHUD()
 {
-		
-    if (level.wavecounter <= 10 && level.wavecounter >= 0) // if less than 10 seconds on the timer
-    {
-        options = [];
-        options["color"] = (1, 0, 0);
-        if(isDefined(level.reinforcement_hud))
-            level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
-    }
-    else 
-    {
-        options = [];
-        options["color"] = (1, 1, 1);
-        if(isDefined(level.reinforcement_hud))
-            level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+	//if timer drops below 0, don't update
+    if(level.wavecounter >= 0) {
+        if (level.wavecounter <= 10) // if less than 10 seconds on the timer
+        {
+            options = [];
+            options["color"] = (1, 0, 0);
+            if(isDefined(level.reinforcement_hud))
+                level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+        }
+        else 
+        {
+            options = [];
+            options["color"] = (1, 1, 1);
+            if(isDefined(level.reinforcement_hud))
+                level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+        }
     }
 }
 

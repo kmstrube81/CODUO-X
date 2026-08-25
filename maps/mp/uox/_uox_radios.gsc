@@ -646,10 +646,13 @@ hq_score_update(team, points)
 *************************************************************************************************** */
 hq_wave_timer()
 {
+    level endon("Timer Changed");
     level waittill("wave timer finished");
 	//because the current wave needs to abort when a timer is create, can't use the loop manager
 	if (!level.mapended && !level.roundended) //check as long as the match is going
 	{	
+        //restart wait for next timer
+        level thread hq_wave_timer();
 		//after timer has expired
 		if (level.captured_radios["axis"] > 0) //if axis has a radio
 		{
