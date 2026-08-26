@@ -251,7 +251,7 @@ initGameTypeVars()
 	varDef("scr", "autoreadytime", "int", true, 0, 0, undefined, "Auto-Ready Timer");
 	varDef("scr", "halftime", "bool", true, false, undefined, undefined, "Halftime");
 	varDef("scr", "overtime", "bool", true, false, undefined, undefined, "Overtime");
-	varDef("scr", "ot_roundlimit", "int", true, 1, 0, undefined, "Overtime Rounds");
+	varDef("scr", "ot_roundlimit", "int", true, 1, 1, undefined, "Overtime Rounds");
 	
 	game["roundbased"] = false;
 	if([[level.getVars]]("scr_roundlimit") != 1)

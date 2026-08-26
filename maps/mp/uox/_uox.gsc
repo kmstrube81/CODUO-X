@@ -2589,14 +2589,17 @@ getObjectiveText(objective)
 				array["text"] = &"SD_OBJ_SPECTATOR_ALLIESATTACKING";
 			else if(game["attackers"] == "axis")
 				array["text"] = &"SD_OBJ_SPECTATOR_AXISATTACKING";
+            break;
         case "bel":
             if(self.pers["team"] == "allies")
                 array["text"] = &"BEL_OBJ_ALLIED";
             else if(self.pers["team"] == "axis")
                 array["text"] = &"BEL_OBJ_AXIS";
+            break;
         case "radio":
             array["text"] = &"HQ_OBJ_TEXT";
             array["value"] = [[level.getVars]]("scr_scorelimit");
+            break;
 		default:
 			if(level.uox_teamplay)
 			{

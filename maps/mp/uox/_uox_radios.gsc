@@ -645,6 +645,7 @@ hq_score_update(team, points)
             else if(team == "axis")
                 game["axisscore"] = newscore;
             setTeamScore(team, newscore);
+            maps\mp\uox\_uox::checkScoreLimit();
     }
 	level thread hq_playsound_onplayers("hq_score");
 	
