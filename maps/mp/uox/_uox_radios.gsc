@@ -15,7 +15,7 @@ precache()
     level._effect["radioexplosion"] = loadfx("fx/explosions/grenade1.efx");
 
     game["radioTimerText"] = &"Radio Timer: ";
-    game["nextRadioText"] = &"Next Radio:                       `";
+    game["nextRadioText"] = &"Next Radio: ";
 
 	precacheString(&"HQ_REINFORCEMENTS");
     precacheString(&"HQ_REINFORCEMENTS_HUD");
@@ -727,7 +727,7 @@ hq_radio_resetall(team)
 		
 		if (radio.team == "allies") //if radio was captured by allies
 		{
-            maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxhold") * level.wavetime)/60.0, -1);
+            maxradioholdtime = maps\mp\uox\_uox_utils::`([[level.getVars]]("scr_radiomaxhold") * level.wavetime)/60.0, -1);
             minutes = "minutes";
             if(maxradioholdtime == 1.0)
                 minutes = "minute"

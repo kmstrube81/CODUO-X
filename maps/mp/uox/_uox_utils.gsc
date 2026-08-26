@@ -71,7 +71,10 @@ round(num, places)
     if(isDefined(decimal))
         decimalDigits = decimal.size;
     else
-        decimalDigits = 0;
+    {
+            decimalDigits = 0;
+            decimal = [];
+    }
 
     if(decimalDigits < -10)
         decimalDigits = -10;
