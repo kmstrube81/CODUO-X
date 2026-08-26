@@ -149,6 +149,14 @@ hq_setup()
 
     level maps\mp\uox\_uox_respawns::updateWaveTimer(level.wavetime);
 	thread hq_wave_timer(); //start HQ wave timer
+
+    maxholdseconds = ([[level.getVars]]("scr_radiomaxhold") * level.wavetime)/60.0;
+    maps\mp\uox\_uox_debug::debugLog("info","Max Hold Seconds- " + maxholdseconds);
+    maxradioholdtime = maps\mp\uox\_uox_utils::round(maxholdseconds, -1);
+    minutes = "minutes";
+    if(maxradioholdtime == 1.0)
+        minutes = "minute";
+    maps\mp\uox\_uox_debug::debugLog("info", "Maximum Radio Hold time is " + maxradioholdtime + " " + minutes );
 }
 
 /* **************************************************************************************************
@@ -730,7 +738,7 @@ hq_radio_resetall(team)
             maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxhold") * level.wavetime)/60.0, -1);
             minutes = "minutes";
             if(maxradioholdtime == 1.0)
-                minutes = "minute"
+                minutes = "minute";
 			iprintlnbold ("Allies held the Radio for the maximum time of " + maxradioholdtime + " " + minutes );
 			//destroy team bar 
             if(isdefined(level.progressbar_axis_neutralize))
@@ -741,7 +749,7 @@ hq_radio_resetall(team)
 			maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxhold") * level.wavetime)/60.0, -1);
             minutes = "minutes";
             if(maxradioholdtime == 1.0)
-                minutes = "minute"
+                minutes = "minute";
 			iprintlnbold ("Axis held the Radio for the maximum time of " + maxradioholdtime + " " + minutes );
 			//destroy team bar 
             if(isdefined(level.progressbar_allies_neutralize))
