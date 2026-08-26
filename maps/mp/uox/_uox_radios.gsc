@@ -14,8 +14,8 @@ precache()
 
     level._effect["radioexplosion"] = loadfx("fx/explosions/grenade1.efx");
 
-    game["radioTimerText"] = &"Radio Timer";
-    game["nextRadioText"] = &"Next Radio";
+    game["radioTimerText"] = &"Radio Timer: ";
+    game["nextRadioText"] = &"Next Radio:                       `";
 
 	precacheString(&"HQ_REINFORCEMENTS");
     precacheString(&"HQ_REINFORCEMENTS_HUD");
@@ -415,6 +415,7 @@ hq_radio_capture(radio, team)
 	}
 	PointsScored = level.wavecounter; //set the points scored to the amount of time left of the objective timer
 	level.wavecounter = level.wavetime; //set counter back to the full wave timer
+    level notify("Timer Changed");
 	
 	if (radio.team != "none") //if the radio was not neutral before then destroy it
 	{	
@@ -627,6 +628,7 @@ hq_score_update(team, points)
             else if(team == "axis")
                 game["axisscore"] = scorelimit;
             setTeamScore(team, scorelimit);
+            maps\mp\uox\_uox::checkScoreLimit();
     }
 	else
     {
@@ -725,14 +727,22 @@ hq_radio_resetall(team)
 		
 		if (radio.team == "allies") //if radio was captured by allies
 		{
-			iprintlnbold (&"HQ_MAXHOLDTIME_ALLIES");
+            maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxholds") * level.wavetime)/60.0, -1);
+            minutes = "minutes";
+            if(maxradioholdtime == 1.0)
+                minutes = "minute"
+			iprintlnbold ("Allies held the Radio for the maximum time of " + maxradioholdtime + " " + minutes );
 			//destroy team bar 
             if(isdefined(level.progressbar_axis_neutralize))
                 level.progressbar_axis_neutralize = maps\mp\uox\_uox_hud::deleteTeamHUDProgressBar(level.progressbar_axis_neutralize);
 		}
 		else if (radio.team == "axis")
 		{
-			iprintlnbold (&"HQ_MAXHOLDTIME_AXIS");
+			maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxholds") * level.wavetime)/60.0, -1);
+            minutes = "minutes";
+            if(maxradioholdtime == 1.0)
+                minutes = "minute"
+			iprintlnbold ("Axis held the Radio for the maximum time of " + maxradioholdtime + " " + minutes );
 			//destroy team bar 
             if(isdefined(level.progressbar_allies_neutralize))
                 level.progressbar_allies_neutralize = maps\mp\uox\_uox_hud::deleteTeamHUDProgressBar(level.progressbar_allies_neutralize);
