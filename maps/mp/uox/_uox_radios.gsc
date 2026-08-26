@@ -727,7 +727,7 @@ hq_radio_resetall(team)
 		
 		if (radio.team == "allies") //if radio was captured by allies
 		{
-            maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxholds") * level.wavetime)/60.0, -1);
+            maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxhold") * level.wavetime)/60.0, -1);
             minutes = "minutes";
             if(maxradioholdtime == 1.0)
                 minutes = "minute"
@@ -738,7 +738,7 @@ hq_radio_resetall(team)
 		}
 		else if (radio.team == "axis")
 		{
-			maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxholds") * level.wavetime)/60.0, -1);
+			maxradioholdtime = maps\mp\uox\_uox_utils::round(([[level.getVars]]("scr_radiomaxhold") * level.wavetime)/60.0, -1);
             minutes = "minutes";
             if(maxradioholdtime == 1.0)
                 minutes = "minute"
