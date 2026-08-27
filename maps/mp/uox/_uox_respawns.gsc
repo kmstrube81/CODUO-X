@@ -929,6 +929,8 @@ getSpawnPointsIntermission(gt)
 			return "mp_deathmatch_intermission";
 		case "tdm":
 			return "mp_teamdeathmatch_intermission";
+        case "ctf":
+            return "mp_ctf_intermission";
 		default:
 			return "mp_deathmatch_intermission";
 	}	

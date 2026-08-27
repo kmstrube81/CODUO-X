@@ -242,8 +242,8 @@ initGameTypeVars()
 	
 	varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
 
-	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset");
-	varDef("scr", "score_rounds", "bool", true, false, undefined, undefined, "Score Round Wins");
+	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset"); //clear scores in between rounds
+	varDef("scr", "score_rounds", "bool", true, false, undefined, undefined, "Score Round Wins"); //game score is round wins, not objective points
 	varDef("scr", "countdraws", "bool", true, true, undefined, undefined, "Count Draws");
 
 	varDef("scr", "warmupmode", "int", true, 0, 0, 2, "Warmup Mode");

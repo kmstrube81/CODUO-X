@@ -7,6 +7,7 @@ precache()
 	game["startingText"] = &"Starting";
 	game["resumingText"] = &"Resuming";
 	game["respawnText"] = &"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN";
+    game["skipKillcamText"] = &"MPSCRIPT_PRESS_ACTIVATE_TO_SKIP";
 	game["killcamText"] = &"MPSCRIPT_KILLCAM";
     game["finalKillcamText"] = &"FINAL KILLCAM";
 	game["alliesWinText"] = &"MPSCRIPT_ALLIES_WIN";
@@ -84,6 +85,7 @@ precache()
 	precacheString(game["startingText"]);
 	precacheString(game["resumingText"]);
 	precacheString(game["respawnText"]);
+    precacheString(game["skipKillcamText"]);
 	precacheString(game["killcamText"]);
 	precacheString(game["finalKillcamText"]);
 	precacheString(game["alliesWinText"]);
@@ -154,12 +156,21 @@ precache()
 	{
 		case "american":
 			game["headicon_allies"] = "gfx/hud/headicon@american.tga";
+
+            game["sound_allies_victory_vo"] = "MP_announcer_allies_win";
+            game["sound_allies_victory_music"] = "us_victory";
 			break;
 		case "british":
 			game["headicon_allies"] = "gfx/hud/headicon@british.tga";
+
+            game["sound_allies_victory_vo"] = "MP_announcer_allies_win";
+            game["sound_allies_victory_music"] = "uk_victory";
 			break;
 		case "russian":
 			game["headicon_allies"] = "gfx/hud/headicon@russian.tga";
+
+            game["sound_allies_victory_vo"] = "MP_announcer_allies_win";
+            game["sound_allies_victory_music"] = "ru_victory";
 			break;
 	}
 	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
@@ -175,6 +186,14 @@ precache()
 	precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
 	precacheShader("black");
 	precacheShader("white");
+
+    //victory assets
+    if ( !isDefined( game["hud_allies_victory_image"] ) )
+        game["hud_allies_victory_image"] = "gfx/hud/allies_win";
+    if ( !isDefined( game["hud_axis_victory_image"] ) )
+        game["hud_axis_victory_image"] = "gfx/hud/axis_win";
+    precacheShader(game["hud_allies_victory_image"]);
+    precacheShader(game["hud_axis_victory_image"]);
 }
 
 initClientHUD()
@@ -1965,3 +1984,82 @@ deleteWaveTimerHUD()
     level.reinforcement_hud = deleteHUDElement(level.reinforcement_hud);
 }
 
+/* ************************************************************************************************************
+**** makeVictoryAnnouncement( string winner, bool make_announcement )
+****
+**** plays the axis wins/allies wins VO clip and then displays the victory image plus plays the victory jingle
+**** skips the announcement VO if make_announcement is false
+************************************************************************************************************* */
+makeVictoryAnnouncement( winner, make_announcement )
+{
+
+    if(winner == "allies")
+    {
+        if(!make_announcement)
+            announcer = undefined;
+        else
+        {
+            announcer = game["sound_allies_victory_vo"];
+
+            announcement(game["alliesWinText"]);
+        }
+        players = getentarray("player", "classname");
+        for(i = 0; i < players.size; i++)
+        {
+            players[i] thread Victory_PlaySounds(announcer ,game["sound_allies_victory_music"]);
+        }
+        level thread Victory_DisplayImage(game["hud_allies_victory_image"]);
+    }
+    else if(winner == "axis") 
+    {
+        if(!make_announcement)
+            announcer = undefined;
+        else
+        {
+            announcer = game["sound_axis_victory_vo"];
+
+            announcement(game["alliesWinText"]);
+        }
+        players = getentarray("player", "classname");
+        for(i = 0; i < players.size; i++)
+        {
+            players[i] thread Victory_PlaySounds(game["sound_axis_victory_vo"],game["sound_axis_victory_music"]);
+        }
+        level thread Victory_DisplayImage(game["hud_axis_victory_image"]);
+    }
+
+}
+
+// ----------------------------------------------------------------------------------
+//	Victory_PlaySounds
+//
+// 		Plays the victory sounds with an appropriate delay in each
+// ----------------------------------------------------------------------------------
+Victory_PlaySounds( announcer, music )
+{
+    if(isDefined(announcer))
+        self playLocalSound(announcer);
+	wait 2.0;
+	self playLocalSound(music);
+}
+
+// ----------------------------------------------------------------------------------
+//	Victory_DisplayImage
+//
+// 		Displays the victory hud image
+// ----------------------------------------------------------------------------------
+Victory_DisplayImage( image )
+{
+    options = [];
+    options["alignX"] = "center";
+	options["alignY"] = "top";
+	options["x"] = 320;
+	options["y"] = 10;
+	options["alpha"] = 0.75;
+	options["sort"] = 0.5;
+    options["width"] = 256;
+    options["height"] = 128;
+    	
+	level.victory_image = updateHUDElement(level.victory_image, "shader", image, options);		
+	
+}

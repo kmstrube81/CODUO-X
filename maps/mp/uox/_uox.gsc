@@ -88,6 +88,9 @@ checkPlayerKilled(victim, attacker)
             doCheckScoreLimit = true;
             maps\mp\uox\_uox_behindenemylines::onPlayerKill(victim, attacker);
             break;
+        case "ctf":
+            maps\mp\uox\_uox_bombs::onPlayerKill(victim, attacker);
+            break;
 	}
 	if(addKillToTeamScore) //if add to team score flag set.
 	{
@@ -231,16 +234,15 @@ checkScoreLimit()
 **** loads next map
 **** 
 ************************************************************************************************* */
-endMap()
+endMap(make_announcement)
 {
-	
+
 	if(!level.didFinalKillcam)
 	{
 		level notify("postround");
 		level waittill("end_finalkillcam");
 	}
-	game["state"] = "intermission"; //sets game to intermission
-	level notify("intermission"); //send intermission notify
+	
 	
 	if(isdefined(level.bombs)) //for objective modes, disable bomb tick
 	{
@@ -250,6 +252,10 @@ endMap()
 			level.bombs["B"] stopLoopSound();
 	}
 	
+    //lock players in place
+	level.playerlock = true;
+	level thread lockPlayersInPlace();
+
 	winners = ""; //init winner string
 	losers = ""; //init loser string
 	logToPrintW = ""; //init log print W string
@@ -274,6 +280,22 @@ endMap()
 			text = &"MPSCRIPT_AXIS_WIN";
 			winner = "axis";
 		}
+
+        if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundreset"))
+		{	//if scoring rounds over kills
+			resetPlayerScores(); //reset scores
+
+			players = getentarray("player", "classname"); //get players
+			for(i = 0; i < players.size; i++) //loop players
+			{
+				player = players[i]; //current player
+				player.score = player.pers["totalscore"]; //set score to rounds won
+                player.deaths = player.pers["deaths"];
+			}
+		}
+        if(!isDefined(make_announcement))
+            make_announcement = false;
+        level thread maps\mp\uox\_uox_hud::makeVictoryAnnouncement(winner, make_announcement);
 		
 	}
 	else //if free for all game
@@ -296,8 +318,9 @@ endMap()
 		}		
 	}
 	
-	
-	
+    game["state"] = "intermission"; //sets game to intermission
+	level notify("intermission"); //send intermission notify
+    
 	players = getentarray("player", "classname"); //get players
 	for(i = 0; i < players.size; i++) //loop through players
 	{
@@ -1919,6 +1942,7 @@ setPlayerScore(victim, attacker)
 				
 				attacker.score--;
 				attacker.pers["score"]--;
+                attacker.pers["totalscore"]--;
 				attacker.score = attacker.pers["score"];
 				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
@@ -1935,6 +1959,7 @@ setPlayerScore(victim, attacker)
 			if(victim.pers["team"] == attacker.pers["team"] && level.uox_teamplay) // killed by a friendly
 			{	
 				attacker.pers["score"]--;
+                attacker.pers["totalscore"]--;
 				attacker.score = attacker.pers["score"];
 				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
@@ -1948,6 +1973,7 @@ setPlayerScore(victim, attacker)
 			else
 			{
 				attacker.pers["score"]++;
+                attacker.pers["totalscore"]++;
                 if(isDefined(attacker.hudpoints))
                     attacker.hudpoints++;
 				attacker.score = attacker.pers["score"];
@@ -1965,6 +1991,7 @@ setPlayerScore(victim, attacker)
 	else
 	{
 		victim.pers["score"]--;
+        victim.pers["totalscore"]--;
 		victim.score = attacker.pers["score"];
 		if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 		{
@@ -2446,6 +2473,11 @@ initObjectives(objective)
             maps\mp\uox\_uox_radios::initVars();
             maps\mp\uox\_uox_radios::hq_setup();
             return;
+        case "ctf":
+            maps\mp\uox\_uox_flags::initVars();
+            thread maps\mp\uox\_uox_flags::ctf();
+            thread maps\mp\uox_flags::GameRoundThink();
+            return;
 		default:
 			game["attackers"] = undefined;
 			game["defenders"] = undefined;
@@ -2505,6 +2537,13 @@ disconnectObjectives(objective)
         case "bel":
             self maps\mp\uox\_uox_behindenemylines::check_delete_objective();
             return;
+        case "ctf":
+            // make sure the flag gets dropped
+        	if(isdefined(self.hasflag))
+        	{
+        		self.hasflag maps\mp\uox\_uox_flags::drop_flag(self);
+        	}
+            return;
         default:
 			return;
 	}
@@ -2522,7 +2561,16 @@ spectateObjectives(objective)
 	if(!isDefined(objective))
 		objective = "none";
 
-    self setObjectiveText(objective);
+    switch(objective)
+    {
+        case "ctf":
+            spectateObjective = "ctf_spec";
+            break;
+        default:
+            spectateObjective = objective;
+    }
+
+    self setObjectiveText(spectateObjective);
 
 	switch(objective)
 	{
@@ -2599,6 +2647,12 @@ getObjectiveText(objective)
         case "radio":
             array["text"] = &"HQ_OBJ_TEXT";
             array["value"] = [[level.getVars]]("scr_scorelimit");
+            break;
+        case "ctf":
+            array["text"] = &"GMI_CTF_ATTACKER_OBJECTIVE";
+            break;
+        case "ctf_spec":
+            array["text"] = &"GMI_CTF_SPECTATOR_OBJECTIVE";
             break;
 		default:
 			if(level.uox_teamplay)
@@ -3109,7 +3163,7 @@ updateTeamBalance(teamBalance)
 			
 	if(teamBalance)
 	{
-		if(game["roundbased"])
+		if(game["roundbased"] && [[level.getVars]]("scr_reinforcements") == 1)
 		{
 			maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "TeamBalance_Check");
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();

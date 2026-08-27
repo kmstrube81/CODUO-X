@@ -143,7 +143,7 @@ Callback_StartGameType()
 	
 	game["gamestarted"] = true;
 	
-	if(game["roundbased"])
+	if(game["roundbased"] && [[level.getVars]]("scr_reinforcements") == 1)
 		setClientNameMode("manual_change");
 	else
 		setClientNameMode("auto_change");
@@ -429,8 +429,13 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	self.sessionstate = "dead";
 	if(!level.doingReadyUp)
 		self.statusicon = "gfx/hud/hud@status_dead.tga";
-	self.deaths++;
-	self.pers["deaths"] = self.deaths;
+
+    if(!level.warmup)
+    {
+        self.deaths++;
+        self.pers["deaths"] = self.deaths;
+        self.pers["totaldeaths"] = self.deaths;
+    }
 
 	lpselfnum = self getEntityNumber();
 	lpselfname = self.name;
