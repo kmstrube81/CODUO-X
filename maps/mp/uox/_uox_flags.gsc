@@ -176,14 +176,15 @@ initVars()
 	}
 
 
-    maps\mp\uox\_uox_vars::varDef("scr", "showoncompass", "bool", true, true, "", "", "Show Flag Carrier on Compass");
+    maps\mp\uox\_uox_vars::varDef("scr", "showoncompass", "int", true, 0, 0, 999, "Show Flag Carrier on Compass");
     level.PositionUpdateTime = maps\mp\uox\_uox_vars::varDef("scr", "positionTime", "int", true, 6, 1, 60, "Seconds Per Compass Update")
     maps\mp\uox\_uox_vars::varDef("scr", "showicons", "int", true, 1, 0, 3, "Show Flag HUD Icons");
-    maps\mp\uox_uox_vars::varDef("scr", "defensebonus", "int", true, 0, 0, 10, "Flag Defended Bonus");
-    maps\mp\uox_uox_vars::varDef("scr", "assistbonus", "int", true, 0, 0, 10, "Flag Assist Bonus");
-    maps\mp\uox_uox_vars::varDef("scr", "capturebonus", "int", true, 5, 0, 10, "Flag Capture Bonus");
-    maps\mp\uox_uox_vars::varDef("scr", "pickupbonus", "int", true, 0, 0, 10, "Flag Pickup Bonus");
-    maps\mp\uox_uox_vars::varDef("scr", "returnbonus", "int", true, 0, 0, 10, "Flag Returned Bonus");
+    maps\mp\uox\_uox_vars::varDef("scr", "defensebonus", "int", true, 0, 0, 10, "Flag Defended Bonus");
+    maps\mp\uox\_uox_vars::varDef("scr", "assistbonus", "int", true, 0, 0, 10, "Flag Assist Bonus");
+    maps\mp\uox\_uox_vars::varDef("scr", "capturebonus", "int", true, 5, 0, 10, "Flag Capture Bonus");
+    maps\mp\uox\_uox_vars::varDef("scr", "pickupbonus", "int", true, 0, 0, 10, "Flag Pickup Bonus");
+    maps\mp\uox\_uox_vars::varDef("scr", "returnbonus", "int", true, 0, 0, 10, "Flag Returned Bonus");
+    maps\mp\uox\_uox_vars::varDef("scr", "flagtimeout", "int", true, 20, 0, 999, "Flag Reset Time" );
 
 
     //get the minefields
@@ -264,7 +265,7 @@ updateFlagIcons(showicons, reason)
     //set up flag icons scr_showicons 0 is off, 1 is big icons, 2 is small icons, 3 is both.
     switch(showicons)
     {
-        case 1:
+        case "big":
             //create/update big icon
             options = [];
             options["alignX"] = "left";
@@ -277,21 +278,38 @@ updateFlagIcons(showicons, reason)
             switch(reason)
             {
                 case "init":
+                case "reset_allies":
                     options["alpha"] = 1;
+                    allies_icon1 = game["hud_allies_flag"];
+                    break;
+                case "allies_flag_taken":
+                    options["alpha"] = 1;
+                    allies_icon1 = game["hud_allies_flag_taken"];
+                    break;
             }
-            level.allies_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon1, "shader", game["hud_allies_flag"], options);
+            if(isDefined(allies_icon1))
+                level.allies_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon1, "shader", allies_icon1, options);
             options["x"] = 382;
             switch(reason)
             {
-                default:
+                case "init":
+                case "reset_axis":
                     options["alpha"] = 1;
+                    axis_icon1 = game["hud_axis_flag"];
+                    break;
+                case "axis_flag_taken":
+                    options["alpha"] = 1;
+                    axis_icon1 = game["hud_axis_flag_taken"];
+                    break;
             }
-            level.axis_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon1, "shader", game["hud_axis_flag"], options);
+            if(isDefined(axis_icon1))
+                level.axis_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon1, "shader", allies_icon1, options);
             //delete small icons
             level.allies_flag.icon2 = maps\mp\uox\_uox_hud::deleteHUDElement(level.allies_flag.icon2);
             level.axis_flag.icon2 = maps\mp\uox\_uox_hud::deleteHUDElement(level.axis_flag.icon2);
             break;
-        case 2:
+
+        case "small":
             //create/update small icons
             options = [];
         	options["x"] = 100;
@@ -301,25 +319,58 @@ updateFlagIcons(showicons, reason)
             switch(reason)
             {
                 case "init":
+                case "reset_allies":
                     options["alpha"] = 1;
                     options["width"] = 36;
                     options["height"] = 36;
+                    allies_icon2 = game["hud_flagicon_home"];
+                    break;
+                case "allies_flag_taken":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    allies_icon2 = game["hud_flagicon_away"];
+                    break;
+                case "allies_flag_dropped":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    allies_icon2 = game["hud_flagicon_dropped"];
+                    break;
             }
-            level.allies_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon2, "shader", game["hud_flagicon_home"], options);
+            if(isDefined(allies_icon2))
+                level.allies_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon2, "shader", allies_icon2, options);
             options["y"] = 270;
             switch(reason)
             {
                 case "init":
+                case "reset_axis":
                     options["alpha"] = 1;
                     options["width"] = 36;
                     options["height"] = 36;
+                    axis_icon2 = game["hud_flagicon_home"];
+                    break;
+                case "axis_flag_taken":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    allies_icon2 = game["hud_flagicon_away"];
+                    break;
+                case "axis_flag_dropped":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    axis_icon2 = game["hud_flagicon_dropped"];
+                    break;
             }
-            level.axis_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon2, "shader", game["hud_flagicon_home"], options);
+            if(isDefined(axis_icon2))
+                level.axis_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon2, "shader", axis_icon2, options);
             //delete big icons
             level.allies_flag.icon1 = maps\mp\uox\_uox_hud::deleteHUDElement(level.allies_flag.icon1);
             level.axis_flag.icon1 = maps\mp\uox\_uox_hud::deleteHUDElement(level.axis_flag.icon1);
             break;
-        case 3:
+
+        case "both":
             //create/update both icons
             options = [];
             options["alignX"] = "left";
@@ -332,16 +383,32 @@ updateFlagIcons(showicons, reason)
             switch(reason)
             {
                 case "init":
+                case "reset_allies":
                     options["alpha"] = 1;
+                    allies_icon1 = game["hud_allies_flag"];
+                    break;
+                case "allies_flag_taken":
+                    options["alpha"] = 1;
+                    allies_icon1 = game["hud_allies_flag_taken"];
+                    break;
             }
-            level.allies_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon1, "shader", game["hud_allies_flag"], options);
+            if(isDefined(allies_icon1))
+                level.allies_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon1, "shader", allies_icon1, options);
             options["x"] = 382;
             switch(reason)
             {
                 case "init":
+                case "reset_axis":
                     options["alpha"] = 1;
+                    axis_icon1 = game["hud_allies_flag"];
+                    break;
+                case "axis_flag_taken":
+                    options["alpha"] = 1;
+                    axis_icon1 = game["hud_axis_flag_taken"];
+                    break;
             }
-            level.axis_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon1, "shader", game["hud_axis_flag"], options);
+            if(isDefined(axis_icon1))
+                level.axis_flag.icon1 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon1, "shader", axis_icon1, options);
             options = [];
         	options["x"] = 100;
         	options["y"] = 250;
@@ -350,21 +417,54 @@ updateFlagIcons(showicons, reason)
             switch(reason)
             {
                 case "init":
+                case "reset_allies":
                     options["alpha"] = 1;
                     options["width"] = 36;
                     options["height"] = 36;
+                    allies_icon2 = game["hud_flagicon_home"];
+                    break;
+                case "allies_flag_taken":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    allies_icon2 = game["hud_flagicon_away"];
+                    break;
+                case "allies_flag_dropped":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    allies_icon2 = game["hud_flagicon_dropped"];
+                    break;
             }
-            level.allies_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon2, "shader", game["hud_flagicon_home"], options);
+            if(isDefined(allies_icon2))
+                level.allies_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.allies_flag.icon2, "shader", allies_icon2, options);
             options["y"] = 270;
             switch(reason)
             {
                 case "init":
+                case "reset_axis":
                     options["alpha"] = 1;
                     options["width"] = 36;
                     options["height"] = 36;
+                    axis_icon2 = game["hud_flagicon_home"];
+                    break;
+                case "axis_flag_taken":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    allies_icon2 = game["hud_flagicon_away"];
+                    break;
+                case "axis_flag_dropped":
+                    options["alpha"] = 1;
+                    options["width"] = 24;
+                    options["height"] = 24;
+                    axis_icon2 = game["hud_flagicon_dropped"];
+                    break;
             }
-            level.axis_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon2, "shader", game["hud_flagicon_home"], options);
+            if(isDefined(axis_icon2))
+                level.axis_flag.icon2 = maps\mp\uox\_uox_hud::updateHUDElement(level.axis_flag.icon2, "shader", axis_icon2, options);
             break;
+
         default:
             //delete icons
             level.allies_flag.icon1 = maps\mp\uox\_uox_hud::deleteHUDElement(level.allies_flag.icon1);
@@ -423,8 +523,12 @@ ctf_spawn_flag()
 				maps\mp\_utility::error("to many goal triggers for the " + self.team + " team.  There should only be one");
 				return;
 			}
-			
-			self.goal = (targeted[i]);
+			else
+            {
+                goal = (targeted[i]);
+                self.goal = goal;
+                goal.flag = self;
+            }
 		}
 	}
 	
@@ -433,6 +537,8 @@ ctf_spawn_flag()
 		maps\mp\_utility::error(self.team + " mp_gmi_ctf_flag does not target a trigger_multiple");
 		return;
 	}
+
+    goal
 	
 	// get the mobile version of the flag trigger
 	targeted = getentarray(self.mobile_model.target, "targetname");
@@ -475,7 +581,10 @@ ctf_spawn_flag()
 	self.moved = false;
     self.timeout = false;
 	
-    self maps\mp\uox\_uox_loops::addToLoop(self, "medium", ::ctf_think, "ctf_think");
+    self.mobile_trigger maps\mp\uox\_uox_loops::initEntityLoop(self.mobile_trigger);
+    self.trigger maps\mp\uox\_uox_loops::initEntityLoop(self.trigger);
+    self.goal maps\mp\uox\_uox_loops::initEntityLoop(self.goal);
+    self thread ctf_think_wait();
 	
 	//Set hintstring on the objectives trigger
 	wait 0;//required for level script to run and load the level.obj array
@@ -496,216 +605,437 @@ flag_think()
 	}
 }
 
-ctf_think() //each flag model runs this to find it's trigger and goal
+ctf_think_wait()
 {
-    if(level.roundended || self.timeout)
-    {
-        self.timeout = false;
-        self maps\mp\uox\_uox_loops::removeFromLoop(self, "ctf_think");
-        return;
-    }
+    if ( self.moved )
+        self.mobile_trigger maps\mp\uox\_uox_loops::addToWaitTills(self.mobile_trigger, "trigger", ::ctf_think, true);
+	else
+		self.trigger maps\mp\uox\_uox_loops::addToWaitTills(self.trigger, "trigger", ::ctf_think, true);
+
+    self.mobiletrigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobiletrigger, "trigger", level, "round_ended");
+    self.mobiletrigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobiletrigger, "trigger", self.mobiletrigger, "timeout");
+    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", level, "round_ended");
+    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self.trigger, "timeout");
+
+}
+
+ctf_think(other) //each flag model runs this to find it's trigger and goal
+{
 
 	level endon("round_ended");
 	self endon("timeout");
 
-		if ( self.moved )
-			self.mobile_trigger waittill ("trigger", other);
-		else
-			self.trigger waittill ("trigger", other);
-		
-		if(!game["matchstarted"]  )
-			return;
+    if(!game["matchstarted"]  )
+        return;
 
-		// do not allow people in vehicles to touch flag
-		if (other isinvehicle())
-			continue;
-			
-		if((isPlayer(other)) && isAlive(other) && (other.pers["team"] != self.team))
-		{
+    // do not allow people in vehicles to touch flag
+    if (other isinvehicle())
+        continue;
+        
+    if((isPlayer(other)) && isAlive(other) && (other.pers["team"] != self.team))
+    {
 
-			// let the player know they picked up the flag
-			if ( other.pers["team"] == "axis" )
-			{
-				announcement(&"GMI_CTF_ALLIES_FLAG_TAKEN", other);
-			}
-			else
-			{
-				announcement(&"GMI_CTF_AXIS_FLAG_TAKEN", other);
-			}
+        // let the player know they picked up the flag
+        if ( other.pers["team"] == "axis" )
+        {
+            announcement(&"GMI_CTF_ALLIES_FLAG_TAKEN", other);
+        }
+        else
+        {
+            announcement(&"GMI_CTF_AXIS_FLAG_TAKEN", other);
+        }
 
-			// play the flag has been grabbed sound
-			players = getentarray("player", "classname");
-			for(i = 0; i < players.size; i++)
-			{
-				player = players[i];
-				
-				if ( self.team == "allies" )
-				{
-					if(player.pers["team"] == "allies")
-						player playLocalSound(game["sound_allies_enemy_has_our_flag"]);
-					else
-						player playLocalSound(game["sound_axis_we_have_enemy_flag"]);
-				}
-				else
-				{
-					if(player.pers["team"] == "allies")
-						player playLocalSound(game["sound_allies_we_have_enemy_flag"]);
-					else
-						player playLocalSound(game["sound_axis_enemy_has_our_flag"]);
-				}
-			}
-			
-			// update the objective icon to the base but no flag there icon
-			if ( self.team == "allies" )
-			{
-				level.allies_flag.icon setShader(game["hud_allies_flag_taken"], game["flag_icons_w"], game["flag_icons_h"]);
-			}
-			else
-			{
-				level.axis_flag.icon setShader(game["hud_axis_flag_taken"], game["flag_icons_w"], game["flag_icons_h"]);
-			}
-			
-			lpselfnum = other getEntityNumber();
-			lpselfguid = other getGuid();
-			logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + other.pers["team"] + ";" + other.name + ";" + "ctf_take" + "\n");
+        // play the flag has been grabbed sound
+        players = getentarray("player", "classname");
+        for(i = 0; i < players.size; i++)
+        {
+            player = players[i];
+            
+            if ( self.team == "allies" )
+            {
+                if(player.pers["team"] == "allies")
+                    player playLocalSound(game["sound_allies_enemy_has_our_flag"]);
+                else
+                    player playLocalSound(game["sound_axis_we_have_enemy_flag"]);
+            }
+            else
+            {
+                if(player.pers["team"] == "allies")
+                    player playLocalSound(game["sound_allies_we_have_enemy_flag"]);
+                else
+                    player playLocalSound(game["sound_axis_enemy_has_our_flag"]);
+            }
+        }
+        
+        // update the objective icon to the base but no flag there icon
+        if ( self.team == "allies" )
+        {
+            updateFlagIcons([[level.getVars]]("scr_showicons"), "allies_flag_taken");
+        }
+        else
+        {
+            updateFlagIcons([[level.getVars]]("scr_showicons"), "axis_flag_taken");
+        }
+        
+        lpselfnum = other getEntityNumber();
+        lpselfguid = other getGuid();
+        logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + other.pers["team"] + ";" + other.name + ";" + "ctf_take" + "\n");
 
-			self.returned_by = undefined;
-			
-			self thread hold_flag(other);
-			self thread update_objective();
-			return;
+        self.returned_by = undefined;
+        
+        self thread hold_flag(other);
+        self thread update_objective();
+        return;
 
-		}
-		// the team that owns the flag can only touch it if it has been moved
-		else if((isPlayer(other)) && (other.pers["team"] == self.team) && self.moved)
-		{
-			if(other.sessionteam == "allies")
-			{
-				//announcement(&"GMI_CTF_ALLIES_FLAG_RETURNED");
-				iprintln(&"GMI_CTF_PLAYER_RETURNED_FLAG_ALLIES",other);
-			}
-			else if(other.sessionteam == "axis")
-			{
-				//announcement(&"GMI_CTF_AXIS_FLAG_RETURNED");
-				iprintln(&"GMI_CTF_PLAYER_RETURNED_FLAG_AXIS",other);
-			}
-			
-			self.returned_by = other;
-				
-			lpselfnum = other getEntityNumber();
-			lpselfguid = other getGuid();
-			logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + other.pers["team"] + ";" + other.name + ";" + "ctf_returned" + "\n");
+    }
+    // the team that owns the flag can only touch it if it has been moved
+    else if((isPlayer(other)) && (other.pers["team"] == self.team) && self.moved)
+    {
+        if(other.sessionteam == "allies")
+        {
+            //announcement(&"GMI_CTF_ALLIES_FLAG_RETURNED");
+            iprintln(&"GMI_CTF_PLAYER_RETURNED_FLAG_ALLIES",other);
+        }
+        else if(other.sessionteam == "axis")
+        {
+            //announcement(&"GMI_CTF_AXIS_FLAG_RETURNED");
+            iprintln(&"GMI_CTF_PLAYER_RETURNED_FLAG_AXIS",other);
+        }
+        
+        self.returned_by = other;
+            
+        lpselfnum = other getEntityNumber();
+        lpselfguid = other getGuid();
+        logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + other.pers["team"] + ";" + other.name + ";" + "ctf_returned" + "\n");
 
-			// play the flag has been returned sound
-			players = getentarray("player", "classname");
-			for(i = 0; i < players.size; i++)
-			{
-				temp_player = players[i];
-				if(temp_player.pers["team"] == "allies" && self.team == "allies")
-					temp_player playLocalSound(game["sound_allies_flag_has_been_returned"]);
-				else if(temp_player.pers["team"] == "axis" && self.team == "axis")
-					temp_player playLocalSound(game["sound_axis_flag_has_been_returned"]);
-			}
-			
-			self reset_flag();
-		}
+        // play the flag has been returned sound
+        players = getentarray("player", "classname");
+        for(i = 0; i < players.size; i++)
+        {
+            temp_player = players[i];
+            if(temp_player.pers["team"] == "allies" && self.team == "allies")
+                temp_player playLocalSound(game["sound_allies_flag_has_been_returned"]);
+            else if(temp_player.pers["team"] == "axis" && self.team == "axis")
+                temp_player playLocalSound(game["sound_axis_flag_has_been_returned"]);
+        }
+        
+        self reset_flag();
+    }
 
 }
 
-// ----------------------------------------------------------------------------------
-//	GameRoundThink
-//
-// 	This checks for possible end round conditions.  Also displays round messages.
-// ----------------------------------------------------------------------------------
-GameRoundThink()
+hold_flag(player) //the objective model runs this to be held by 'player'
 {
-	for(;;)
+	self endon("completed");
+	self endon("dropped");
+
+
+	team = player.sessionteam;
+	player.hasflag = self;
+	self.carried_by = player;
+	self.moved = true;
+	self hide();
+	self.origin = (self.origin[0], self.origin[1], self.origin[2] - 3000 );
+	self.mobile_model hide();
+	self.mobile_trigger triggerOff();
+	self.trigger triggerOff();
+
+	self thread handle_vehicle_flag();
+
+	lpselfnum = player getEntityNumber();
+	lpselfguid = player getGuid();
+	logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + self.team + ";" + player.name + ";" + "ctf_pickup" + "\n");
+	
+	self notify("picked up");
+
+	if ( team == "axis")
 	{
-		ceasefire = getCvarint("scr_ceasefire");
-
-		// if we are in cease fire mode display it on the screen
-		if (ceasefire != level.ceasefire)
-		{
-			level.ceasefire = ceasefire;
-			if ( ceasefire )
-			{
-				level thread maps\mp\_util_mp_gmi::make_permanent_announcement(&"GMI_MP_CEASEFIRE", "end ceasefire", 220, (1.0,0.0,0.0));			
-			}
-			else
-			{
-				level notify("end ceasefire");
-			}
-		}
-
-		// check all the players for rank changes
-		if ( getCvarint("scr_battlerank") )
-			maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges();
-			
-		// check to see if we hit the score limit
-		scorelimit = getCvarint("scr_ctf_scorelimit");
-		if(level.scorelimit != scorelimit)
-		{
-			level.scorelimit = scorelimit;
-
-			if(game["matchstarted"])
-				thread checkScoreLimit();
-		}
-
-		// end the round if there are not enough people playing
-		if (game["matchstarted"] == true && level.roundstarted == true)
-		{
-			debug = getCvarint("scr_debug_ctf");
-			
-			players_on_allies = 0;
-			players_on_axis = 0;
-			
-			players = getentarray("player", "classname");
-			for(i = 0; i < players.size; i++)
-			{
-				player = players[i];
-				
-				switch(player.pers["team"])
-				{
-					case "allies":
-					{
-						players_on_allies++;
-						break;
-					}
-					case "axis":
-					{
-						players_on_axis++;
-						break;
-					}
-				}
-				
-				// if we are in debug mode and we have found one person on a team then we are good
-				if ( debug && (players_on_allies || players_on_axis) )
-				{
-					players_on_allies = 1;
-					players_on_axis = 1;
-					break;
-				}			
-		
-				// if there is at least one player on each team then we are good.
-				if (players_on_allies && players_on_axis )
-				{
-					break;
-				}
-			}
-			
-			// if one of these is zero then we only have one team
-			if ( !players_on_allies || !players_on_axis )
-			{
-				updateTeamStatus();
-			}
-		}
-			
-		wait 0.5;
+		player.statusicon = game["statusicon_carrier_axis"];
+		self.holding_flag = level.allies_held_flag;
 	}
+	else
+	{
+		player.statusicon = game["statusicon_carrier_allies"];
+		self.holding_flag = level.axis_held_flag;
+	}
+
+	player.has_attached = true;
+	player attach(self.holding_flag,level.held_tag_flag,true);
+	
+	self.goal flag_carrier_atgoal_wait(); 
+
+        
+}
+
+handle_change_flag()
+{
+	while(isdefined(self.carried_by))
+	{
+		wait(0.05);
+	}
+
+	self notify("dropped");
+	if (isdefined(self.vehiclemodel))
+		self.vehiclemodel delete();
+}
+
+flag_carrier_atgoal_wait()
+{
+    self maps\mp\uox\_uox_loops::addToWaitTills(self, "trigger", ::flag_carrier_atgoal_wait, true);
+    self thread maps\mp\uox\_uox_loops::removeFromWaitTills(self, "trigger", level, "round_ended");
+    self thread maps\mp\uox\_uox_loops::removeFromWaitTills(self, "trigger", self.flag, "dropped");
+}
+
+flag_carrier_atgoal(other)
+{
+    flag = self.flag;
+    player = self.flag.carried_by;
+
+    if ( other isinvehicle() )
+        continue;
+        
+    if((other == player) && (isPlayer(player)))
+    {
+        // make sure the other flag is there
+        if ( flag.team == "axis" && level.allies_flag.moved )
+            continue;
+        if ( flag.team == "allies" && level.axis_flag.moved )
+            continue;
+            
+        flag notify("completed");
+        other notify("dropped");
+
+        // get rid of the flag model off the player
+        if (player.has_attached == true)
+        {
+            player.has_attached = false;
+            player detach(flag.holding_flag,level.held_tag_flag);	
+        }
+    
+        // announce the flag has been grabbed
+        if ( other.pers["team"] == "axis" )
+        {
+            game["axisscore"]++;
+            setTeamScore("axis", game["axisscore"]);
+            
+            announcement(&"GMI_CTF_AXIS_CAPTURED_FLAG");
+            iprintln(&"GMI_CTF_PLAYER_CAPTURED_FLAG_AXIS",player);
+        }
+        else
+        {
+            game["alliedscore"]++;
+            setTeamScore("allies", game["alliedscore"]);
+
+            announcement(&"GMI_CTF_ALLIES_CAPTURED_FLAG");
+            iprintln(&"GMI_CTF_PLAYER_CAPTURED_FLAG_ALLIES",player);
+        }
+
+        // play the flag has been captured sound
+        players = getentarray("player", "classname");
+        for(i = 0; i < players.size; i++)
+        {
+            temp_player = players[i];
+            if(player.pers["team"] == "allies")
+            {
+                if ( temp_player.pers["team"] == "allies")
+                {
+                    temp_player playLocalSound(game["sound_allies_we_captured"]);
+                }
+                else
+                    temp_player playLocalSound(game["sound_axis_enemy_has_captured"]);
+            }
+            else
+            {
+                if ( temp_player.pers["team"] == "allies")
+                    temp_player playLocalSound(game["sound_allies_enemy_has_captured"]);
+                else
+                    temp_player playLocalSound(game["sound_axis_we_captured"]);
+            }
+        }
+        
+        // set the team cap count up one
+        if ( other.pers["team"] == "axis" )
+        {
+            level.axis_cap_count++;
+        }
+        else
+        {
+            level.allies_cap_count++;
+        }
+        
+        // give the team points
+        GivePointsToTeam( player.pers["team"],  maps\mp\gametypes\_scoring_gmi::GetPoints( 5, 5));
+
+        // give out points to the capper
+        if(isValidPlayer(player))
+        {
+            player.pers["score"] += maps\mp\gametypes\_scoring_gmi::GetPoints( 8, 8 );
+            player.score = player.pers["score"];
+        }
+        
+        if ( flag.team == "axis" )
+            other_flag = level.allies_flag;
+        else
+            other_flag = level.axis_flag;
+
+        lpselfnum = player getEntityNumber();
+        lpselfguid = player getGuid();
+        logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + player.pers["team"] + ";" + player.name + ";" + "ctf_captured" + "\n");
+
+        // give assist points
+        if (isDefined(other_flag.returned_by) && isValidPlayer(other_flag.returned_by) && other_flag.returned_by != player)
+        {
+            // let everyone know
+            if ( other_flag.returned_by.pers["team"] == "axis" )
+                iprintln(&"GMI_CTF_ASSISTED_AXIS_FLAG_CARRIER", other_flag.returned_by);
+            else
+                iprintln(&"GMI_CTF_ASSISTED_ALLIES_FLAG_CARRIER", other_flag.returned_by);
+                    
+            other_flag.returned_by.pers["score"] += maps\mp\gametypes\_scoring_gmi::GetPoints( 3, 3);
+            other_flag.returned_by = other_flag.returned_by.pers["score"];
+        }
+        
+        flag.returned_by = undefined;
+            
+        //move flag to its base position
+        flag reset_flag();
+    
+        // clean up the player
+        if(isPlayer(player))
+        {
+            player.hasflag = undefined;
+            player maps\mp\uox\_uox::setPlayerIcons();
+        }
+                    
+        //flag thread ctf_think();
+    
+        // check the score to see if we need to end the round
+        thread maps\mp\uox\_uox::checkScoreLimit();
+        return;
+    }		
+}
+
+reset_flag()
+{
+	self notify("reset");
+	
+	//move flag to its base position
+	self.trigger.origin = self.trigger.startorigin;
+	self.origin = self.startorigin;
+	self.angles = self.startangles;
+	self.moved = false;
+	self show();
+	
+	self.mobile_trigger.origin = self.trigger.startorigin;
+	self.mobile_trigger triggerOff();
+	self.mobile_model hide();
+
+	self.carried_by = undefined;
+
+	if ( level.showoncompass != 0 && isdefined(self.objnum) )
+	{
+		objective_delete( self.objnum );
+		self.objnum = undefined;
+	}
+	// update the objective icon
+	if ( self.team == "allies" )
+	{
+		objective_icon(self.hudnum,game["hud_allies_base_with_flag"] + ".dds");
+		updateFlagIcons([[level.getVars]]("scr_showicons"), "reset_allies");
+	}
+	else
+	{
+		objective_icon(self.hudnum,game["hud_axis_base_with_flag"] + ".dds");
+		updateFlagIcons([[level.getVars]]("scr_showicons"), "reset_axis");
+	}
+	
+}
+
+handle_vehicle_flag()
+{
+	self thread handle_change_flag();
+	self endon("dropped");
+	self endon("completed");
+	while(1)
+	{
+		if (isdefined( self.carried_by) && !(self.carried_by isinvehicle()))		
+			self.carried_by waittill("vehicle_activated",pos,vehicle);
+
+		vehicle GetVehicleFlagPos(self.holding_flag,self);
+		
+		if ( isdefined(self.carried_by) && isvalidplayer(self.carried_by) )
+		{
+			if ( self.carried_by.has_attached )
+			{
+				self.carried_by.has_attached = false;
+				self.carried_by detach(self.holding_flag,level.held_tag_flag);
+			}
+	
+			self thread handle_vehicle_flag_exited();
+
+			// wait until the the guy gets out of the vehicle before continuing
+			wait(0.001);
+			self.carried_by waittill("vehicle_deactivated",vehicle);
+		}
+		else
+		{
+			if (isdefined(self.vehiclemodel))
+				self.vehiclemodel delete();
+		}
+		
+		wait(0.001);
+	}
+
+}
+
+GetVehicleFlagPos(flagname,flag)
+{
+	
+	switch(self.vehicletype)
+	{
+		case	"t34_mp":
+		case	"sherman_mp":
+		case	"su152_mp":
+		case	"panzeriv_mp":
+		case	"elefant_mp":
+			break;
+
+		case	"horch_mp":
+			break;
+	}
+
+
+	flag.vehiclemodel = spawn("script_model", self.origin + (0,0,160));
+	flag.vehiclemodel.angles = self.angles + (0,0,0);
+	flag.vehiclemodel setmodel(flagname);
+	flag.vehiclemodel linkto(self,"tag_turret");
+	flag.vehiclemodel setcontents(0);
+	flag.vehiclemodel notsolid();
+}
+
+handle_vehicle_flag_exited()
+{
+	self.carried_by waittill("vehicle_deactivated",vehicle);
+	
+	// check for valid player
+	if ( isvalidplayer(self.carried_by) )
+	{
+		self.carried_by.has_attached = true;
+		self.carried_by attach(self.holding_flag,level.held_tag_flag, true);
+	}
+	
+	if (isdefined(self.vehiclemodel))
+		self.vehiclemodel delete();
 }
 
 onPlayerKill(victim, attacker)
 {
+    // make sure the flag gets dropped
+	if(isdefined(victim.hasflag))
+	{
+		victim.hasflag drop_flag(victim);
+	}
+
     if ( victim is_near_flag() )
     {
         // let everyone know
@@ -797,4 +1127,238 @@ is_near_carrier(attacker)
 triggerOff()
 {
 	self.origin = (self.origin - (0, 0, 10000));
+}
+
+update_objective()
+{
+	self endon("completed");
+	self endon("reset");
+	count1 = 1;
+	
+	// 0 is off, 1 is immediatly, greater then 1 is the position will be shown after that time in secs goes by
+	show_time = [[level.getVars]]("scr_showoncompass");
+	
+	if(show_time == 0)
+	{
+		// make sure it was not on already
+		if ( isDefined(self.objnum) && self.objnum )
+		{
+			objective_delete( self.objnum );
+			self.objnum = undefined;
+		}
+		return;
+	}
+	
+	// if show_time is greater then 0 then wait that number of seconds before displaying on radar for the first time	
+	if ( show_time > 0 )
+	{ 
+		wait(show_time * 60);
+	}		
+	
+	origin = get_flag_position();
+	
+	objnum = self.hudnum + 2;
+	if ( !isDefined(self.objnum) )
+	{
+		self.objnum = objnum;
+		objective_add(objnum, "current", origin, "gfx/hud/hud@objective_bel.tga");
+		objective_icon(objnum,"gfx/hud/hud@objective_bel.tga");
+		objective_team(objnum,"none");
+	}
+	objective_position(objnum, origin);
+	lastobjpos = origin;
+	newobjpos = origin;
+	
+	while(1)
+	{
+		wait(1);
+		if(count1 != level.PositionUpdateTime)
+			count1++;
+		else
+		{
+			count1 = 1;
+			origin = get_flag_position();
+			lastobjpos = newobjpos;
+			newobjpos = (((lastobjpos[0] + origin[0]) * 0.5), ((lastobjpos[1] + origin[1]) * 0.5), ((lastobjpos[2] + origin[2]) * 0.5));
+			objective_position(objnum, newobjpos);
+		}
+	}
+}
+
+get_flag_position()
+{
+	origin = self.mobile_trigger.origin;
+	
+	// set the origin to be the carriers position if being carried
+	if ( isdefined(self.carried_by) && isalive(self.carried_by))
+	{
+		origin = self.carried_by.origin;
+	}
+	return origin;
+}
+
+drop_flag(player)
+{
+	if (isdefined(player))
+	{
+		if (player.has_attached == true)
+		{
+			player.has_attached = false;
+			player detach(self.holding_flag,level.held_tag_flag);	
+		}
+	}
+
+	loc = (player.origin + (0, 0, 25));
+
+	// get the drop position
+	plant = player maps\mp\_utility::getPlant();
+	end_loc = plant.origin;
+
+	if(distance(loc, end_loc) > 0)
+	{
+		self.mobile_model.origin = loc;
+		self.mobile_model.angles = plant.angles;
+		self.mobile_model show();
+		speed = (distance(loc, end_loc) / 250);
+		if(speed > 0.4)
+		{
+			self.mobile_model moveto(end_loc, speed, 0.1, 0.1);
+			self.mobile_model waittill("movedone");
+			self.mobile_trigger.origin = end_loc;
+		}
+		else
+		{
+			self.mobile_model.origin = end_loc;
+			self.mobile_model show();
+			self.mobile_trigger.origin = end_loc;
+		}
+	}
+	else
+	{
+		self.mobile_model.origin = end_loc;
+		self.mobile_model show();
+		self.mobile_trigger.origin = end_loc;
+	}
+
+	// check if its inside a vehicle
+	vehicles = getentarray("script_vehicle","classname");
+
+	for(i=0;i<vehicles.size;i++)
+	{
+		if ( self.mobile_model istouching(vehicles[i]) )
+		{
+			valid_origin =  vehicles[i] getdismountspot();
+			
+			self.mobile_model.origin = valid_origin;
+			self.mobile_model.angles = plant.angles;  // just use the angles from the plant
+			self.mobile_trigger.origin = valid_origin;
+			break;
+		}
+	}
+	
+	self.mobile_model show();
+
+	if(isPlayer(player))
+	{
+		player.hasflag = undefined;
+		player maps\mp\uox\_uox::setPlayerIcons();
+	}
+
+	//check if it's in a minefield
+	In_Mines = 0;
+	for(i = 0; i < level.minefield.size; i++)
+	{
+		if(self.mobile_model istouching(level.minefield[i]))
+		{
+			In_Mines = 1;
+			break;
+		}
+	}
+
+	In_Water = 0;
+	for(i = 0; i < level.deepwater.size; i++)
+	{
+		if(self.mobile_model istouching(level.deepwater[i]))
+		{
+			In_Water = 1;
+			break;
+		}
+	}
+	if(In_Mines == 1)
+	{
+		if((!isdefined(level.lastdropper)) || (level.lastdropper != player))
+		{
+			level.lastdropper = player;
+			iprintln(&"GMI_CTF_FLAG_INMINES", player);
+		}
+		
+		self reset_flag();
+	}
+	else if(In_Mines == 1)
+	{
+		if((!isdefined(level.lastdropper)) || (level.lastdropper != player))
+		{
+			level.lastdropper = player;
+			iprintln(&"GMI_CTF_FLAG_INWATER", player);
+		}
+		
+		self reset_flag();
+	}
+	else
+	{
+		self thread flag_timeout();
+
+		if ( self.team == "allies" )
+        {
+                iprintln(&"GMI_CTF_ALLIES_FLAG_DROPPED");
+                updateFlagIcons([[level.getVars]]("scr_showicons"), "allies_dropped");
+
+        }
+		else
+        {
+                iprintln(&"GMI_CTF_AXIS_FLAG_DROPPED");
+                updateFlagIcons([[level.getVars]]("scr_showicons"), "axis_dropped");
+        }
+	}
+
+	self notify("dropped");
+	//self thread ctf_think();
+}
+
+flag_timeout()
+{
+	self endon("picked up");
+	self endon("reset");
+	flag_timeout = [[level.getVars]]("scr_flagtimeout");
+    if (flag_timeout == 0)
+        return;
+    if(flag_timeout < 10)
+        flag_timeout = 10;
+	wait flag_timeout;
+	
+	if ( self.team == "axis")
+	{
+		announcement(&"GMI_CTF_AXIS_FLAG_TIMEOUT_RETURNING");
+	}
+	else
+	{
+		announcement(&"GMI_CTF_ALLIES_FLAG_TIMEOUT_RETURNING");
+	}
+	
+	// play the flag has been returned sound
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		temp_player = players[i];
+		if(temp_player.pers["team"] == "allies" && self.team == "allies")
+			temp_player playLocalSound(game["sound_allies_flag_has_been_returned"]);
+		else if(temp_player.pers["team"] == "axis" && self.team == "axis")
+			temp_player playLocalSound(game["sound_axis_flag_has_been_returned"]);
+	}
+	
+	self.returned_by = undefined;
+
+	self reset_flag();
+	self notify("timeout");
+	self thread ctf_think_wait();
 }

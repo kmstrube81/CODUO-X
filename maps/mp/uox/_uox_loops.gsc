@@ -194,7 +194,7 @@ addToWaitTills(ent, msg, callback, entFlag, responseFlag)
 **** USAGE: removes waittill from loop and sends a kill notification to the pending waittill
 ****  
 ************************************************************************************************* */
-removeFromWaitTills(ent, msg)
+removeFromWaitTills(ent, msg, waitFor_ent, waitFor_notify)
 {
 	if(!isDefined(ent)) ent = level;
 	name = " ";
@@ -202,9 +202,17 @@ removeFromWaitTills(ent, msg)
 		name = ent.name + name;
 	else
 		name = "";
+
+    if(isDefined(waitFor_ent) && isDefined(waitFor_notify))
+    { //if the waitTill ent and notify are set, then listen for the ent to send the notify 
+        ent endon("kill_" + msg + "_waitFor");
+        waitFor_ent waittill(waitFor_notify);
+    }
+
 	maps\mp\uox\_uox_debug::debugLog("info", name + "WAITTILL deregister: msg=" + msg + " current size=" + ent.waitTills["length"]);
     ent.waitTills = maps\mp\uox\_uox_arrays::removeArrayKey(ent.waitTills, msg);
     ent notify("kill_" + msg);
+    ent notify("kill_" + msg + "_waitFor");
 	maps\mp\uox\_uox_debug::debugLog("info", name + 
 	"WAITTILL deregister: msg=" + msg + " new size=" + ent.waitTills["length"]);
 }

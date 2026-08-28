@@ -2510,6 +2510,10 @@ precacheObjectives(objective)
             return;
         case "radio":
             maps\mp\uox\_uox_radios::precache();
+            return;
+        case "ctf":
+            maps\mp\uox\_uox_flags::precache();
+            return;
 		default:
 			return;
 	}
@@ -2868,6 +2872,52 @@ randomMoveTeams(team)
         player moveTeams();
 }
 
+setPlayerIcons(battlerank, drawfriend)
+{
+    if(drawfriend)
+	{
+		// battle rank takes precidence
+		if(battlerank)
+		{
+			self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+			self.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(self);
+			self.headiconteam = self.pers["team"];
+		}
+		else
+		{
+			if(self.pers["team"] == "allies")
+			{
+				self.headicon = game["headicon_allies"];
+				self.headiconteam = "allies";
+			}
+			else if(self.pers["team"] == "axis")
+			{
+				self.headicon = game["headicon_axis"];
+				self.headiconteam = "axis";
+			}
+			else
+			{
+				self.headicon = "";
+			}
+			
+			self.statusicon = "";
+		}
+	}
+	else
+	{
+		if(battlerank)
+		{
+			self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+		}
+		else
+		{
+			self.statusicon = "";
+		}
+		self.headicon = "";
+		self.headiconteam = "none";
+	}
+}
+
 /* **************************************************************************************************
 **** updateTimeLimit(float timer)
 ****
@@ -2979,69 +3029,18 @@ updateBattleRank(battlerank)
     
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
-	{	//if rank change check is not in loop, add it
+		//if rank change check is not in loop, add it
 		maps\mp\uox\_uox_loops::addToLoop(level, "slow",
 				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges, "CheckPlayersForRankChanges");
-				
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				// setup the hud rank indicator
-				player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
-
-				player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
-				if ( drawfriend )
-				{
-					player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
-					player.headiconteam = player.pers["team"];
-				}
-				else
-				{
-					player.headicon = "";
-				}
-			}
-		}
-	}
-	else if(drawfriend)
-	{
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				if(player.pers["team"] == "allies")
-				{
-					player.headicon = game["headicon_allies"];
-					player.headiconteam = "allies";
-				}
-				else
-				{
-					player.headicon = game["headicon_axis"];
-					player.headiconteam = "axis";
-				}
-			}
-		}
-	}
-	else
-	{
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-				player.headicon = "";
-				player.statusicon = "";
-		}
-	}
+	
+    players = getentarray("player", "classname");
+    for(i = 0; i < players.size; i++)
+    {
+        player = players[i];
+        
+        player setPlayerIcons(battlerank, drawfriend);
+    }
+	
 	if(battlerank == 0)
 	{
 		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "checkPlayersForRankChanges");
@@ -3064,68 +3063,13 @@ updateDrawFriend(drawfriend)
     
 	level.drawfriend = drawfriend;
 
-	// battle rank has precidence over draw friend
-	if(battlerank > 0)
-	{
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				// setup the hud rank indicator
-				player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
-
-				player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
-				if ( drawfriend )
-				{
-					player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
-					player.headiconteam = player.pers["team"];
-				}
-				else
-				{
-					player.headicon = "";
-				}
-			}
-		}
-	}
-	else if(drawfriend)
-	{
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				if(player.pers["team"] == "allies")
-				{
-					player.headicon = game["headicon_allies"];
-					player.headiconteam = "allies";
-				}
-				else
-				{
-					player.headicon = game["headicon_axis"];
-					player.headiconteam = "axis";
-				}
-			}
-		}
-	}
-	else
-	{
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-				player.headicon = "";
-				player.statusicon = "";
-		}
-	}
+    players = getentarray("player", "classname");
+    for(i = 0; i < players.size; i++)
+    {
+        player = players[i];
+        
+        player setPlayerIcons(battlerank, drawfriend);
+    }
 }
 
 /* **************************************************************************************************
