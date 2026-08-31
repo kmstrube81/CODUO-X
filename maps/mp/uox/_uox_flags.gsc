@@ -633,7 +633,7 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
 
     // do not allow people in vehicles to touch flag
     if (other isinvehicle())
-        continue;
+        return;
         
     if((isPlayer(other)) && isAlive(other) && (other.pers["team"] != self.team))
     {
