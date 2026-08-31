@@ -2932,7 +2932,7 @@ updateTimeLimit(timer)
 	game["timepassed"] = 0;
 	if(timer > 0)
 	{
-		//int game timer [[level.getVars]]("scr_timelimit") is in minutes, so is game["timepassed"] convert to seconds; 
+		//game timer [[level.getVars]]("scr_timelimit") is in minutes, so is game["timepassed"] convert to seconds; 
 		//subtract timed pass from time limit to get correct time instead of re-initing the timer after
 		gameTimer = (timer * 60) - (game["timepassed"] * 60); //each round
 		if(roundlimit == 1) //if game is a single round, set game clock in bottom center

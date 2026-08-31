@@ -82,9 +82,11 @@ Callback_StartGameType()
 		precacheItem("item_health");
 
 		maps\mp\gametypes\_teams::precache();
-        maps\mp\gametypes\_teams::modeltype();
 		maps\mp\gametypes\_teams::scoreboard();
 	}
+
+    //define player models
+    maps\mp\gametypes\_teams::modeltype();
 
 	//init vars
 	maps\mp\uox\_uox_vars::initGameTypeVars();

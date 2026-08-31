@@ -246,13 +246,13 @@ ctf()
 	
 	// get the mobile version of the flag
 	level.axis_flag.mobile_model = getent("ctf_flag_axis_mobile", "targetname");
-	level.axis_flag.mobile_model SetContents(0);
 
 	if ( !isDefined(level.axis_flag.mobile_model) )
 	{
 		maps\mp\_utility::error("NO ALLIED MOBILE FLAG IN MAP");
 		return;
 	}
+	level.axis_flag.mobile_model SetContents(0);
 
 	level.axis_flag.mobile_model hide();	
 	level.axis_flag.team = "axis";
@@ -584,9 +584,9 @@ ctf_spawn_flag()
 	self.moved = false;
     self.timeout = false;
 	
-    self.mobile_trigger maps\mp\uox\_uox_loops::initEntityLoop();
-    self.trigger maps\mp\uox\_uox_loops::initEntityLoop();
-    self.goal maps\mp\uox\_uox_loops::initEntityLoop();
+    self.mobile_trigger thread maps\mp\uox\_uox_loops::initEntityLoop();
+    self.trigger thread maps\mp\uox\_uox_loops::initEntityLoop();
+    self.goal thread maps\mp\uox\_uox_loops::initEntityLoop();
     self thread ctf_think_wait();
 	
 	//Set hintstring on the objectives trigger
