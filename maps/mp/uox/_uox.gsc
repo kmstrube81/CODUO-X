@@ -2476,7 +2476,6 @@ initObjectives(objective)
         case "ctf":
             maps\mp\uox\_uox_flags::initVars();
             thread maps\mp\uox\_uox_flags::ctf();
-            thread maps\mp\uox_flags::GameRoundThink();
             return;
 		default:
 			game["attackers"] = undefined;
