@@ -866,13 +866,16 @@ flag_carrier_atgoal(other)
             level.allies_cap_count++;
         }
         
+        capbonus = [[level.getVars]]("scr_capturebonus");
+        assistbonus = [[level.getVars]]("scr_assistbonus");
+
         // give the team points
-        GivePointsToTeam( player.pers["team"],  maps\mp\gametypes\_scoring_gmi::GetPoints( 5, 5));
+        maps\mp\uox\_uox::GivePointsToTeam( player.pers["team"],  capbonus);
 
         // give out points to the capper
         if(isValidPlayer(player))
         {
-            player.pers["score"] += maps\mp\gametypes\_scoring_gmi::GetPoints( 8, 8 );
+            player.pers["score"] += capbonus;
             player.score = player.pers["score"];
         }
         
@@ -894,7 +897,7 @@ flag_carrier_atgoal(other)
             else
                 iprintln(&"GMI_CTF_ASSISTED_ALLIES_FLAG_CARRIER", other_flag.returned_by);
                     
-            other_flag.returned_by.pers["score"] += maps\mp\gametypes\_scoring_gmi::GetPoints( 3, 3);
+            other_flag.returned_by.pers["score"] += assistbonus;
             other_flag.returned_by = other_flag.returned_by.pers["score"];
         }
         
