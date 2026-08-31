@@ -542,8 +542,6 @@ ctf_spawn_flag()
 		maps\mp\_utility::error(self.team + " mp_gmi_ctf_flag does not target a trigger_multiple");
 		return;
 	}
-
-    goal
 	
 	// get the mobile version of the flag trigger
 	targeted = getentarray(self.mobile_model.target, "targetname");
