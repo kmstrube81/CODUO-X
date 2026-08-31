@@ -35,10 +35,10 @@ precache()
 
 
     //	all silly stuff
-    precacheShader("gfx/hud/ctf_stance_crouch.dds");
-    precacheShader("gfx/hud/ctf_stance_stand.dds");
-    precacheShader("gfx/hud/ctf_stance_prone.dds");
-    precacheShader("gfx/hud/ctf_stance_sprint.dds");
+    // precacheShader("gfx/hud/ctf_stance_crouch.dds");
+    // precacheShader("gfx/hud/ctf_stance_stand.dds");
+    // precacheShader("gfx/hud/ctf_stance_prone.dds");
+    // precacheShader("gfx/hud/ctf_stance_sprint.dds");
 
     // set up team specific variables
     switch( game["allies"])
@@ -110,8 +110,10 @@ precache()
 
     game["hud_axis_base_with_flag"] = "gfx/hud/hud@objective_german";
     game["hud_axis_base"] = "gfx/hud/hud@g_flag_nobase3";
-
-
+    game["hud_flagicon_home"] = "gfx/hud/objective.dds";
+    game["hud_flagicon_away"] = "gfx/hud/ctf_stance_sprint.dds";
+    game["hud_flagicon_dropped"] = "gfx/hud/hud@status_dead.tga";
+        
     precacheShader(game["hud_allies_base_with_flag"]+ ".dds");
     precacheShader(game["hud_allies_base_with_flag"]+ "_up.dds");
     precacheShader(game["hud_allies_base_with_flag"]+ "_down.dds");
@@ -124,6 +126,9 @@ precache()
     precacheShader(game["hud_axis_base"]+ ".dds");
     precacheShader(game["hud_axis_base"]+ "_up.dds");
     precacheShader(game["hud_axis_base"]+ "_down.dds");
+    precacheShader(game["hud_flagicon_home"]);
+    precacheShader(game["hud_flagicon_away"]);
+    precacheShader(game["hud_flagicon_dropped"]);
     precacheShader("gfx/hud/hud@objective_bel.tga");
     precacheShader("gfx/hud/hud@objective_bel_up.tga");
     precacheShader("gfx/hud/hud@objective_bel_down.tga");
