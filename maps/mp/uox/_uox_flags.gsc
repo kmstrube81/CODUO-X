@@ -795,7 +795,7 @@ flag_carrier_atgoal(other)
     player = self.flag.carried_by;
 
     if ( other isinvehicle() )
-        continue;
+        return;
         
     if((other == player) && (isPlayer(player)))
     {
