@@ -186,6 +186,9 @@ Callback_PlayerConnect()
 		self.pers["deaths"] = 0;
 	if(!isDefined(self.pers["kills"]))
 		self.pers["kills"] = 0;
+    if(!isDefined(self.pers["totalscore"]))
+        self.pers["totalscore"] = 0;
+
 	self.score = self.pers["score"];
 	self.deaths = self.pers["deaths"];
 	if(!isDefined(self.pers["1HScore"]))
