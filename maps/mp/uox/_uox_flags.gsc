@@ -801,9 +801,9 @@ flag_carrier_atgoal(other)
     {
         // make sure the other flag is there
         if ( flag.team == "axis" && level.allies_flag.moved )
-            continue;
+            return;
         if ( flag.team == "allies" && level.axis_flag.moved )
-            continue;
+            return;
             
         flag notify("completed");
         other notify("dropped");
