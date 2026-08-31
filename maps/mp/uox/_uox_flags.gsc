@@ -584,9 +584,9 @@ ctf_spawn_flag()
 	self.moved = false;
     self.timeout = false;
 	
-    self.mobile_trigger maps\mp\uox\_uox_loops::initEntityLoop(self.mobile_trigger);
-    self.trigger maps\mp\uox\_uox_loops::initEntityLoop(self.trigger);
-    self.goal maps\mp\uox\_uox_loops::initEntityLoop(self.goal);
+    self.mobile_trigger maps\mp\uox\_uox_loops::initEntityLoop();
+    self.trigger maps\mp\uox\_uox_loops::initEntityLoop();
+    self.goal maps\mp\uox\_uox_loops::initEntityLoop();
     self thread ctf_think_wait();
 	
 	//Set hintstring on the objectives trigger
