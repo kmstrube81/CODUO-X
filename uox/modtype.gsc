@@ -23,7 +23,7 @@ modtype(gt)
 		case "dom":
 			return;
 		case "ctf":
-			return;
+			return maps\mp\gametypes\_uox_ctf::UOX_Main;
 		case "bas":
 			return;
 		default:
