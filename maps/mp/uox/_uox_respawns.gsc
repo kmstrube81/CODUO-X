@@ -769,7 +769,7 @@ getSpawn(gt, farthest)
 					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
 				}
 			}
-			spawnpoints = getentarray(spawnpointname, "classname");
+			//spawnpoints = getentarray(spawnpointname, "classname");
 			break;
 		case "bas":
 			// pick the appropriate spawn point
