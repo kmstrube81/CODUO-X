@@ -183,7 +183,7 @@ initVars()
 
     maps\mp\uox\_uox_vars::varDef("scr", "showoncompass", "int", true, 0, 0, 999, "Show Flag Carrier on Compass");
     level.PositionUpdateTime = maps\mp\uox\_uox_vars::varDef("scr", "positionTime", "int", true, 6, 1, 60, "Seconds Per Compass Update");
-    maps\mp\uox\_uox_vars::varDef("scr", "showicons", "int", true, 1, 0, 3, "Show Flag HUD Icons");
+    maps\mp\uox\_uox_vars::varDef("scr", "showicons", "string", true, "both", "", "", "Show Flag HUD Icons");
     maps\mp\uox\_uox_vars::varDef("scr", "defensebonus", "int", true, 0, 0, 10, "Flag Defended Bonus");
     maps\mp\uox\_uox_vars::varDef("scr", "assistbonus", "int", true, 0, 0, 10, "Flag Assist Bonus");
     maps\mp\uox\_uox_vars::varDef("scr", "capturebonus", "int", true, 5, 0, 10, "Flag Capture Bonus");
