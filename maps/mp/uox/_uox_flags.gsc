@@ -656,7 +656,7 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         {
             player = players[i];
             
-            if ( self.team == "allies" )
+            if ( self.flag.team == "allies" )
             {
                 if(player.pers["team"] == "allies")
                     player playLocalSound(game["sound_allies_enemy_has_our_flag"]);
