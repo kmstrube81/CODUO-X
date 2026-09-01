@@ -1066,9 +1066,9 @@ onPlayerKill(victim, attacker)
 	if(isdefined(victim.hasflag))
 	{
         if ( victim.pers["team"] == "allies" )
-            updateFlagIcons([[level.getVars]]("scr_showicons"), "allies_flag_dropped");
-        else
             updateFlagIcons([[level.getVars]]("scr_showicons"), "axis_flag_dropped");
+        else
+            updateFlagIcons([[level.getVars]]("scr_showicons"), "allies_flag_dropped");
 		victim.hasflag drop_flag(victim);
 	}
 

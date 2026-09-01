@@ -177,11 +177,6 @@ respawn()
 {
 	self endon("end_respawn");
 	
-    currentorigin = self.origin;
-    currentangles = self.angles;
-
-    self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
-
 	firsttime = 0;
 	while(!isDefined(self.pers["weapon"])) {
 		
@@ -232,6 +227,11 @@ respawn_delayed()
 	{
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
+
+    currentorigin = self.origin;
+    currentangles = self.angles;
+
+    self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
 	
 	death_wait_time = [[level.getVars]]("scr_spawn_delay_time");
 		
@@ -251,6 +251,11 @@ respawn_wave()
 		maps\mp\_utility::error("Team not set correctly on spawning player "
 			+ self + " " + self.pers["team"]);
 	}
+
+    currentorigin = self.origin;
+    currentangles = self.angles;
+
+    self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
 
 	wave_time = [[level.getVars]]("scr_respawn_wave_time");	
 	
@@ -305,7 +310,11 @@ respawn_obj()
 	{
 		self maps\mp\uox\_uox_hud::deleteHUDLivesLeft();
 		self.lives--;
-		self spawnSpectator();
+		
+        currentorigin = self.origin;
+        currentangles = self.angles;
+
+        self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
 	}
 }
 
