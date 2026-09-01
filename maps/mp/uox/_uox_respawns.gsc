@@ -227,17 +227,20 @@ respawn_delayed()
 	{
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
-
-    currentorigin = self.origin;
-    currentangles = self.angles;
-
-    self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
 	
-	death_wait_time = [[level.getVars]]("scr_spawn_delay_time");
-		
-	self thread maps\mp\uox\_uox_hud::stopwatch_start("respawn", death_wait_time);
+    if(self.sessionspawned)
+    {
+        currentorigin = self.origin;
+        currentangles = self.angles;
 
-	wait (death_wait_time);
+        self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
+
+        death_wait_time = [[level.getVars]]("scr_spawn_delay_time");
+        
+        self thread maps\mp\uox\_uox_hud::stopwatch_start("respawn", death_wait_time);
+
+        wait (death_wait_time);
+    }
 
 	self thread spawnPlayer();
 }
