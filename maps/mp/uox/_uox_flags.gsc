@@ -811,6 +811,9 @@ flag_carrier_atgoal(other)
     flag = self.flag;
     player = self.flag.carried_by;
 
+    if(!isDefined(player))
+        return; //nothing to do if the flag isn't being carried
+
     if ( other isinvehicle() )
         return;
         
