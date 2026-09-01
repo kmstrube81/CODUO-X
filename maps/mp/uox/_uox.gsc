@@ -66,7 +66,7 @@ checkPlayerKilled(victim, attacker)
 		attacker.pers["kills"]++; //give attacker a kill
 	}
 
-    if(level.objective == "none" or level.objective == "bel") 
+    if(level.objective == "none" || level.objective == "bel") 
     {
         doCheckScoreLimit = true;
 		if(level.uox_teamplay)
