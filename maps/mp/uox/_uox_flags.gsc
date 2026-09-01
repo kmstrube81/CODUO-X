@@ -1283,6 +1283,7 @@ drop_flag(player)
 	if(isPlayer(player))
 	{
 		player.hasflag = undefined;
+        self.carried_by = undefined;
 		player maps\mp\uox\_uox::setPlayerIcons();
 	}
 
