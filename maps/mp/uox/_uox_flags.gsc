@@ -457,7 +457,7 @@ updateFlagIcons(showicons, reason)
                     options["alpha"] = 1;
                     options["width"] = 24;
                     options["height"] = 24;
-                    allies_icon2 = game["hud_flagicon_away"];
+                    axis_icon2 = game["hud_flagicon_away"];
                     break;
                 case "axis_flag_dropped":
                     options["alpha"] = 1;
@@ -681,6 +681,12 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         {
             updateFlagIcons([[level.getVars]]("scr_showicons"), "axis_flag_taken");
         }
+
+        //update score
+        bonus = [[level.getVars]]("scr_pickupbonus");
+
+        other.pers["score"] += bonus;
+        other.score = other.pers["score"];
         
         lpselfnum = other getEntityNumber();
         lpselfguid = other getGuid();
@@ -708,6 +714,12 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         }
         
         self.flag.returned_by = other;
+
+        //update score
+        bonus = [[level.getVars]]("scr_returnbonus");
+
+        other.pers["score"] += bonus;
+        other.score = other.pers["score"];
             
         lpselfnum = other getEntityNumber();
         lpselfguid = other getGuid();
