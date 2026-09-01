@@ -758,9 +758,9 @@ hold_flag(player) //the objective model runs this to be held by 'player'
 	self.trigger triggerOff();
 
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::handle_change_flag, "handle_change_flag");
-    self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::handle_vehicle_flag, "handle_vehicle_flag");
-    self thread maps\mp\uox\_uox_loops::removeFromLoop(self, "fast", "handle_change_flag", self, "dropped");
-    self thread maps\mp\uox\_uox_loops::removeFromLoop(self, "fast", "handle_vehicle_flag", self, "completed");
+    self.carried_by maps\mp\uox\_uox_loops::addToWaitTills(self.carried_by, "vehicle_activated", ::handle_vehicle_flag, true, true);
+    self.carried_by thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.carried_by, "vehicle_activated", self, "dropped");
+    self.carried_by thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.carried_by, "vehicle_activated", self, "completed");
 
 	lpselfnum = player getEntityNumber();
 	lpselfguid = player getGuid();
@@ -974,38 +974,38 @@ reset_flag()
 	
 }
 
-handle_vehicle_flag()
+handle_vehicle_flag(pos, vehicle)
 {
 
 	self endon("dropped");
 	self endon("completed");
 
-    if (isdefined( self.carried_by) && !(self.carried_by isinvehicle()))		
-        self.carried_by waittill("vehicle_activated",pos,vehicle);
+    flag = self.hasflag;
+    if(!isdefined(flag))
+        return;
+    flagname = flag.holding_flag;
+    if(!isdefined(flagname))
+        return;
 
-    vehicle GetVehicleFlagPos(self.holding_flag,self);
+    vehicle GetVehicleFlagPos(flagname, flag);
     
-    if ( isdefined(self.carried_by) && isvalidplayer(self.carried_by) )
+    if ( isvalidplayer(self) )
     {
-        if ( self.carried_by.has_attached )
+        if ( self.has_attached )
         {
-            self.carried_by.has_attached = false;
-            self.carried_by detach(self.holding_flag,level.held_tag_flag);
+            self.has_attached = false;
+            self detach(flagname,level.held_tag_flag);
         }
 
-        self thread handle_vehicle_flag_exited();
+        self thread maps\mp\uox\_uox_loops::addToWaitTills(self,"vehicle_deactivated", ::handle_vehicle_flag_exited, true);
 
-        // wait until the the guy gets out of the vehicle before continuing
-        wait(0.05);
-        self.carried_by waittill("vehicle_deactivated",vehicle);
     }
     else
     {
-        if (isdefined(self.vehiclemodel))
-            self.vehiclemodel delete();
+        if (isdefined(self.hasflag.vehiclemodel))
+            self.hasflag.vehiclemodel delete();
     }
-
-
+    self maps\mp\uox\_uox_loops::removeFromWaitTills(self, "vehicle_activated");
 }
 
 GetVehicleFlagPos(flagname,flag)
@@ -1033,19 +1033,18 @@ GetVehicleFlagPos(flagname,flag)
 	flag.vehiclemodel notsolid();
 }
 
-handle_vehicle_flag_exited()
+handle_vehicle_flag_exited(vehicle)
 {
-	self.carried_by waittill("vehicle_deactivated",vehicle);
-	
 	// check for valid player
-	if ( isvalidplayer(self.carried_by) )
+	if ( isvalidplayer(self) )
 	{
-		self.carried_by.has_attached = true;
-		self.carried_by attach(self.holding_flag,level.held_tag_flag, true);
+		self.has_attached = true;
+		self attach(self.hasflag.holding_flag,level.held_tag_flag, true);
 	}
 	
-	if (isdefined(self.vehiclemodel))
-		self.vehiclemodel delete();
+	if (isdefined(self.hasflag.vehiclemodel))
+		self.hasflag.vehiclemodel delete();
+    self maps\mp\uox\_uox_loops::removeFromWaitTills(self, "vehicle_deactivated");
 }
 
 onPlayerKill(victim, attacker)
