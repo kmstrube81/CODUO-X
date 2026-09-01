@@ -786,7 +786,7 @@ handle_change_flag()
 
 flag_carrier_atgoal_wait()
 {
-    self maps\mp\uox\_uox_loops::addToWaitTills(self, "trigger", ::flag_carrier_atgoal_wait, true);
+    self maps\mp\uox\_uox_loops::addToWaitTills(self, "trigger", ::flag_carrier_atgoal, true);
     self thread maps\mp\uox\_uox_loops::removeFromWaitTills(self, "trigger", level, "round_ended");
     self thread maps\mp\uox\_uox_loops::removeFromWaitTills(self, "trigger", self.flag, "dropped");
 }
