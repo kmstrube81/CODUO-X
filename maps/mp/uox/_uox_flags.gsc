@@ -940,7 +940,7 @@ reset_flag()
 
 	self.carried_by = undefined;
 
-	if ( level.showoncompass != 0 && isdefined(self.objnum) )
+	if ( [[level.getVars]]("scr_showoncompass") != 0 && isdefined(self.objnum) )
 	{
 		objective_delete( self.objnum );
 		self.objnum = undefined;
