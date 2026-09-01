@@ -160,7 +160,7 @@ removeFromLoop(ent, loop, callbackName, waitFor_ent, waitFor_notify)
 			ent.fastLoop = maps\mp\uox\_uox_arrays::removeArrayKey(ent.fastLoop, callbackName);
 			break;
 	}
-	ent notify("kill_" + msg + "_waitFor");
+	ent notify("kill_" + callbackName + "_waitFor");
 }
 
 /* *************************************************************************************************
