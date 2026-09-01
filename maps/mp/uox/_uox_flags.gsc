@@ -757,7 +757,10 @@ hold_flag(player) //the objective model runs this to be held by 'player'
 	self.mobile_trigger triggerOff();
 	self.trigger triggerOff();
 
-	self thread handle_vehicle_flag();
+	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::handle_change_flag, "handle_change_flag");
+    self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::handle_vehicle_flag, "handle_vehicle_flag");
+    self thread maps\mp\uox\_uox_loops::removeFromLoop(self, "fast", "handle_change_flag", self, "dropped");
+    self thread maps\mp\uox\_uox_loops::removeFromLoop(self, "fast", "handle_vehicle_flag", self, "completed");
 
 	lpselfnum = player getEntityNumber();
 	lpselfguid = player getGuid();
@@ -786,14 +789,14 @@ hold_flag(player) //the objective model runs this to be held by 'player'
 
 handle_change_flag()
 {
-	while(isdefined(self.carried_by))
-	{
-		wait(0.05);
-	}
+	if(isdefined(self.carried_by))
+        return;
 
 	self notify("dropped");
 	if (isdefined(self.vehiclemodel))
 		self.vehiclemodel delete();
+
+    self maps\mp\uox\_uox_loops::removeFromLoop(self, "fast", "handle_change_flag");
 }
 
 flag_carrier_atgoal_wait()
@@ -973,38 +976,35 @@ reset_flag()
 
 handle_vehicle_flag()
 {
-	self thread handle_change_flag();
+
 	self endon("dropped");
 	self endon("completed");
-	while(1)
-	{
-		if (isdefined( self.carried_by) && !(self.carried_by isinvehicle()))		
-			self.carried_by waittill("vehicle_activated",pos,vehicle);
 
-		vehicle GetVehicleFlagPos(self.holding_flag,self);
-		
-		if ( isdefined(self.carried_by) && isvalidplayer(self.carried_by) )
-		{
-			if ( self.carried_by.has_attached )
-			{
-				self.carried_by.has_attached = false;
-				self.carried_by detach(self.holding_flag,level.held_tag_flag);
-			}
-	
-			self thread handle_vehicle_flag_exited();
+    if (isdefined( self.carried_by) && !(self.carried_by isinvehicle()))		
+        self.carried_by waittill("vehicle_activated",pos,vehicle);
 
-			// wait until the the guy gets out of the vehicle before continuing
-			wait(0.001);
-			self.carried_by waittill("vehicle_deactivated",vehicle);
-		}
-		else
-		{
-			if (isdefined(self.vehiclemodel))
-				self.vehiclemodel delete();
-		}
-		
-		wait(0.001);
-	}
+    vehicle GetVehicleFlagPos(self.holding_flag,self);
+    
+    if ( isdefined(self.carried_by) && isvalidplayer(self.carried_by) )
+    {
+        if ( self.carried_by.has_attached )
+        {
+            self.carried_by.has_attached = false;
+            self.carried_by detach(self.holding_flag,level.held_tag_flag);
+        }
+
+        self thread handle_vehicle_flag_exited();
+
+        // wait until the the guy gets out of the vehicle before continuing
+        wait(0.05);
+        self.carried_by waittill("vehicle_deactivated",vehicle);
+    }
+    else
+    {
+        if (isdefined(self.vehiclemodel))
+            self.vehiclemodel delete();
+    }
+
 
 }
 
@@ -1055,6 +1055,9 @@ onPlayerKill(victim, attacker)
 	{
 		victim.hasflag drop_flag(victim);
 	}
+
+    if(!isPlayer(attacker)) //world kill, early return
+        return;
 
     if ( victim is_near_flag() )
     {
@@ -1314,7 +1317,7 @@ drop_flag(player)
 		
 		self reset_flag();
 	}
-	else if(In_Mines == 1)
+	else if(In_Water == 1)
 	{
 		if((!isdefined(level.lastdropper)) || (level.lastdropper != player))
 		{

@@ -65,33 +65,14 @@ checkPlayerKilled(victim, attacker)
 	{
 		attacker.pers["kills"]++; //give attacker a kill
 	}
-	/* Objective Based Kill checks */
-	obj = level.objective; //get gametype
-	
-	if(!isDefined(obj))
-		obj = "none";
-	
-	switch(obj)
-	{
-		case "none": //if dm, check score limit
-			doCheckScoreLimit = true;
-			if(level.uox_teamplay)
-				addKillToTeamScore = true;
-			break;
-		case "bomb": //SD/DEM bonus
-			maps\mp\uox\_uox_bombs::onPlayerKill(victim, attacker);
-			break;
-		case "retrieval": //RE bonus
-			maps\mp\uox\_uox_retrievals::onPlayerKill(victim, attacker);
-			break;
-        case "bel":
-            doCheckScoreLimit = true;
-            maps\mp\uox\_uox_behindenemylines::onPlayerKill(victim, attacker);
-            break;
-        case "ctf":
-            maps\mp\uox\_uox_bombs::onPlayerKill(victim, attacker);
-            break;
-	}
+
+    if(level.objective == "none" or level.objective == "bel") 
+    {
+        doCheckScoreLimit = true;
+		if(level.uox_teamplay)
+			addKillToTeamScore = true;
+    }
+
 	if(addKillToTeamScore) //if add to team score flag set.
 	{
 		if(victim.pers["team"] == attacker.pers["team"]) // killed by a friendly
@@ -110,6 +91,31 @@ checkPlayerKilled(victim, attacker)
 		checkScoreLimit(); //check score limit duh
 }
 
+/* *************************************************************************************************
+   ** playerKilledObjectives( str objective )
+   **
+   ** Called from callbackPlayerKilled
+   ** Runs function on player killed
+************************************************************************************************* */
+playerKilledObjectives(objective)
+{
+    /* Objective Based Kill checks */
+	switch(objective)
+	{
+		case "bomb": //SD/DEM bonus
+			maps\mp\uox\_uox_bombs::onPlayerKill(victim, attacker);
+			break;
+		case "retrieval": //RE bonus
+			maps\mp\uox\_uox_retrievals::onPlayerKill(victim, attacker);
+			break;
+        case "bel":
+            maps\mp\uox\_uox_behindenemylines::onPlayerKill(victim, attacker);
+            break;
+        case "ctf":
+            maps\mp\uox\_uox_flags::onPlayerKill(victim, attacker);
+            break;
+	}
+}
 /* *************************************************************************************************
 **** checkScoreLimit()
 ****

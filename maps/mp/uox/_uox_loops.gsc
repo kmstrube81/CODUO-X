@@ -138,9 +138,16 @@ addToLoop(ent, loop, callback, callbackName)
 **** times a second, and fast for every frame (20fps)
 ****  
 ************************************************************************************************* */
-removeFromLoop(ent, loop, callbackName)
+removeFromLoop(ent, loop, callbackName, waitFor_ent, waitFor_notify)
 {
 	if(!isDefined(ent)) ent = level;
+
+    if(isDefined(waitFor_ent) && isDefined(waitFor_notify))
+    { //if the waitTill ent and notify are set, then listen for the ent to send the notify 
+        ent endon("kill_" + callbackName + "_waitFor");
+        waitFor_ent waittill(waitFor_notify);
+    }
+
 	switch(loop)
 	{
 		case "slow":
@@ -153,7 +160,7 @@ removeFromLoop(ent, loop, callbackName)
 			ent.fastLoop = maps\mp\uox\_uox_arrays::removeArrayKey(ent.fastLoop, callbackName);
 			break;
 	}
-	
+	ent notify("kill_" + msg + "_waitFor");
 }
 
 /* *************************************************************************************************

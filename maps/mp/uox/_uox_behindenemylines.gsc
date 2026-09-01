@@ -19,6 +19,9 @@ initVars()
 onPlayerKill(victim, attacker)
 {
     victim check_delete_objective();
+
+    if(!isPlayer(attacker)) //world kill, early return
+        return;
     if(attacker.pers["team"] == "allies" && victim.pers["team"] == "allies") //also delete objective on team kill
         attacker check_delete_objective();
     if(attacker.pers["team"] == "axis" && victim.pers["team"] == "allies")

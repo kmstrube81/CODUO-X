@@ -431,6 +431,8 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	// send out an obituary message to all clients about the kill
 	obituary(self, attacker, sWeapon, sMeansOfDeath);
 
+    maps\mp\uox\_uox::playerKilledObjectives(level.objective);
+
 	self.sessionstate = "dead";
 	if(!level.doingReadyUp)
 		self.statusicon = "gfx/hud/hud@status_dead.tga";
