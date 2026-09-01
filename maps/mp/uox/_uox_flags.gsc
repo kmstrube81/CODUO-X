@@ -572,9 +572,11 @@ ctf_spawn_flag()
 	self.startangles = self.angles;
 	self.trigger.origin = self.origin;
 	self.trigger.startorigin = self.trigger.origin;
+    self.trigger.flag = self;
 	self.mobile_model.origin = self.origin;
 	self.mobile_trigger.origin = self.origin;
 	self.mobile_trigger.startorigin = self.trigger.origin;
+    self.mobile_trigger.flag = self;
 	self.carried_by = undefined;
 
 	// turn off the mobile parts
@@ -635,7 +637,7 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
     if (other isinvehicle())
         return;
         
-    if((isPlayer(other)) && isAlive(other) && (other.pers["team"] != self.team))
+    if((isPlayer(other)) && isAlive(other) && (other.pers["team"] != self.flag.team))
     {
 
         // let the player know they picked up the flag
@@ -671,7 +673,7 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         }
         
         // update the objective icon to the base but no flag there icon
-        if ( self.team == "allies" )
+        if ( self.flag.team == "allies" )
         {
             updateFlagIcons([[level.getVars]]("scr_showicons"), "allies_flag_taken");
         }
@@ -684,15 +686,15 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         lpselfguid = other getGuid();
         logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + other.pers["team"] + ";" + other.name + ";" + "ctf_take" + "\n");
 
-        self.returned_by = undefined;
+        self.flag.returned_by = undefined;
         
-        self thread hold_flag(other);
-        self thread update_objective();
+        self.flag thread hold_flag(other);
+        self.flag thread update_objective();
         return;
 
     }
     // the team that owns the flag can only touch it if it has been moved
-    else if((isPlayer(other)) && (other.pers["team"] == self.team) && self.moved)
+    else if((isPlayer(other)) && (other.pers["team"] == self.flag.team) && self.flag.moved)
     {
         if(other.sessionteam == "allies")
         {
@@ -705,7 +707,7 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
             iprintln(&"GMI_CTF_PLAYER_RETURNED_FLAG_AXIS",other);
         }
         
-        self.returned_by = other;
+        self.flag.returned_by = other;
             
         lpselfnum = other getEntityNumber();
         lpselfguid = other getGuid();
@@ -716,13 +718,13 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         for(i = 0; i < players.size; i++)
         {
             temp_player = players[i];
-            if(temp_player.pers["team"] == "allies" && self.team == "allies")
+            if(temp_player.pers["team"] == "allies" && self.flag.team == "allies")
                 temp_player playLocalSound(game["sound_allies_flag_has_been_returned"]);
-            else if(temp_player.pers["team"] == "axis" && self.team == "axis")
+            else if(temp_player.pers["team"] == "axis" && self.flag.team == "axis")
                 temp_player playLocalSound(game["sound_axis_flag_has_been_returned"]);
         }
         
-        self reset_flag();
+        self.flag reset_flag();
     }
 
 }
