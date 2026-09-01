@@ -97,7 +97,7 @@ checkPlayerKilled(victim, attacker)
    ** Called from callbackPlayerKilled
    ** Runs function on player killed
 ************************************************************************************************* */
-playerKilledObjectives(objective)
+playerKilledObjectives(objective, victim, attacker)
 {
     /* Objective Based Kill checks */
 	switch(objective)
