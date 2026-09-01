@@ -616,6 +616,9 @@ flag_think()
 
 ctf_think_wait()
 {
+
+    maps\mp\uox\_uox_debug::debugLog("info", "ctf_think_wait ARMING trigger=" + self.moved + " team=" + self.team);
+
     if ( self.moved )
         self.mobile_trigger maps\mp\uox\_uox_loops::addToWaitTills(self.mobile_trigger, "trigger", ::ctf_think, true);
 	else

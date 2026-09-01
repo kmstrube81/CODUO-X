@@ -177,6 +177,11 @@ respawn()
 {
 	self endon("end_respawn");
 	
+    currentorigin = self.origin;
+    currentangles = self.angles;
+
+    self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
+
 	firsttime = 0;
 	while(!isDefined(self.pers["weapon"])) {
 		
