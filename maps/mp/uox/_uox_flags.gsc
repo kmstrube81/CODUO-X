@@ -593,7 +593,9 @@ ctf_spawn_flag()
     self.mobile_trigger thread maps\mp\uox\_uox_loops::initEntityLoop();
     self.trigger thread maps\mp\uox\_uox_loops::initEntityLoop();
     self.goal thread maps\mp\uox\_uox_loops::initEntityLoop();
-    self thread ctf_think_wait();
+    maps\mp\uox\_uox_debug::debugLog("info", "ctf_think ARMING trigger=" + self.moved + " team=" + self.team);
+    self.trigger maps\mp\uox\_uox_loops::addToWaitTills(self.trigger, "trigger", ::ctf_think, true);
+    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", level, "round_ended");
 	
 	//Set hintstring on the objectives trigger
 	wait 0;//required for level script to run and load the level.obj array
@@ -614,34 +616,16 @@ flag_think()
 	}
 }
 
-ctf_think_wait()
-{
-
-    maps\mp\uox\_uox_debug::debugLog("info", "ctf_think_wait ARMING trigger=" + self.moved + " team=" + self.team);
-
-    if ( self.moved )
-        self.mobile_trigger maps\mp\uox\_uox_loops::addToWaitTills(self.mobile_trigger, "trigger", ::ctf_think, true);
-	else
-		self.trigger maps\mp\uox\_uox_loops::addToWaitTills(self.trigger, "trigger", ::ctf_think, true);
-
-    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", level, "round_ended");
-    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self, "timeout");
-    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self, "dropped");
-    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self, "completed");
-    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", level, "round_ended");
-    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self, "timeout");
-    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self, "dropped");
-    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self, "completed");
-
-}
-
 ctf_think(other) //each flag model runs this to find it's trigger and goal
 {
 
 	level endon("round_ended");
-	self endon("timeout");
 
     if(!game["matchstarted"]  )
+        return;
+
+    //if flag is already picked up then there is nothing to do
+    if(isDefined(self.flag.carried_by))
         return;
 
     // do not allow people in vehicles to touch flag
@@ -650,7 +634,6 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         
     if((isPlayer(other)) && isAlive(other) && (other.pers["team"] != self.flag.team))
     {
-
         // let the player know they picked up the flag
         if ( other.pers["team"] == "axis" )
         {
@@ -942,8 +925,6 @@ flag_carrier_atgoal(other)
             player.hasflag = undefined;
             player maps\mp\uox\_uox::setPlayerIcons();
         }
-                    
-        flag thread ctf_think_wait();
     
         // check the score to see if we need to end the round
         thread maps\mp\uox\_uox::checkScoreLimit();
@@ -984,7 +965,7 @@ reset_flag()
 		objective_icon(self.hudnum,game["hud_axis_base_with_flag"] + ".dds");
 		updateFlagIcons([[level.getVars]]("scr_showicons"), "reset_axis");
 	}
-	
+	self.mobile_trigger maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger");
 }
 
 handle_vehicle_flag(pos, vehicle)
@@ -1347,6 +1328,9 @@ drop_flag(player)
 	else
 	{
 		self thread flag_timeout();
+        maps\mp\uox\_uox_debug::debugLog("info", "ctf_think ARMING trigger=" + self.moved + " team=" + self.team);
+        self.mobile_trigger maps\mp\uox\_uox_loops::addToWaitTills(self.mobile_trigger, "trigger", ::ctf_think, true);
+        self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", level, "round_ended");
 
 		if ( self.team == "allies" )
         {
@@ -1362,7 +1346,6 @@ drop_flag(player)
 	}
 
 	self notify("dropped");
-	self thread ctf_think_wait();
 }
 
 flag_timeout()
@@ -1400,5 +1383,4 @@ flag_timeout()
 
 	self reset_flag();
 	self notify("timeout");
-	self thread ctf_think_wait();
 }
