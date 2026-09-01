@@ -288,6 +288,7 @@ updateFlagIcons(showicons, reason)
                     allies_icon1 = game["hud_allies_flag"];
                     break;
                 case "allies_flag_taken":
+                case "allies_flag_dropped":
                     options["alpha"] = 1;
                     allies_icon1 = game["hud_allies_flag_taken"];
                     break;
@@ -303,6 +304,7 @@ updateFlagIcons(showicons, reason)
                     axis_icon1 = game["hud_axis_flag"];
                     break;
                 case "axis_flag_taken":
+                case "axis_flagged_dropped":
                     options["alpha"] = 1;
                     axis_icon1 = game["hud_axis_flag_taken"];
                     break;
@@ -319,7 +321,7 @@ updateFlagIcons(showicons, reason)
             options = [];
         	options["x"] = 100;
         	options["y"] = 250;
-        	options["alignX"] = "left";
+        	options["alignX"] = "center";
         	options["alignY"] = "middle";
             switch(reason)
             {
@@ -393,6 +395,7 @@ updateFlagIcons(showicons, reason)
                     allies_icon1 = game["hud_allies_flag"];
                     break;
                 case "allies_flag_taken":
+                case "allies_flag_dropped":
                     options["alpha"] = 1;
                     allies_icon1 = game["hud_allies_flag_taken"];
                     break;
@@ -408,6 +411,7 @@ updateFlagIcons(showicons, reason)
                     axis_icon1 = game["hud_axis_flag"];
                     break;
                 case "axis_flag_taken":
+                case "axis_flag_dropped":
                     options["alpha"] = 1;
                     axis_icon1 = game["hud_axis_flag_taken"];
                     break;
@@ -417,7 +421,7 @@ updateFlagIcons(showicons, reason)
             options = [];
         	options["x"] = 100;
         	options["y"] = 250;
-        	options["alignX"] = "left";
+        	options["alignX"] = "center";
         	options["alignY"] = "middle";
             switch(reason)
             {
@@ -619,8 +623,12 @@ ctf_think_wait()
 
     self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", level, "round_ended");
     self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self, "timeout");
+    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self, "dropped");
+    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self, "completed");
     self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", level, "round_ended");
     self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self, "timeout");
+    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self, "dropped");
+    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self, "completed");
 
 }
 
@@ -784,7 +792,6 @@ hold_flag(player) //the objective model runs this to be held by 'player'
 	
 	self.goal flag_carrier_atgoal_wait(); 
 
-        
 }
 
 handle_change_flag()
@@ -933,7 +940,7 @@ flag_carrier_atgoal(other)
             player maps\mp\uox\_uox::setPlayerIcons();
         }
                     
-        //flag thread ctf_think();
+        self thread ctf_think_wait();
     
         // check the score to see if we need to end the round
         thread maps\mp\uox\_uox::checkScoreLimit();
@@ -1055,6 +1062,10 @@ onPlayerKill(victim, attacker)
     // make sure the flag gets dropped
 	if(isdefined(victim.hasflag))
 	{
+        if ( victim.pers["team"] == "allies" )
+            updateFlagIcons([[level.getVars]]("scr_showicons"), "allies_flag_dropped");
+        else
+            updateFlagIcons([[level.getVars]]("scr_showicons"), "axis_flag_dropped");
 		victim.hasflag drop_flag(victim);
 	}
 
@@ -1348,7 +1359,7 @@ drop_flag(player)
 	}
 
 	self notify("dropped");
-	//self thread ctf_think();
+	self thread ctf_think_wait();
 }
 
 flag_timeout()
