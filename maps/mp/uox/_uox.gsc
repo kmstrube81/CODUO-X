@@ -2873,48 +2873,54 @@ randomMoveTeams(team)
 
 setPlayerIcons(battlerank, drawfriend)
 {
+
+    if(!isDefined(battlerank))
+        battlerank = level.battlerank;
+    if(!isDefined(drawfriend))
+        drawfriend = level.drawfriend;
+
     if(drawfriend)
-	{
-		// battle rank takes precidence
-		if(battlerank)
-		{
-			self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
-			self.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(self);
-			self.headiconteam = self.pers["team"];
-		}
-		else
-		{
-			if(self.pers["team"] == "allies")
-			{
-				self.headicon = game["headicon_allies"];
-				self.headiconteam = "allies";
-			}
-			else if(self.pers["team"] == "axis")
-			{
-				self.headicon = game["headicon_axis"];
-				self.headiconteam = "axis";
-			}
-			else
-			{
-				self.headicon = "";
-			}
-			
-			self.statusicon = "";
-		}
-	}
-	else
-	{
-		if(battlerank)
-		{
-			self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
-		}
-		else
-		{
-			self.statusicon = "";
-		}
-		self.headicon = "";
-		self.headiconteam = "none";
-	}
+    {
+        // battle rank takes precidence
+        if(battlerank)
+        {
+            self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+            self.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(self);
+            self.headiconteam = self.pers["team"];
+        }
+        else
+        {
+            if(self.pers["team"] == "allies")
+            {
+                self.headicon = game["headicon_allies"];
+                self.headiconteam = "allies";
+            }
+            else if(self.pers["team"] == "axis")
+            {
+                self.headicon = game["headicon_axis"];
+                self.headiconteam = "axis";
+            }
+            else
+            {
+                self.headicon = "";
+            }
+            
+            self.statusicon = "";
+        }
+    }
+    else
+    {
+        if(battlerank)
+        {
+            self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+        }
+        else
+        {
+            self.statusicon = "";
+        }
+        self.headicon = "";
+        self.headiconteam = "none";
+    }
 }
 
 /* **************************************************************************************************
