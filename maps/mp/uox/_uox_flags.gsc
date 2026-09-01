@@ -618,9 +618,9 @@ ctf_think_wait()
 		self.trigger maps\mp\uox\_uox_loops::addToWaitTills(self.trigger, "trigger", ::ctf_think, true);
 
     self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", level, "round_ended");
-    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self.mobile_trigger, "timeout");
+    self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", self, "timeout");
     self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", level, "round_ended");
-    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self.trigger, "timeout");
+    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", self, "timeout");
 
 }
 
