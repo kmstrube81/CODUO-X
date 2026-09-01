@@ -405,7 +405,7 @@ updateFlagIcons(showicons, reason)
                 case "init":
                 case "reset_axis":
                     options["alpha"] = 1;
-                    axis_icon1 = game["hud_allies_flag"];
+                    axis_icon1 = game["hud_axis_flag"];
                     break;
                 case "axis_flag_taken":
                     options["alpha"] = 1;
