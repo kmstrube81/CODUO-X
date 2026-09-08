@@ -763,8 +763,8 @@ getSpawn(gt, farthest)
 				}
 			}
 			
-			// TODO: GRACEPERIOD secondary spawn points are used after the first few seconds of the round
-			if ( true )
+			// TODO: GRACEPERIOD secondary spawn points are only used after the first ten seconds of the round
+			if ( level.starttime + ( 10 * 1000 )  < getTime() )
 			{
 				secondary_spawns =  getentarray(secondary_spawn_name, "classname");
 			

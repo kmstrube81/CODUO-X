@@ -209,7 +209,7 @@ checkScoreLimit()
 			players[i].pers["roundswon"] = players[i].score;	
 			game["roundsplayed"]++;
 			wait 5; //wait five seconds before ending round
-			maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
+			//maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
 	
 			level thread endMap(); //end map
 			return;
@@ -303,6 +303,7 @@ endMap(make_announcement)
             make_announcement = false;
         level thread maps\mp\uox\_uox_hud::makeVictoryAnnouncement(winner, make_announcement);
 		
+        maps\mp\uox\_uox_hud::createHUDEndRoundScore(5, true, false); //create game over scoreboard
 	}
 	else //if free for all game
 	{
