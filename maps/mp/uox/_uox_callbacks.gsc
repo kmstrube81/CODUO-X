@@ -70,7 +70,11 @@ Callback_StartGameType()
 			game["team2"] = game["defenders"];
 		if(!isDefined(game["layoutimage"]))
 			game["layoutimage"] = "default";
-		layoutname = "levelshots/layouts/hud@layout_" + game["layoutimage"];
+
+        if(isDefined(game[level.gametype + "_layoutimage"]))
+            layoutname = "levelshots/layouts/hud@layout_" + game[level.gametype + "_layoutimage"];
+        else
+            layoutname = "levelshots/layouts/hud@layout_" + game["layoutimage"];
 		precacheShader(layoutname);
 		setCvar("scr_layoutimage", layoutname);
 		makeCvarServerInfo("scr_layoutimage", "");

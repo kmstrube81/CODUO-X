@@ -256,6 +256,14 @@ updateClientHUDElement(name, type, value, options)
 			height = options["height"];
 		else
 			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
 		if(isDefined(options["archived"]))
 			element.archived = options["archived"];
 		if(isDefined(options["sort"]))
@@ -280,7 +288,7 @@ updateClientHUDElement(name, type, value, options)
 			element setValue(value);
 			break;
 		case "shader":
-			element setShader(value, width, height);
+			element setShader(value, width, height, crop_width, crop_height);
 			break;
 		default:
 			element setText(value);
@@ -509,6 +517,16 @@ updateHUDElement(element, type, value, options)
 			height = options["height"];
 		else
 			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
+        if(isDefined(options["sort"]))
+			element.sort = options["sort"];
         if(isDefined(options["label"]))
             element.label = options["label"];
 	}
@@ -525,11 +543,10 @@ updateHUDElement(element, type, value, options)
         case "timerUp":
             element setTimerUp(value);
             break;
-		case "number":
-			element setValue(value);
+		case "number":element setValue(value);
 			break;
 		case "shader":
-			element setShader(value, width, height);
+			element setShader(value, width, height, crop_width, crop_height);
 			break;
 		default:
 			element setText(value);
@@ -573,6 +590,16 @@ updateTeamHUDElement(element, team, type, value, options)
 			height = options["height"];
 		else
 			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
+        if(isDefined(options["sort"]))
+			element.sort = options["sort"];
         if(isDefined(options["label"]))
             element.label = options["label"];
 	}
@@ -593,7 +620,7 @@ updateTeamHUDElement(element, team, type, value, options)
 			element setValue(value);
 			break;
 		case "shader":
-			element setShader(value, width, height);
+			element setShader(value, width, height, crop_width, crop_height);
 			break;
 		default:
 			element setText(value);

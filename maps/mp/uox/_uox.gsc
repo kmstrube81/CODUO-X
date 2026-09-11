@@ -114,6 +114,9 @@ playerKilledObjectives(objective, victim, attacker)
         case "ctf":
             maps\mp\uox\_uox_flags::onPlayerKill(victim, attacker);
             break;
+        case "commandpost":
+            maps\mp\uox\_uox_commandposts::onPlayerKill(victim, attacker);
+            break;
 	}
 }
 /* *************************************************************************************************
@@ -2484,6 +2487,11 @@ initObjectives(objective)
             maps\mp\uox\_uox_flags::initVars();
             thread maps\mp\uox\_uox_flags::ctf();
             return;
+        case "commandpost":
+            maps\mp\uox\_uox_commandposts::initVars();
+            maps\mp\uox\_uox_commandpost::flag_setup();
+            thread maps\mp\gametypes\_secondary_gmi::SetupSecondaryObjectives();
+            return;
 		default:
 			game["attackers"] = undefined;
 			game["defenders"] = undefined;
@@ -2519,6 +2527,9 @@ precacheObjectives(objective)
             return;
         case "ctf":
             maps\mp\uox\_uox_flags::precache();
+            return;
+        case "commandpost":
+            maps\mp\uox\_uox_commandposts::precache();
             return;
 		default:
 			return;

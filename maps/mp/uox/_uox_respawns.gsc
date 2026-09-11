@@ -734,58 +734,63 @@ getSpawn(gt, farthest)
 			}	
 			spawnpoints = getentarray(base_spawn_name, "classname");
 			
-			// now add to the array any spawnpoints that are related to held flags
-			for(q=1;q<15;q++)
-			{
-				flag_trigger = getent("flag" + q,"targetname");
-				
-				if(!isDefined(flag_trigger)) // If the flag exists, then proceed. Which then tells all of the allies and axis flag to be hidden.
-				{
-					continue;
-				}
-				
-				if ( !isDefined( flag_trigger.target ) )
-					continue;
-					
-				// only get spawnpoints from flags that are held by this team	
-				if ( self.pers["team"] != flag_trigger.team )
-					continue;
-					
-				secondary_spawns =  getentarray(flag_trigger.target, "targetname");
-			
-				for ( i = 0; i < secondary_spawns.size; i++ )
-				{
-					// only get the ones for the current team
-					if ( secondary_spawns[i].classname != secondary_spawn_name )
-						continue;
-						
-					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
-				}
-			}
-			
-			// TODO: GRACEPERIOD secondary spawn points are only used after the first ten seconds of the round
-			if ( level.starttime + ( 10 * 1000 )  < getTime() )
-			{
-				secondary_spawns =  getentarray(secondary_spawn_name, "classname");
-			
-				for ( i = 0; i < secondary_spawns.size; i++ )
-				{
-					
-					// if this is targeted by a trigger then it must be a objective spawn so do not just grab it unless that trigger is 
-					// owned by this team
-					if ( isdefined(secondary_spawns[i].targetname) )
-					{
-						targeter =  getent(secondary_spawns[i].targetname, "target");
-						
-						if ( isdefined( targeter ) && isdefined(targeter.team) && targeter.team != self.pers["team"] )
-						{
-							continue;
-						}
-					}
-				
-					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
-				}
-			}
+            if(level.objective == "commandpost") //load domination linked spawns if the domination flags are the objectives
+            {
+                // now add to the array any spawnpoints that are related to held flags
+    			for(q=1;q<15;q++)
+    			{
+    				flag_trigger = getent("flag" + q,"targetname");
+    				
+    				if(!isDefined(flag_trigger)) // If the flag exists, then proceed. Which then tells all of the allies and axis flag to be hidden.
+    				{
+    					continue;
+    				}
+    				
+    				if ( !isDefined( flag_trigger.target ) )
+    					continue;
+    					
+    				// only get spawnpoints from flags that are held by this team	
+    				if ( self.pers["team"] != flag_trigger.team )
+    					continue;
+    					
+    				secondary_spawns =  getentarray(flag_trigger.target, "targetname");
+    			
+    				for ( i = 0; i < secondary_spawns.size; i++ )
+    				{
+    					// only get the ones for the current team
+    					if ( secondary_spawns[i].classname != secondary_spawn_name )
+    						continue;
+    						
+    					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
+    				}
+    			}
+            }
+			else //load all the secondary spawns otherwise
+            {
+                    // TODO: GRACEPERIOD secondary spawn points are only used after the first ten seconds of the round
+                    if ( level.starttime + ( 10 * 1000 )  < getTime() )
+                    {
+                        secondary_spawns =  getentarray(secondary_spawn_name, "classname");
+                    
+                        for ( i = 0; i < secondary_spawns.size; i++ )
+                        {
+                            
+                            // if this is targeted by a trigger then it must be a objective spawn so do not just grab it unless that trigger is 
+                            // owned by this team
+                            if ( isdefined(secondary_spawns[i].targetname) )
+                            {
+                                targeter =  getent(secondary_spawns[i].targetname, "target");
+                                
+                                if ( isdefined( targeter ) && isdefined(targeter.team) && targeter.team != self.pers["team"] )
+                                {
+                                    continue;
+                                }
+                            }
+                        
+                            spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
+                        }
+                }
+            }
 			//spawnpoints = getentarray(spawnpointname, "classname");
 			break;
 		case "bas":

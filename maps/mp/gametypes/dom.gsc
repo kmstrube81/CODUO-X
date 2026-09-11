@@ -146,6 +146,15 @@ Spectators spawn randomly at one of these positions.
 
 main() // Starts when map is loaded.
 {
+
+    modtype = uox\modtype::modtype(getCvar("g_gametype"));
+	
+	if(isDefined(modtype))
+	{
+		[[modtype]]();
+		return;
+	}
+
 	// init the spawn points first because if they do not exist then abort the game
 	// Set up the spawnpoints of the "allies"
 	if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_allies", 1) )
