@@ -226,47 +226,39 @@ Flag_InitTriggers()
                 }
                 flags[flags.size] = current_flag;
                 level.flagcount++;
+
+                getent("flag" + q + "_allies","targetname") hide();
+        		getent("flag" + q + "_axis","targetname") hide();
+
+        		if(!isDefined(current_flag.script_idnumber) || current_flag.script_idnumber == 0)
+        		{
+        			current_flag.script_idnumber = q;
+        		}
+
+        		if(!isDefined(current_flag.description)) // If a flag has no description set, randomly pick something silly.
+        		{
+        			n = randomint(5);
+        			switch(n)
+        			{
+        				case 0:
+        					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG0");
+        					break;
+        				case 1:
+        					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG1");
+        					break;
+        				case 2:
+        					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG2");
+        					break;
+        				case 3:
+        					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG3");
+        					break;
+        				case 4:
+        					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG4");
+        					break;
+        			}
+        								
+        		}
             }
-
-            current_flag = getent("flag" + q,"targetname");
-            if(!isDefined(current_flag)) // If the flag exists, then proceed. Which then tells all of the allies and axis flag to be hidden.
-            {
-                continue;
-            }
-            flags[flags.size] = current_flag;
-            level.flagcount++;
-
-            getent("flag" + q + "_allies","targetname") hide();
-    		getent("flag" + q + "_axis","targetname") hide();
-
-    		if(!isDefined(current_flag.script_idnumber) || current_flag.script_idnumber == 0)
-    		{
-    			current_flag.script_idnumber = q;
-    		}
-
-    		if(!isDefined(current_flag.description)) // If a flag has no description set, randomly pick something silly.
-    		{
-    			n = randomint(5);
-    			switch(n)
-    			{
-    				case 0:
-    					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG0");
-    					break;
-    				case 1:
-    					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG1");
-    					break;
-    				case 2:
-    					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG2");
-    					break;
-    				case 3:
-    					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG3");
-    					break;
-    				case 4:
-    					current_flag.description = (&"GMI_DOM_UNNAMED_FLAG4");
-    					break;
-    			}
-    								
-    		}
     	}
     }
     else
@@ -280,6 +272,38 @@ Flag_InitTriggers()
             }
             flags[flags.size] = current_flag;
             level.flagcount++;
+
+            getent("flag" + q + "_allies","targetname") hide();
+            getent("flag" + q + "_axis","targetname") hide();
+
+            if(!isDefined(current_flag.script_idnumber) || current_flag.script_idnumber == 0)
+            {
+                current_flag.script_idnumber = q;
+            }
+
+            if(!isDefined(current_flag.description)) // If a flag has no description set, randomly pick something silly.
+            {
+                n = randomint(5);
+                switch(n)
+                {
+                    case 0:
+                        current_flag.description = (&"GMI_DOM_UNNAMED_FLAG0");
+                        break;
+                    case 1:
+                        current_flag.description = (&"GMI_DOM_UNNAMED_FLAG1");
+                        break;
+                    case 2:
+                        current_flag.description = (&"GMI_DOM_UNNAMED_FLAG2");
+                        break;
+                    case 3:
+                        current_flag.description = (&"GMI_DOM_UNNAMED_FLAG3");
+                        break;
+                    case 4:
+                        current_flag.description = (&"GMI_DOM_UNNAMED_FLAG4");
+                        break;
+                }
+                                    
+            }
         }
     }
 	
