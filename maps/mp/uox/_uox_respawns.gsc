@@ -265,9 +265,9 @@ respawn_wave()
 	if(!isDefined(level.respawn_timer))
 		level.respawn_timer = [];
 	if(!isDefined(level.respawn_timer[self.pers["team"]]))
-		level.respawn_timer[self.pers["team"]] = timer;	
+		level.respawn_timer[self.pers["team"]] = wave_time;	
 	self maps\mp\uox\_uox_hud::stopwatch_start("respawn", level.respawn_timer[self.pers["team"]] );
-	level thread respawn_pool(self.pers["team"], timer);
+	level thread respawn_pool(self.pers["team"], wave_time);
 	
 	level waittill("respawn_" + self.pers["team"]);
 	
