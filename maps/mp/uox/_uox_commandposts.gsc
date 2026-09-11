@@ -168,7 +168,7 @@ Flag_InitTriggers()
     flags = [];
     if(level.custom_flags != "")
     {
-        customflags = maps\mp\uox\_uox::stringSplit(level.custom_flags, ";");
+        customflags = maps\mp\uox\_uox_utils::stringSplit(level.custom_flags, ";");
         for(q = 0; q < customflags.size && q < level.max_flag_count - 1; q++)
         {
             i = customflags[q];
