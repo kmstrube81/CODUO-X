@@ -996,8 +996,7 @@ Hold_CappedFlag()
 Flag_AllCapturedThink()
 {
 
-    if(![[level.getVars]]("scr_domination_endround")) 
-        return;
+    
 
     flag_count_allied = 0;
     flag_count_axis = 0;
@@ -1017,21 +1016,28 @@ Flag_AllCapturedThink()
 
     if(flag_count_allied == (level.flagcount - 1))
     {
-        thread endRound("allies");
-        
         // give the allies points
         game["alliedscore"] += [[level.getVars]]("scr_domination_points");
         setTeamScore("allies", game["alliedscore"]);
+
+        if(![[level.getVars]]("scr_domination_endround")) 
+            return;
+
+        thread maps\mp\uox\_uox::endRound("allies");
         
         return;
     }
     if(flag_count_axis == (level.flagcount - 1))
     {
-        thread endRound("axis");
-
         // give the axis points
         game["axisscore"] += [[level.getVars]]("scr_domination_points");
         setTeamScore("axis", game["axisscore"]);
+
+        if(![[level.getVars]]("scr_domination_endround")) 
+            return;
+
+        thread maps\mp\uox\_uox::endRound("axis");
+
         return;
     }
 }
