@@ -74,7 +74,7 @@ initVars()
     maps\mp\uox\_uox_vars::varDef("scr", "domination_points", "int", true, 2, 0, 10, "Domination Team Score Bonus");
     maps\mp\uox\_uox_vars::varDef("scr", "domination_endround", "bool", true, true, "", "", "End Round on Domination");
     maps\mp\uox\_uox_vars::varDef("scr", "capture_points", "int", true, 1, 0, 10, "Team Score Bonus on Capture");
-    maps\mp\uox\_uox_vars::varDef("scr", "hold_points", "int", true. 0, 0, 10, "Team Score Bonus on Hold");
+    maps\mp\uox\_uox_vars::varDef("scr", "hold_points", "int", true, 0, 0, 10, "Team Score Bonus on Hold");
     maps\mp\uox\_uox_vars::varDef("scr", "hold_timer", "int", true, 0, 0, 99, "Flag Hold Time (seconds)");
     maps\mp\uox\_uox_vars::varDef("scr", "defensebonus", "int", true, 0, 0, 10, "Flag Defended Bonus");
     maps\mp\uox\_uox_vars::varDef("scr", "capturebonus", "int", true, 0, 0, 10, "Flag Capture Bonus");
