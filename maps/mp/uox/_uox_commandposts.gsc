@@ -178,7 +178,7 @@ Flag_InitTriggers()
             {
                 continue;
             }
-            current_flag.flagno = i;
+            current_flag.id = i;
             flags[flags.size] = current_flag;
             level.flagcount++;
 
@@ -224,6 +224,7 @@ Flag_InitTriggers()
                 {
                     continue;
                 }
+                current_flag.id = q;
                 flags[flags.size] = current_flag;
                 level.flagcount++;
 
@@ -270,6 +271,7 @@ Flag_InitTriggers()
             {
                 continue;
             }
+            current_flag.id = q;
             flags[flags.size] = current_flag;
             level.flagcount++;
 
@@ -327,9 +329,8 @@ Flag_StartThinking()
 	// Setting up the flag TRIGGERS
 	for(q=0;q<flags.size;q++) // Makes the flag limit of 15, then searches for all of the flags in the map.
 	{
-		flag = getent("flag"+q,"targetname");
-		
-		flag.id = q;
+
+		flag = flags[q];
 		Flag_Initialize(flag);
 				
 		if(flag.script_idnumber < 0 || flag.script_idnumber > level.flagcount )
@@ -651,7 +652,7 @@ drawFlagsOnCompass()
     for(q=0;q<level.flags.size;q++)
     {
         flag = level.flags[q];
-        current_flag = getent("flag" + flag.flagno + "_neutral","targetname");
+        current_flag = getent("flag" + flag.id + "_neutral","targetname");
         flag_trigger = flag;
         
         if (!isDefined(current_flag))
