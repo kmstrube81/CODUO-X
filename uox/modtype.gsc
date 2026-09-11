@@ -21,7 +21,7 @@ modtype(gt)
 		case "hq":
 			return maps\mp\gametypes\_uox_hq::UOX_Main;
 		case "dom":
-			return;
+			return maps\mp\gametypes\_uox_dom::UOX_Main;;
 		case "ctf":
 			return maps\mp\gametypes\_uox_ctf::UOX_Main;
 		case "bas":
