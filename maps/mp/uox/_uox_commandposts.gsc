@@ -433,7 +433,7 @@ SetupFlagIcon(flag)
 // 		This is continually called for each flag.  This lets the flag determine
 //		if it is being captured
 // ----------------------------------------------------------------------------------
-Flag_ZoneThink()
+Flag_ZoneThink(other)
 {
 	level endon("round_ended");
 
@@ -541,7 +541,6 @@ Flag_ZoneThink()
     else
     {
         self Capture_Canceled();
-        wait 0.05;
     }	
 
 //			self.blinking_icon.x  =-64;	//	move off
