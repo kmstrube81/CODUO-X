@@ -2489,7 +2489,7 @@ initObjectives(objective)
             return;
         case "commandpost":
             maps\mp\uox\_uox_commandposts::initVars();
-            maps\mp\uox\_uox_commandpost::flag_setup();
+            maps\mp\uox\_uox_commandposts::flag_setup();
             thread maps\mp\gametypes\_secondary_gmi::SetupSecondaryObjectives();
             return;
 		default:
