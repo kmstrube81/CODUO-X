@@ -442,6 +442,7 @@ Flag_ZoneThink(other)
 
     if((isDefined( self.capping ) && self.capping == 0) || level.roundended)
     {
+        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled " + self.description);
         self Capture_Canceled();
         return;
     }
@@ -476,6 +477,8 @@ Flag_ZoneThink(other)
     if(self.allied_capping > 0 || self.axis_capping > 0)
         self.capping = self.allied_capping - self.axis_capping;	
 
+    maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink " +  + self.description + " num capping (negative value means axis): " + (self.allied_capping - self.axis_capping));
+
     // set this variable if only one team is currently trying to cap
     one_team = 0;
     if ( self.allied_capping == 0 || self.axis_capping == 0 )
@@ -493,6 +496,7 @@ Flag_ZoneThink(other)
     // is only one team trying to cap?
     if ( one_team )
     {
+        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink one team capping "  + self.description);
         // now each player need to have their flag progress bar started
         for(i = 0; i < players.size; i++)
         {
@@ -506,7 +510,9 @@ Flag_ZoneThink(other)
                 // if this flag is set then the player is currently already displaying the flag info
                 if (player.pers["capture_process_thread"] == 1)
                     continue;
-                    
+                
+                maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink player " + player.name + " capping. ::Capture_PlayerCappingFlag " + self.description);
+
                 player.pers["capture_process_thread"] = 1;
                 player thread Capture_PlayerCappingFlag(self);
             }
@@ -540,6 +546,7 @@ Flag_ZoneThink(other)
     }
     else
     {
+        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled " + self.description);
         self Capture_Canceled();
     }	
 
@@ -605,15 +612,18 @@ Flag_ZoneThink(other)
         
         if(self.capping > 0)
         {
+            maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_AlliesCappedFlag " + self.description);
             self thread Capture_AlliesCappedFlag(cappers,name);
         }
         else
         {
+            maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_AxisCappedFlag " + self.description);
             self thread Capture_AxisCappedFlag(cappers,name);
         }
         
         other.score = other.pers["score"];
         
+        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled " + self.description);   
         self Capture_Canceled();
     }
 }
