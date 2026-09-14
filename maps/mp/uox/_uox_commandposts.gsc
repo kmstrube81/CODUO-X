@@ -610,7 +610,7 @@ Flag_ZoneThink(other)
                         break;
             }
             capping_options["crop_height"] = capping_float;
-            self.blinking_icon = maps\mp\uox\_uox_hud::updateHUDElement(self.blinking_icon,"shader", game["hud_ring"], options);
+            self.blinking_icon = maps\mp\uox\_uox_hud::updateHUDElement(self.blinking_icon,"shader", game["hud_ring"], blinking_options);
 
             if(self.capping > 0)
                 flagshader = game["hud_allies_flag"];
