@@ -843,7 +843,7 @@ Capture_AlliesCappedFlag(cappers,name)
 	getent((self.targetname + "_neutral"),"targetname") hide();
 	getent((self.targetname + "_allies"),"targetname") show();	
 	
-	if (game["showicons"])
+	if ([[level.getVars]]("scr_showicons"))
 		self.icon setShader(game["hud_allies_flag"], game["flag_icons_w"], game["flag_icons_h"]);
 	
 	// if the flag is capped from the other teamgive them all the reverse penalty
@@ -936,7 +936,7 @@ Capture_AxisCappedFlag(cappers,name)
 	getent((self.targetname + "_neutral"),"targetname") hide();
 	getent((self.targetname + "_axis"),"targetname") show();
 
-	if (game["showicons"])
+	if ([[level.getVars]]("scr_showicons"))
 		self.icon setShader(game["hud_axis_flag"], game["flag_icons_w"], game["flag_icons_h"]);
 
 	// if the flag is capped from the other teamgive them all the reverse penalty
