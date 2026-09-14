@@ -1000,8 +1000,8 @@ Hold_CappedFlag()
 
     if(self.team == "allies")
     {
-        game["alliesscore"]+= [[level.getVars]]("scr_hold_points");;
-        setTeamScore("allies", game["alliesscore"]);
+        game["alliedscore"]+= [[level.getVars]]("scr_hold_points");;
+        setTeamScore("allies", game["alliedscore"]);
     }
     else
     {
