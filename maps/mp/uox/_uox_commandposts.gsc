@@ -493,7 +493,7 @@ Flag_ZoneThink(other)
     if(self.allied_capping > 0 || self.axis_capping > 0)
         self.capping = self.allied_capping - self.axis_capping;	
 
-    maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink " + self.id + " num capping (negative value means axis): " + self.capping);
+    maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink " + self.id + " num capping (negative value means axis): " + (self.allied_capping - self.axis_capping));
 
     // set this variable if only one team is currently trying to cap
     one_team = 0;
