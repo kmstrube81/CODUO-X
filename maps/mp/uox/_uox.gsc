@@ -2587,6 +2587,8 @@ spectateObjectives(objective)
         case "ctf":
             spectateObjective = "ctf_spec";
             break;
+        case "commandpost":
+            spectateObject = "commandpost_spec";
         default:
             spectateObjective = objective;
     }
@@ -2674,6 +2676,18 @@ getObjectiveText(objective)
             break;
         case "ctf_spec":
             array["text"] = &"GMI_CTF_SPECTATOR_OBJECTIVE";
+            break;
+        case "commandpost":
+            if(self.pers["team"] == "allies")
+                array["text"] = &"GMI_DOM_OBJ_ALLIES";
+            else
+                array["text"] = &"GMI_DOM_OBJ_AXIS";
+            break;
+        case "commandpost_spec":
+            if(self.pers["team"] == "allies")
+                array["text"] = &"GMI_DOM_OBJ_SPECTATOR_ALLIES";
+            else
+                array["text"] = &"GMI_DOM_OBJ_SPECTATOR_AXIS";
             break;
 		default:
 			if(level.uox_teamplay)

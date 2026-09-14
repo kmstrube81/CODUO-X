@@ -1,5 +1,21 @@
 precache()
 {
+    precacheString(&"GMI_DOM_OBJ_SPECTATOR_ALLIES");
+    precacheString(&"GMI_DOM_OBJ_SPECTATOR_AXIS");
+    precacheString(&"GMI_DOM_ALLIES_CAP_FLAG_SOLO");
+    precacheString(&"GMI_DOM_ALLIES_CAP_FLAG_TEAM");
+    precacheString(&"GMI_DOM_AXIS_CAP_FLAG_SOLO");
+    precacheString(&"GMI_DOM_AXIS_CAP_FLAG_TEAM");
+    precacheString(&"GMI_DOM_OBJ_ALLIES");
+    precacheString(&"GMI_DOM_OBJ_AXIS");
+    precacheString(&"GMI_DOM_WAIT_TILL_MATCHSTART");
+    precacheString(&"GMI_DOM_CAPTURING_FLAG");
+    precacheString(&"GMI_DOM_UNNAMED_FLAG0");
+    precacheString(&"GMI_DOM_UNNAMED_FLAG1");
+    precacheString(&"GMI_DOM_UNNAMED_FLAG2");
+    precacheString(&"GMI_DOM_UNNAMED_FLAG3");
+    precacheString(&"GMI_DOM_UNNAMED_FLAG4");
+
     game["hud_ring"] = "gfx/hud/hudadd@dom_ring.dds";
     game["hud_axis_flag"] = "gfx/hud/hud@dom_g.dds";
     game["hud_neutral_flag"] = "gfx/hud/hud@dom_n.dds";

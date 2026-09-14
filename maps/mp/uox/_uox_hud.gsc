@@ -141,6 +141,17 @@ precache()
 	precacheString(&"BEL_WONTBE_ALLIED");
 	precacheString(&"BEL_BLACKSCREEN_KILLEDALLIED");
 	precacheString(&"BEL_BLACKSCREEN_WILLSPAWN");
+
+    precacheString(&"num_0");
+    precacheString(&"num_1");
+    precacheString(&"num_2");
+    precacheString(&"num_3");
+    precacheString(&"num_4");
+    precacheString(&"num_5");
+    precacheString(&"num_6");
+    precacheString(&"num_7");
+    precacheString(&"num_8");
+    precacheString(&"num_9");
     
     precacheString(game["reinforcementsText"]);			
 
