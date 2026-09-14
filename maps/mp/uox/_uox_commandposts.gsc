@@ -616,7 +616,7 @@ Flag_ZoneThink(other)
                 flagshader = game["hud_allies_flag"];
             else
                 flagshader = game["hud_axis_flag"];
-            self.capping_icon = maps\mp\uox\_uox_hud::updateHUDElement(self.capping_icon,"shader", flagshader, options);
+            self.capping_icon = maps\mp\uox\_uox_hud::updateHUDElement(self.capping_icon,"shader", flagshader, capping_options);
         }
 
     }
