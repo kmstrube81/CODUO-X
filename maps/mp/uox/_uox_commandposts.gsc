@@ -359,7 +359,7 @@ Flag_Initialize(flag)
 	flag.progresstime = 0;
 	flag.axis_capping = 0;
 	flag.allies_capping = 0;
-	flag.capping = 0;
+	flag.capping = undefined;
 	flag.last_capping = 0;
 	flag.scale = 0;
 	flag.radarupdated = 0;
@@ -442,7 +442,7 @@ Flag_ZoneThink(other)
 
     if((isDefined( self.capping ) && self.capping == 0) || level.roundended)
     {
-        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled " + self.id);
+        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled because round over " + self.id);
         self Capture_Canceled();
         return;
     }
@@ -546,7 +546,7 @@ Flag_ZoneThink(other)
     }
     else
     {
-        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled " + self.id);
+        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled because contested " + self.id);
         self Capture_Canceled();
     }	
 
@@ -623,7 +623,7 @@ Flag_ZoneThink(other)
         
         other.score = other.pers["score"];
         
-        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled " + self.id);   
+        maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled because flag finished being captured " + self.id);   
         self Capture_Canceled();
     }
 }
