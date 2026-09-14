@@ -579,6 +579,8 @@ Flag_ZoneThink(other)
         capping_options["x"] = game["flag_icons_x"] + (self.script_idnumber * game["flag_icons_w"]) - game["flag_icons_h"];
         capping_options["y"] = game["flag_icons_y"];
         capping_options["sort"] = 0.5;  // To fix a stupid bug, where the first flag icon (or the one to the furthest left) will not sort through the capping icon. BAH!
+        capping_options["width"] = 32;
+        capping_options["height"] = 32;
         capping_options["crop_width"] = 1.0;
 
         blinking_options = [];
