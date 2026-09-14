@@ -127,7 +127,7 @@ flag_setup()
     Flag_InitTriggers();
 	Flag_StartThinking(); // Start the Flag_StartThinking thread. This sets up the flags for primetime.
 
-	level thread maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::Flag_AllCapturedThink, "Flag_AllCapturedThink");
+	level thread maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::Flag_Monitor_All, "Flag_AllCapturedThink");
 	level thread maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::drawFlagsOnCompass, "drawFlagsOnCompass");
 }
 
@@ -1027,14 +1027,12 @@ Hold_CappedFlag()
 }
 
 // ----------------------------------------------------------------------------------
-//	Flag_AllCapturedThink
+//	Flag_Monitor_All
 //
 // 	Continually checks to see if all of the flags have been captured.
 // ----------------------------------------------------------------------------------
-Flag_AllCapturedThink()
+Flag_Monitor_All()
 {
-
-    
 
     flag_count_allied = 0;
     flag_count_axis = 0;
@@ -1049,6 +1047,12 @@ Flag_AllCapturedThink()
         else if(flag.team == "axis" && !flag.beingcapped)
         {
             flag_count_axis++;
+        }
+
+        if((isDefined( flag.capping ) && flag.capping == 0) || level.roundended)
+        {
+            maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled because round over " + flag.id);
+            flag Capture_Canceled();
         }
     }
 
