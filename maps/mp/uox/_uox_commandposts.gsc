@@ -815,8 +815,12 @@ Capture_AlliesCappedFlag(cappers,name)
 	self notify("captured");
 
     self notify("kill_later_hold_bonus");
-    self thread maps\mp\uox\_uox_utils::notifyLater("hold_bonus",[[level.getVars]]("scr_hold_timer"), self);
-    self thread Hold_CappedFlag();
+    
+    if([[level.getVars]]("scr_hold_timer"))
+    {
+        self thread maps\mp\uox\_uox_utils::notifyLater("hold_bonus",[[level.getVars]]("scr_hold_timer"), self);
+        self thread Hold_CappedFlag();
+    }
 	
 	old_team = self.team;
 	self.team = "allies";
@@ -909,8 +913,12 @@ Capture_AxisCappedFlag(cappers,name)
 	self notify("captured");
 
     self notify("kill_later_hold_bonus");
-    self thread maps\mp\uox\_uox_utils::notifyLater("hold_bonus",[[level.getVars]]("scr_hold_timer"), self);
-    self thread Hold_CappedFlag();
+
+    if([[level.getVars]]("scr_hold_timer"))
+    {
+        self thread maps\mp\uox\_uox_utils::notifyLater("hold_bonus",[[level.getVars]]("scr_hold_timer"), self);
+        self thread Hold_CappedFlag();
+    }
 
 	old_team = self.team;
 	self.team = "axis";
@@ -1011,7 +1019,9 @@ Hold_CappedFlag()
         setTeamScore("axis", game["axisscore"]);
     }
     self.armed = 0;
-    self thread maps\mp\uox\_uox_utils::notifyLater("hold_bonus",[[level.getVars]]("scr_hold_timer"), self);
+
+    if([[level.getVars]]("scr_hold_timer"))
+        self thread maps\mp\uox\_uox_utils::notifyLater("hold_bonus",[[level.getVars]]("scr_hold_timer"), self);
     self thread Hold_CappedFlag();
 
 }
