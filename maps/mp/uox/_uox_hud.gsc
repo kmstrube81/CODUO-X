@@ -669,7 +669,10 @@ updateHUDMainClock(timer)
 		Size
 		Alpha
 	*/
-	options["x"] = 320; //center of screen x
+    if(level.objective == "commandpost" || level.objective == "base")
+        options["x"] = 180;
+    else
+        options["x"] = 320; //center of screen x
 	options["y"] = 460; //20 px above bottom of screen y
 	options["alignX"] = "center"; //align text horizontally
 	options["alignY"] = "middle"; //align text vertically

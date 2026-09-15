@@ -1127,6 +1127,11 @@ GetCappers( team )
 			names[names.size] = player;
 		}
 	}
+    if(names.size == 0)
+        if(team == "allies")
+            names[0] = "Allies";
+        else
+            names[0] = "Axis";
 	return names;
 }
 
