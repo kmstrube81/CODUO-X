@@ -205,7 +205,7 @@ checkScoreLimit()
 		if(!level.roundended) //and round hasn't ended
 			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
 			
-		if(![[level.getVars]]("scr_roundreset") && !level.uox_teamplay) //if not reseting scores and a free for all game 
+		if(![[level.getVars]]("scr_roundreset") && (!level.uox_teamplay || level.objective == "bel")) //if not reseting scores and a free for all game 
 		{	//free for all kills are the score so the game ends when score limit is reached
 			level.mapended = true; //set map as ended
 			level.roundended = true; //set round as ended
@@ -1070,8 +1070,16 @@ endRound(roundwinner)
 			level thread endMap(); //end map
 			return; //exit
 		}
-		
+		maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkRoundLimit rounds played " + game["roundsplayed"] + " of " + [[level.getVars]]("scr_roundlimit"));
 		checkRoundLimit(); //make sure we haven't hit round limit
+        if(roundwinner = "deathmatch")
+        {
+            maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + winner.score + " of " + [[level.getVars]]("scr_scorelimit"));
+        }
+        else
+        {
+            maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + getTeamScore(roundwinner) + " of " + [[level.getVars]]("scr_scorelimit"));
+        }
 		checkScoreLimit(); //make sure we haven't hit score limit
 	}
 
