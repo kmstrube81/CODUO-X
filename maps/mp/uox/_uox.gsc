@@ -1074,7 +1074,8 @@ endRound(roundwinner)
         }
         else
         {
-            maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + getTeamScore(roundwinner) + " of " + [[level.getVars]]("scr_scorelimit"));
+
+            maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + getAlliesTeamScore() + "/" + getAxisTeamScore() + " of " + [[level.getVars]]("scr_scorelimit"));
         }
 		checkScoreLimit(); //make sure we haven't hit score limit
 	}
