@@ -769,6 +769,9 @@ endRound(roundwinner)
 	level.switchprevent = false; //allow player to switch teams at end of round
 	level endon("kill_endround"); //abort end round if notify is sent
 
+    //final scoreboard update
+    level thread maps\mp\uox\_uox_hud::updateScoreboard();
+
 	if(level.roundended) //if round already ended
 		return; //nothing to do
 	level.roundended = true; //set roundend flag
@@ -1533,8 +1536,12 @@ getWinningRoundNum(round, roundLimit)
 ************************************************************************************************* */
 doHalftime(midRound)
 {
+    //final scoreboard update
+    level thread maps\mp\uox\_uox_hud::updateScoreboard();
+
     level notify("halftime");
     level.halftime = true;
+
 
 	//if midRound flag isn't set
 	if(!isDefined(midRound))

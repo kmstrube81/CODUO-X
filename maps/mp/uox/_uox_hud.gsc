@@ -1954,47 +1954,46 @@ stopwatch_waittill_killrestart(reason)
 updateScoreboard()
 {
 	level endon("intermission");
-	for(;;)
-	{
-		
-		if([[level.getVars]]("sv_showScoreboard"))
-			updateServerScoreboard();
-		else if(isDefined(level.scoreboard))
-			deleteServerScoreboard();
-		
-		if(isDefined(level.scoreboardScoreLimit) && ([[level.getVars]]("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
-			deleteServerScoreboardScoreLimit();
 
-        if([[level.getVars]]("sv_showPlayersLeft"))
-            updatePlayersLeft();
-        else
-            deletePlayersLeft();
+    if(level.mapended || level.roundended || level.halftime)
+    {
+        maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "updateScoreboard");
+        return;
+    }
 		
-		wait 0.25;
-		if(level.mapended || level.roundended)
-			return;
-	}
+    if([[level.getVars]]("sv_showScoreboard"))
+        updateServerScoreboard();
+    else if(isDefined(level.scoreboard))
+        deleteServerScoreboard();
+    
+    if(isDefined(level.scoreboardScoreLimit) && ([[level.getVars]]("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
+        deleteServerScoreboardScoreLimit();
+
+    if([[level.getVars]]("sv_showPlayersLeft"))
+        updatePlayersLeft();
+    else
+        deletePlayersLeft();
 }
 
 updatePlayersLeft()
 {
 
-    options["x"] = 420;
+    options["x"] = 500;
     options["y"] = 460;
-    options["alignX"] = "left";
+    options["alignX"] = "right";
     options["alignY"] = "bottom";
-    options["fontScale"] = .50;
+    options["fontScale"] = .40;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["alliesleftText"];
 
     level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.exist["allies"], options);
     
-    options["x"] = 420;
-    options["y"] = 470;
-    options["alignX"] = "left";
+    options["x"] = 500;
+    options["y"] = 475;
+    options["alignX"] = "right";
     options["alignY"] = "bottom";
-    options["fontScale"] = .50;
+    options["fontScale"] = .40;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["axisleftText"];

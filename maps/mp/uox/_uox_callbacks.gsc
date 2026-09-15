@@ -146,7 +146,7 @@ Callback_StartGameType()
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
 	thread maps\mp\gametypes\_teams::updateGlobalCvars();
 	thread maps\mp\gametypes\_teams::updateWeaponCvars();
-	thread maps\mp\uox\_uox_hud::updateScoreboard();
+    maps\mp\uox\_uox_loops::addToLoop(level, "medium", maps\mp\uox\_uox_hud::updateScoreboard, "updateScoreboard");
 	
 	game["gamestarted"] = true;
 	
