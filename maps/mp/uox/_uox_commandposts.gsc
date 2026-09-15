@@ -355,9 +355,9 @@ Flag_StartThinking()
 		}
 		
 		SetupFlagIcon(flag);
-		flag thread Flag_ZoneThink();
+		//flag thread Flag_ZoneThink();
         maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ARMING trigger");
-        flag maps\mp\uox\_uox_loops::addToWaitTills(flag, "trigger", ::Flag_ZoneThink, true);
+        flag maps\mp\uox\_uox_loops::addToWaitTills(flag, "trigger", ::Flag_ZoneStart, true);
         flag thread maps\mp\uox\_uox_loops::removeFromWaitTills(flag, "trigger", level, "round_ended");
 	}
 }
@@ -381,6 +381,7 @@ Flag_Initialize(flag)
 	flag.radarupdated = 0;
 	flag.beingcapped = false;
     flag.armed = 0;
+    flag.thinking = 0;
 	
 	// now see if we can find any props that need to be turned off 
 	props = getentarray("flag" + flag.id + "stuff_allies", "targetname");
@@ -443,13 +444,21 @@ SetupFlagIcon(flag)
     flag.icon = maps\mp\uox\_uox_hud::updateHUDElement(flag.icon, "shader", flagshader, options);
 }
 
+Flag_ZoneStart()
+{
+    if(self.thinking)
+        return;
+    self.thinking = 1;
+    self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::Flag_ZoneThink, "Flag_ZoneThink");
+}
+
 // ----------------------------------------------------------------------------------
 //	Flag_ZoneThink
 //
 // 		This is continually called for each flag.  This lets the flag determine
 //		if it is being captured
 // ----------------------------------------------------------------------------------
-Flag_ZoneThink(other)
+Flag_ZoneThink()
 {
 	level endon("round_ended");
 
@@ -490,6 +499,15 @@ Flag_ZoneThink(other)
             }
         }
     }
+
+    if(self.allied_capping == 0 && self.axis_capping == 0)
+    {
+        self Capture_Canceled();
+        self.thinking = 0;
+        self maps\mp\uox\_uox_loops::removeFromLoop(self, "fast", "Flag_ZoneThink");
+        return;
+    }
+
     if(self.allied_capping > 0 || self.axis_capping > 0)
         self.capping = self.allied_capping - self.axis_capping;	
 
@@ -544,18 +562,10 @@ Flag_ZoneThink(other)
         if (self.capping > 0)
         {
             self.progresstime += (0.05) * ((1 + (self.capping - 1) * 0.5 ));
-            if(self.capping == 1)
-            {
-                name = other;
-            }
         }
         else if (self.capping < 0)
         {
             self.progresstime +=  (0.05) * ((1 + (-1 * self.capping - 1) * 0.5 ));
-            if(self.capping == -1)
-            {
-                name = other;
-            }
         }
 
         self.scale = (self.progresstime / self.script_timer);
@@ -579,8 +589,8 @@ Flag_ZoneThink(other)
         capping_options["x"] = game["flag_icons_x"] + (self.script_idnumber * game["flag_icons_w"]) - game["flag_icons_h"];
         capping_options["y"] = game["flag_icons_y"];
         capping_options["sort"] = 0.5;  // To fix a stupid bug, where the first flag icon (or the one to the furthest left) will not sort through the capping icon. BAH!
-        capping_options["width"] = 32;
-        capping_options["height"] = 32;
+        capping_options["width"] = game["flag_icons_w"];
+        capping_options["height"] = self.scale * game["flag_icons_h"];
         capping_options["crop_width"] = 1.0;
 
         blinking_options = [];
@@ -631,15 +641,13 @@ Flag_ZoneThink(other)
         if(self.capping > 0)
         {
             maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_AlliesCappedFlag " + self.id);
-            self thread Capture_AlliesCappedFlag(cappers,name);
+            self thread Capture_AlliesCappedFlag(cappers);
         }
         else
         {
             maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_AxisCappedFlag " + self.id);
-            self thread Capture_AxisCappedFlag(cappers,name);
+            self thread Capture_AxisCappedFlag(cappers);
         }
-        
-        other.score = other.pers["score"];
         
         maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled because flag finished being captured " + self.id);   
         self Capture_Canceled();
@@ -810,7 +818,7 @@ Capture_Canceled()
 // 		Gets called when the allies cap a flag.  Displays the appropriate flag.
 //		Also displays the cap messages.
 // ----------------------------------------------------------------------------------
-Capture_AlliesCappedFlag(cappers,name)
+Capture_AlliesCappedFlag(cappers)
 {
 	self notify("captured");
 
@@ -908,7 +916,7 @@ Capture_AlliesCappedFlag(cappers,name)
 // 		Gets called when the axis cap a flag.  Displays the appropriate flag.
 //		Also displays the cap messages.
 // ----------------------------------------------------------------------------------
-Capture_AxisCappedFlag(cappers,name)
+Capture_AxisCappedFlag(cappers)
 {
 	self notify("captured");
 
