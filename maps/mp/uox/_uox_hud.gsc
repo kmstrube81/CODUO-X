@@ -1983,7 +1983,7 @@ updatePlayersLeft()
     options["y"] = 460;
     options["alignX"] = "right";
     options["alignY"] = "bottom";
-    /ptions["fontscale"] = .40;
+    options["fontscale"] = .40;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["alliesleftText"];
