@@ -193,7 +193,7 @@ checkScoreLimit()
 	if(level.mapended) //if map already ended
 		return; //nothing to do
 		
-	if(game["roundbased"] && [[level.getVars]]("scr_scorerounds")) //if game is round based
+	if(game["roundbased"] && [[level.getVars]]("scr_score_rounds")) //if game is round based
 	{
 		if(!level.roundended) //and round hasn't ended
 			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
