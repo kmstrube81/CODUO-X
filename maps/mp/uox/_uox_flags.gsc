@@ -924,8 +924,6 @@ flag_carrier_atgoal(other)
             player maps\mp\uox\_uox::setPlayerIcons();
         }
     
-        // check the score to see if we need to end the round
-        thread maps\mp\uox\_uox::checkScoreLimit();
         return;
     }		
 }
