@@ -1979,24 +1979,22 @@ updateScoreboard()
 updatePlayersLeft()
 {
 
-    // display allies left axis left
-    level.alliesleft = newHudElem();
-    options["x"] = 380;
+    options["x"] = 420;
     options["y"] = 460;
     options["alignX"] = "left";
     options["alignY"] = "bottom";
-    options["fontScale"] = .75;
+    options["fontScale"] = .50;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["alliesleftText"];
 
     level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.exist["allies"], options);
     
-    options["x"] = 380;
+    options["x"] = 420;
     options["y"] = 470;
     options["alignX"] = "left";
     options["alignY"] = "bottom";
-    options["fontScale"] = .75;
+    options["fontScale"] = .50;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["axisleftText"];
