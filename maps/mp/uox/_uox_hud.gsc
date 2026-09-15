@@ -58,6 +58,9 @@ precache()
 	game["2HScoresText"] = &"2nd Half Scores:";
 	game["matchScoreText"] = &"Match Scores:";
 
+    game["axisleftText"] = &"AXIS ALIVE: ";	
+	game["alliesleftText"] = &"ALLIES ALIVE: ";
+
     game["reinforcementsText"] = &"HQ_REINFORCEMENTS_HUD";
     game["reinforcementsMsg"] = &"HQ_REINFORCEMENTS";
 
@@ -153,7 +156,9 @@ precache()
     precacheString(&"num_8");
     precacheString(&"num_9");
     
-    precacheString(game["reinforcementsText"]);			
+    precacheString(game["reinforcementsText"]);
+    precacheString(game["axisleftText"]);
+    precacheString(game["alliesleftText"]);			
 
     if(!level.uox_teamplay || level.objective == "bel") {
         precacheString(game["leaderText"]);
@@ -1959,11 +1964,50 @@ updateScoreboard()
 		
 		if(isDefined(level.scoreboardScoreLimit) && ([[level.getVars]]("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
 			deleteServerScoreboardScoreLimit();
+
+        if([[level.getVars]]("sv_showPlayersLeft"))
+            updatePlayersLeft();
+        else
+            deletePlayersLeft();
 		
 		wait 0.25;
 		if(level.mapended || level.roundended)
 			return;
 	}
+}
+
+updatePlayersLeft()
+{
+
+    // display allies left axis left
+    level.alliesleft = newHudElem();
+    options["x"] = 380;
+    options["y"] = 460;
+    options["alignX"] = "left";
+    options["alignY"] = "bottom";
+    options["fontScale"] = .75;
+    options["color"] = (1, 1, 1);
+    options["alpha"] = 1;
+    options["label"] = game["alliesleftText"];
+
+    level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.exist["allies"], options);
+    
+    options["x"] = 380;
+    options["y"] = 470;
+    options["alignX"] = "left";
+    options["alignY"] = "bottom";
+    options["fontScale"] = .75;
+    options["color"] = (1, 1, 1);
+    options["alpha"] = 1;
+    options["label"] = game["axisleftText"];
+	
+    level.axisLeft = updateHUDElement(level.axisLeft, "number", level.exist["axis"], options);
+}
+
+deletePlayersLeft()
+{
+    level.alliesLeft = deleteHUDElement(level.alliesLeft);
+    level.axisLeft = deleteHUDElement(level.axisLeft);
 }
 
 /* **************************************************************************************************
@@ -2062,7 +2106,7 @@ makeVictoryAnnouncement( winner, make_announcement )
         {
             announcer = game["sound_axis_victory_vo"];
 
-            announcement(game["alliesWinText"]);
+            announcement(game["axisWinText"]);
         }
         players = getentarray("player", "classname");
         for(i = 0; i < players.size; i++)
