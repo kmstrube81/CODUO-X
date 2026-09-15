@@ -357,7 +357,7 @@ Flag_StartThinking()
 		SetupFlagIcon(flag);
 		//flag thread Flag_ZoneThink();
         maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ARMING trigger");
-        flag maps\mp\uox\_uox_loops::addToWaitTills(flag, "trigger", ::Flag_ZoneStart, true);
+        flag maps\mp\uox\_uox_loops::addToWaitTills(flag, "trigger", ::Flag_ZoneStart);
         flag thread maps\mp\uox\_uox_loops::removeFromWaitTills(flag, "trigger", level, "round_ended");
 	}
 }
