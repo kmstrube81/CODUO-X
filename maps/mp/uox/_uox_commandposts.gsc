@@ -1055,7 +1055,7 @@ Flag_Monitor_All()
         //kill loop
         level maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "Flag_Monitor_All");
         // give the allies points
-        maps\mp\uox\_uox::incrementTeamScore("allies", [[level.getVars]]("scr_domination_points");
+        maps\mp\uox\_uox::incrementTeamScore("allies", [[level.getVars]]("scr_domination_points"));
 
         if(![[level.getVars]]("scr_domination_endround")) 
             return;
@@ -1069,7 +1069,7 @@ Flag_Monitor_All()
         //kill loop
         level maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "Flag_Monitor_All");
         // give the axis points
-        maps\mp\uox\_uox::incrementTeamScore("axis", [[level.getVars]]("scr_domination_points");
+        maps\mp\uox\_uox::incrementTeamScore("axis", [[level.getVars]]("scr_domination_points"));
 
         if(![[level.getVars]]("scr_domination_endround")) 
             return;
