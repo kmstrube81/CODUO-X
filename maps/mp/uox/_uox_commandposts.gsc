@@ -127,7 +127,7 @@ flag_setup()
     Flag_InitTriggers();
 	Flag_StartThinking(); // Start the Flag_StartThinking thread. This sets up the flags for primetime.
 
-	level thread maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::Flag_Monitor_All, "Flag_AllCapturedThink");
+	level thread maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::Flag_Monitor_All, "Flag_Monitor_All");
 	level thread maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::drawFlagsOnCompass, "drawFlagsOnCompass");
 }
 
@@ -906,8 +906,7 @@ Capture_AlliesCappedFlag(cappers)
 	{
 		sound_maker playloopsound(game[self.team + "radio"]);
 	}
-
-    //reset hold timer
+    self maps\mp\uox\_uox::checkScoreLimit();
 }
 
 // ----------------------------------------------------------------------------------
@@ -1003,9 +1002,7 @@ Capture_AxisCappedFlag(cappers)
 	{
 		sound_maker playloopsound( game[self.team + "radio"]);
 	}
-
-    //reset hold timer
-		
+    self maps\mp\uox\_uox::checkScoreLimit();
 }
 
 Hold_CappedFlag()
@@ -1026,6 +1023,9 @@ Hold_CappedFlag()
         game["axisscore"]+= [[level.getVars]]("scr_hold_points");;
         setTeamScore("axis", game["axisscore"]);
     }
+    //check score limit
+    self maps\mp\uox\_uox::checkScoreLimit();
+
     self.armed = 0;
 
     if([[level.getVars]]("scr_hold_timer"))
@@ -1056,19 +1056,17 @@ Flag_Monitor_All()
         {
             flag_count_axis++;
         }
-
-        if((isDefined( flag.capping ) && flag.capping == 0) || level.roundended)
-        {
-            maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled because round over " + flag.id);
-            flag Capture_Canceled();
-        }
     }
 
     if(flag_count_allied == (level.flagcount - 1))
     {
+        //kill loop
+        level maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "Flag_Monitor_All");
         // give the allies points
         game["alliedscore"] += [[level.getVars]]("scr_domination_points");
         setTeamScore("allies", game["alliedscore"]);
+
+        self maps\mp\uox\_uox::checkScoreLimit();
 
         if(![[level.getVars]]("scr_domination_endround")) 
             return;
@@ -1079,9 +1077,13 @@ Flag_Monitor_All()
     }
     if(flag_count_axis == (level.flagcount - 1))
     {
+        //kill loop
+        level maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "Flag_Monitor_All");
         // give the axis points
         game["axisscore"] += [[level.getVars]]("scr_domination_points");
         setTeamScore("axis", game["axisscore"]);
+
+        self maps\mp\uox\_uox::checkScoreLimit();
 
         if(![[level.getVars]]("scr_domination_endround")) 
             return;
