@@ -1988,7 +1988,7 @@ updatePlayersLeft()
     options["alpha"] = 1;
     options["label"] = game["alliesleftText"];
 
-    level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.exist["allies"], options);
+    level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.alive["allies"], options);
     
     options["x"] = 480;
     options["y"] = 475;
@@ -1999,7 +1999,7 @@ updatePlayersLeft()
     options["alpha"] = 1;
     options["label"] = game["axisleftText"];
 	
-    level.axisLeft = updateHUDElement(level.axisLeft, "number", level.exist["axis"], options);
+    level.axisLeft = updateHUDElement(level.axisLeft, "number", level.alive["axis"], options);
 }
 
 deletePlayersLeft()

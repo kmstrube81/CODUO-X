@@ -99,6 +99,10 @@ Callback_StartGameType()
     //init hud
 	maps\mp\uox\_uox_hud::initServerHUD();
 	
+
+    level.alive["allies"] = 0;
+    level.alive["axis"] = 0;
+
     if(level.uox_teamplay) {
         level.exist["allies"] = 0;
         level.exist["axis"] = 0;

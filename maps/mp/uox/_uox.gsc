@@ -1134,6 +1134,8 @@ updateTeamStatus()
     oldvalue["axis"] = level.exist["axis"];		//store alive axis
     level.exist["allies"] = 0; //reset alive allies
     level.exist["axis"] = 0; //reset alive axis
+    level.alive["allies"] = 0; //reset alive allies
+    level.alive["axis"] = 0; //reset alive axis
     oldvalue["2players"] = level.exist["2players"]; //store alive players
     level.exist["2players"] = -1; //reset alive players
 
@@ -1150,6 +1152,8 @@ updateTeamStatus()
             level.exist[player.pers["team"]]++; //increment number of alive players on team
             level.exist["2players"]++; //increment number of alive players in general
 		}
+        if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && self.sessionstate == "playing")
+            level.alive[player.pers["team"]]++;
 	}
 
     if(level.exist["allies"]) //if allies have players allive
