@@ -2517,17 +2517,25 @@ initObjectives(objective)
 			thread maps\mp\uox\_uox_retrievals::retrieval();
 			return;
         case "bel":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
             maps\mp\uox\_uox_behindenemylines::initVars();
             return;
         case "radio":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
             maps\mp\uox\_uox_radios::initVars();
             maps\mp\uox\_uox_radios::hq_setup();
             return;
         case "ctf":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
             maps\mp\uox\_uox_flags::initVars();
             thread maps\mp\uox\_uox_flags::ctf();
             return;
         case "commandpost":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
             maps\mp\uox\_uox_commandposts::initVars();
             maps\mp\uox\_uox_commandposts::flag_setup();
             thread maps\mp\gametypes\_secondary_gmi::SetupSecondaryObjectives();
