@@ -625,7 +625,7 @@ startRoundTimer(timer, doGracePeriod)
 		{	//round was a tie
 				endRound("draw");
 		} //if allies have more score than axis
-		else if(lgetAlliesTeamScore() > getAxisTeamScore())
+		else if(getAlliesTeamScore() > getAxisTeamScore())
 		{	//allies won the round
 			endRound("allies");
 		} //otherwise axis scored more than allies
