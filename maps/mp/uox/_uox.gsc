@@ -1072,7 +1072,7 @@ endRound(roundwinner)
 		}
 		maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkRoundLimit rounds played " + game["roundsplayed"] + " of " + [[level.getVars]]("scr_roundlimit"));
 		checkRoundLimit(); //make sure we haven't hit round limit
-        if(roundwinner = "deathmatch")
+        if(roundwinner == "deathmatch")
         {
             maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + winner.score + " of " + [[level.getVars]]("scr_scorelimit"));
         }
