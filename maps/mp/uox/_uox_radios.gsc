@@ -630,23 +630,9 @@ hq_score_update(team, points)
     newscore = (getTeamScore(team) + points);
 	
 	if( newscore > scorelimit )
-    {
-            if(team == "allies")
-                game["alliedscore"] = scorelimit;
-            else if(team == "axis")
-                game["axisscore"] = scorelimit;
-            setTeamScore(team, scorelimit);
-            maps\mp\uox\_uox::checkScoreLimit();
-    }
+        maps\mp\uox\_uox::incrementTeamScore(team, newscore - scorelimit);
 	else
-    {
-            if(team == "allies")
-                game["alliedscore"] = newscore;
-            else if(team == "axis")
-                game["axisscore"] = newscore;
-            setTeamScore(team, newscore);
-            maps\mp\uox\_uox::checkScoreLimit();
-    }
+        maps\mp\uox\_uox::incrementTeamScore(team, points);
 	level thread hq_playsound_onplayers("hq_score");
 	
 }

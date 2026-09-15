@@ -834,8 +834,7 @@ Capture_AlliesCappedFlag(cappers)
 	self.team = "allies";
 	self.radarupdated = 0;	
 
-	game["alliedscore"]+= [[level.getVars]]("scr_capture_points");
-	setTeamScore("allies", game["alliedscore"]);
+	maps\mp\uox\_uox::incrementTeamScore("allies", [[level.getVars]]("scr_capture_points"));
 	
 	//play the flag taken vo on all players.  
 	players = getentarray("player", "classname");
@@ -906,7 +905,6 @@ Capture_AlliesCappedFlag(cappers)
 	{
 		sound_maker playloopsound(game[self.team + "radio"]);
 	}
-    self maps\mp\uox\_uox::checkScoreLimit();
 }
 
 // ----------------------------------------------------------------------------------
@@ -931,8 +929,7 @@ Capture_AxisCappedFlag(cappers)
 	self.team = "axis";
 	self.radarupdated = 0;	
 	
-	game["axisscore"]+= [[level.getVars]]("scr_capture_points");;
-	setTeamScore("axis", game["axisscore"]);
+	maps\mp\uox\_uox::incrementTeamScore("axis", [[level.getVars]]("scr_capture_points"));
 
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++)
@@ -1002,7 +999,6 @@ Capture_AxisCappedFlag(cappers)
 	{
 		sound_maker playloopsound( game[self.team + "radio"]);
 	}
-    self maps\mp\uox\_uox::checkScoreLimit();
 }
 
 Hold_CappedFlag()
@@ -1015,16 +1011,12 @@ Hold_CappedFlag()
 
     if(self.team == "allies")
     {
-        game["alliedscore"]+= [[level.getVars]]("scr_hold_points");;
-        setTeamScore("allies", game["alliedscore"]);
+        maps\mp\uox\_uox::incrementTeamScore("allies", [[level.getVars]]("scr_hold_points"));
     }
     else
     {
-        game["axisscore"]+= [[level.getVars]]("scr_hold_points");;
-        setTeamScore("axis", game["axisscore"]);
+        maps\mp\uox\_uox::incrementTeamScore("axis", [[level.getVars]]("scr_hold_points"));
     }
-    //check score limit
-    self maps\mp\uox\_uox::checkScoreLimit();
 
     self.armed = 0;
 
@@ -1063,10 +1055,7 @@ Flag_Monitor_All()
         //kill loop
         level maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "Flag_Monitor_All");
         // give the allies points
-        game["alliedscore"] += [[level.getVars]]("scr_domination_points");
-        setTeamScore("allies", game["alliedscore"]);
-
-        self maps\mp\uox\_uox::checkScoreLimit();
+        maps\mp\uox\_uox::incrementTeamScore("allies", [[level.getVars]]("scr_domination_points");
 
         if(![[level.getVars]]("scr_domination_endround")) 
             return;
@@ -1080,10 +1069,7 @@ Flag_Monitor_All()
         //kill loop
         level maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "Flag_Monitor_All");
         // give the axis points
-        game["axisscore"] += [[level.getVars]]("scr_domination_points");
-        setTeamScore("axis", game["axisscore"]);
-
-        self maps\mp\uox\_uox::checkScoreLimit();
+        maps\mp\uox\_uox::incrementTeamScore("axis", [[level.getVars]]("scr_domination_points");
 
         if(![[level.getVars]]("scr_domination_endround")) 
             return;

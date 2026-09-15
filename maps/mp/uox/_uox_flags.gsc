@@ -831,16 +831,14 @@ flag_carrier_atgoal(other)
         // announce the flag has been grabbed
         if ( other.pers["team"] == "axis" )
         {
-            game["axisscore"]++;
-            setTeamScore("axis", game["axisscore"]);
+            maps\mp\uox\_uox::incrementTeamScore("axis");
             
             announcement(&"GMI_CTF_AXIS_CAPTURED_FLAG");
             iprintln(&"GMI_CTF_PLAYER_CAPTURED_FLAG_AXIS",player);
         }
         else
         {
-            game["alliedscore"]++;
-            setTeamScore("allies", game["alliedscore"]);
+            maps\mp\uox\_uox::incrementTeamScore("allies");
 
             announcement(&"GMI_CTF_ALLIES_CAPTURED_FLAG");
             iprintln(&"GMI_CTF_PLAYER_CAPTURED_FLAG_ALLIES",player);

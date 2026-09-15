@@ -2061,6 +2061,7 @@ incrementTeamScore(team, val)
 			setTeamScore("allies", game["alliedscore"]);
 		}
 	}
+    checkScoreLimit();
 }
 
 // ----------------------------------------------------------------------------------
