@@ -185,6 +185,9 @@ precache()
 			break;
 	}
 	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
+
+    game["sound_axis_victory_vo"] = "MP_announcer_axis_win";
+	game["sound_axis_victory_music"] = "ge_victory";
 	precacheShader(game["headicon_allies"]);
 	precacheShader(game["headicon_axis"]);
 
@@ -2047,7 +2050,7 @@ makeVictoryAnnouncement( winner, make_announcement )
         players = getentarray("player", "classname");
         for(i = 0; i < players.size; i++)
         {
-            players[i] thread Victory_PlaySounds(announcer ,game["sound_allies_victory_music"]);
+            players[i] thread Victory_PlaySounds(announcer, game["sound_allies_victory_music"]);
         }
         level thread Victory_DisplayImage(game["hud_allies_victory_image"]);
     }
@@ -2064,7 +2067,7 @@ makeVictoryAnnouncement( winner, make_announcement )
         players = getentarray("player", "classname");
         for(i = 0; i < players.size; i++)
         {
-            players[i] thread Victory_PlaySounds(game["sound_axis_victory_vo"],game["sound_axis_victory_music"]);
+            players[i] thread Victory_PlaySounds(announcer, game["sound_axis_victory_music"]);
         }
         level thread Victory_DisplayImage(game["hud_axis_victory_image"]);
     }

@@ -270,12 +270,12 @@ endMap(make_announcement)
 	//Determine Winner
 	if(level.uox_teamplay) //if team game
 	{
-		if(game["alliedscore"] == game["axisscore"]) //if score is tied
+		if(getAlliesTeamScore() == getAxisTeamScore()) //if score is tied
 		{	//set scoreboard text to tie and winner to draw
 			text = &"MPSCRIPT_THE_GAME_IS_A_TIE";
 			winner = "draw";
 		}
-		else if(game["alliedscore"] > game["axisscore"]) //if allies have more points than axis
+		else if(getAlliesTeamScore() > getAxisTeamScore()) //if allies have more points than axis
 		{ //set scoreboard text to allies win and winner to allies
 			text = &"MPSCRIPT_ALLIES_WIN";
 			winner = "allies";
