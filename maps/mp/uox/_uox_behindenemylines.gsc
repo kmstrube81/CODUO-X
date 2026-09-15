@@ -119,6 +119,9 @@ update_obj_marker()
 
 survived()
 {
+    if(level.mapended || level.roundended || level.halftime)
+        return;
+
     if((isplayer (self)) && (isalive(self)))
     {
         give_allied_points();

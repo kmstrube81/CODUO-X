@@ -117,6 +117,7 @@ Callback_StartGameType()
 	level.mapended = false;
 	level.warmup = false;
 	level.doingReadyUp = false;
+    level.halftime = false;
 	level.playersready = false;
 	level.playerLock = false;
 	level.lockteams = false;

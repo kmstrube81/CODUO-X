@@ -237,6 +237,7 @@ check_bombzone(trigger)
 	self notify("kill_check_plant_bomb");
 	self endon("kill_check_plant_bomb");
 	level endon("round_ended");
+    level endon("halftime");
 
 	while(isDefined(trigger) && !isDefined(trigger.doing) && self istouching(trigger) && isAlive(self) && !(self isinvehicle()))
 		wait 0.05;

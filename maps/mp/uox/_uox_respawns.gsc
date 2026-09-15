@@ -1157,8 +1157,10 @@ halftimeSpawn()
 		wait .1;
 	}
 
+    /* menu spawn should handle this code
 	if (isdefined(self.pers["weapon"]) )
-		spawnPlayer();
+        spawnPlayer();
+    */
 }
 
 /* **************************************************************************************************

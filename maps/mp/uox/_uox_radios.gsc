@@ -236,7 +236,7 @@ hq_obj_think(radio)
 hq_radio_think()
 {	
 	level endon ("intermission"); //kill current thread during game end
-	if (level.mapended || level.roundended) //exit subsequent threads during game end
+	if (level.mapended || level.roundended || level.halftime) //exit subsequent threads during game end
     {
             self maps\mp\uox\_uox_loops::removeFromLoop(self, "fast", "hq_radio_think"); //remove function from loop
             return true;
@@ -648,7 +648,7 @@ hq_wave_timer()
     level endon("Timer Changed");
     level waittill("wave timer finished");
 	//because the current wave needs to abort when a timer is create, can't use the loop manager
-	if (!level.mapended && !level.roundended) //check as long as the match is going
+	if (!level.mapended && !level.roundended && !level.halftime) //check as long as the match is going
 	{	
 		//after timer has expired
 		if (level.captured_radios["axis"] > 0) //if axis has a radio

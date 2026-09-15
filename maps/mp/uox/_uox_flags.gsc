@@ -596,6 +596,7 @@ ctf_spawn_flag()
     maps\mp\uox\_uox_debug::debugLog("info", "ctf_think ARMING trigger=" + self.moved + " team=" + self.team);
     self.trigger maps\mp\uox\_uox_loops::addToWaitTills(self.trigger, "trigger", ::ctf_think, true);
     self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", level, "round_ended");
+    self.trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.trigger, "trigger", level, "halftime");
 	
 	//Set hintstring on the objectives trigger
 	wait 0;//required for level script to run and load the level.obj array
@@ -620,8 +621,9 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
 {
 
 	level endon("round_ended");
+    level endon("halftime");
 
-    if(!game["matchstarted"]  )
+    if(!game["matchstarted"] || level.mapended || level.roundended || level.halftime)
         return;
 
     //if flag is already picked up then there is nothing to do
@@ -801,6 +803,10 @@ flag_carrier_atgoal_wait()
 
 flag_carrier_atgoal(other)
 {
+
+    //no captures after round/map end or half
+    if(level.mapended || level.roundended || level.halftime)
+        return;
     flag = self.flag;
     player = self.flag.carried_by;
 
@@ -1327,6 +1333,7 @@ drop_flag(player)
         maps\mp\uox\_uox_debug::debugLog("info", "ctf_think ARMING trigger=" + self.moved + " team=" + self.team);
         self.mobile_trigger maps\mp\uox\_uox_loops::addToWaitTills(self.mobile_trigger, "trigger", ::ctf_think, true);
         self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", level, "round_ended");
+         self.mobile_trigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(self.mobile_trigger, "trigger", level, "halftime");
 
 		if ( self.team == "allies" )
         {

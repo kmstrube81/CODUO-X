@@ -359,6 +359,7 @@ Flag_StartThinking()
         maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ARMING trigger");
         flag maps\mp\uox\_uox_loops::addToWaitTills(flag, "trigger", ::Flag_ZoneStart);
         flag thread maps\mp\uox\_uox_loops::removeFromWaitTills(flag, "trigger", level, "round_ended");
+        flag thread maps\mp\uox\_uox_loops::removeFromWaitTills(flag, "trigger", level, "halftime");
 	}
 }
 
@@ -461,11 +462,12 @@ Flag_ZoneStart()
 Flag_ZoneThink()
 {
 	level endon("round_ended");
+    level endon("halftime");
 
 	if(!isDefined(self.script_timer))
 		self.script_timer = level.flag_timer;
 
-    if((isDefined( self.capping ) && self.capping == 0) || level.roundended)
+    if((isDefined( self.capping ) && self.capping == 0) || level.roundended || level.halftime)
     {
         maps\mp\uox\_uox_debug::debugLog("info", "Flag_ZoneThink ::Capture_Canceled because round over " + self.id);
         self Capture_Canceled();
@@ -667,6 +669,7 @@ Capture_UpdateProgressBar()
 
 	self endon("death");
 	level endon("round_ended");
+    level endon("halftime");
 	flag endon("capture_canceled");
 	flag endon("captured");
 
@@ -1007,7 +1010,11 @@ Hold_CappedFlag()
         return;
     self.armed = 1;
     level endon("round_ended");
+    level endon("halftime");
     self waittill("hold_bonus");
+
+    if(level.roundended || level.mapended || level.halftime)
+        return;
 
     if(self.team == "allies")
     {

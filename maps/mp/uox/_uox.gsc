@@ -1533,6 +1533,9 @@ getWinningRoundNum(round, roundLimit)
 ************************************************************************************************* */
 doHalftime(midRound)
 {
+    level notify("halftime");
+    level.halftime = true;
+
 	//if midRound flag isn't set
 	if(!isDefined(midRound))
 		midRound = false;
