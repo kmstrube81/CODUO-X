@@ -562,7 +562,8 @@ updateHUDElement(element, type, value, options)
         case "timerUp":
             element setTimerUp(value);
             break;
-		case "number":element setValue(value);
+		case "number":
+            element setValue(value);
 			break;
 		case "shader":
 			element setShader(value, width, height, crop_width, crop_height);
@@ -1978,22 +1979,22 @@ updateScoreboard()
 updatePlayersLeft()
 {
 
-    options["x"] = 500;
+    options["x"] = 490;
     options["y"] = 460;
     options["alignX"] = "right";
     options["alignY"] = "bottom";
-    options["fontScale"] = .40;
+    /ptions["fontscale"] = .40;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["alliesleftText"];
 
     level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.exist["allies"], options);
     
-    options["x"] = 500;
+    options["x"] = 490;
     options["y"] = 475;
     options["alignX"] = "right";
     options["alignY"] = "bottom";
-    options["fontScale"] = .40;
+    options["fontscale"] = .40;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["axisleftText"];
