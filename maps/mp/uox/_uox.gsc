@@ -224,7 +224,7 @@ checkScoreLimit()
 
 	level.mapended = true; //set map as ended
 	iprintln(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
-	level thread endMap(); //end map
+	level thread endMap(true); //end map
 	
 }
 
@@ -244,7 +244,10 @@ endMap(make_announcement)
 		level notify("postround");
 		level waittill("end_finalkillcam");
 	}
-	
+
+    //clamp rounds played to at least one (have to play a round to end the match)
+	if(game["roundsplayed"] < 1)
+        game["roundsplayed"] = 1;
 	
 	if(isdefined(level.bombs)) //for objective modes, disable bomb tick
 	{

@@ -72,8 +72,17 @@ doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 		options["y"] = 70;
 		options["fontscale"] = 1.0;
 		options["sort"] = 1;
+        switch([[level.getVars]]("scr_respawn_mode"))
+        {
+            case "dm":
+            case "forcerespawn":
+                skipText = game["respawnText"];
+                break;
+            default:
+                skipText = game["skipKillcamText"];
+        }
 		maps\mp\uox\_uox_hud::updateClientHUDElement("kc_skiptext", "text",
-			game["respawnText"], options);
+			skipText, options);
 	}
 	
 	options["y"] = 428;
