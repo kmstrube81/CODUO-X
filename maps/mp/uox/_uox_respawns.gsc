@@ -146,6 +146,7 @@ spawnSpectator(origin, angles)
 	self.spectatorclient = -1;
 	self.archivetime = 0;
     self.god = false;
+    self.usedweapons = false;
 
 	if(self.pers["team"] == "spectator")
 		self.statusicon = "";

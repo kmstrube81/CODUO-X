@@ -171,6 +171,7 @@ Callback_PlayerConnect()
 	self waittill("begin");
 	self.statusicon = "";
 	self.pers["teamTime"] = 1000000;
+    self.usedweapons = false;
 
 	if(!isDefined(self.pers["team"]))
 		iprintln(&"MPSCRIPT_CONNECTED", self);

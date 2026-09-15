@@ -134,16 +134,9 @@ checkScoreLimit()
 	if([[level.getVars]]("scr_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
 		return; //nothing to do in that case
 		
-	if([[level.getVars]]("scr_score_rounds"))
-	{ //init team scores if scoring rounds
-		alliedscore = level.alliedscore;
-		axisscore = level.axisscore;
-	}
-	else
-	{ //init teamscores if not scoring rounds
-		alliedscore = game["alliedscore"];
-		axisscore = game["axisscore"];
-	}	
+	alliedscore = getAlliesTeamScore();
+    axisscore = getAxisTeamScore();
+
 	doHalftime = false; //init doHalftime flag 
 	
 	if(game["suddendeath"]) //if suddendeath overtime
@@ -200,7 +193,7 @@ checkScoreLimit()
 	if(level.mapended) //if map already ended
 		return; //nothing to do
 		
-	if(game["roundbased"]) //if game is round based
+	if(game["roundbased"] && [[level.getVars]]("scr_scorerounds")) //if game is round based
 	{
 		if(!level.roundended) //and round hasn't ended
 			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
@@ -219,7 +212,7 @@ checkScoreLimit()
 		}	//if resetting scores do regular end round shenanigans.
 		if(level.uox_teamplay && level.objective != "bel") //if team game
 		{	//if allies are over the score limit
-			if(level.alliedscore >= [[level.getVars]]("scr_scorelimit"))
+			if(alliedscore >= [[level.getVars]]("scr_scorelimit"))
 				endRound("allies"); //end round in allies favor
 			else //if allies didn't end the round, then axis must have
 				endRound("axis"); //end round in axis favor
@@ -563,11 +556,11 @@ checkTimeLimit()
 				incrementTeamScore(game["defenders"], level.defense_points);
 				endRound(game["defenders"]);
 			}
-			else if(level.alliedscore == level.axisscore)
+			else if(getAlliesTeamScore() == getAxisTeamScore())
 			{	//round was a tie
 					endRound("draw");
 			} //if allies have more score than axis
-			else if(level.alliedscore > level.axisscore)
+			else if(getAlliesTeamScore() > getAxisTeamScore())
 			{	//allies won the round
 				endRound("allies");
 			} //otherwise axis scored more than allies
@@ -628,11 +621,11 @@ startRoundTimer(timer, doGracePeriod)
 			incrementTeamScore(game["defenders"], level.defense_points);
 			endRound(game["defenders"]);
 		}
-		else if(level.alliedscore == level.axisscore)
+		else if(getAlliesTeamScore() == getAxisTeamScore())
 		{	//round was a tie
 				endRound("draw");
 		} //if allies have more score than axis
-		else if(level.alliedscore > level.axisscore)
+		else if(lgetAlliesTeamScore() > getAxisTeamScore())
 		{	//allies won the round
 			endRound("allies");
 		} //otherwise axis scored more than allies
@@ -1914,6 +1907,30 @@ getTeam2Score()
 		return game["alliedscore"];
 	else
 		return game["axisscore"];
+}
+
+getAlliesTeamScore()
+{
+    if([[level.getVars]]("scr_score_rounds"))
+	{ //init team scores if scoring rounds
+		return level.alliedscore;
+	}
+	else
+	{ //init teamscores if not scoring rounds
+		return game["alliedscore"];
+	}
+}
+
+getAxisTeamScore()
+{
+    if([[level.getVars]]("scr_score_rounds"))
+	{ //init team scores if scoring rounds
+		return level.axisscore;
+	}
+	else
+	{ //init teamscores if not scoring rounds
+		return game["axisscore"];
+	}
 }
 
 /* *************************************************************************************************
