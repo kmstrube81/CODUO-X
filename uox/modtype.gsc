@@ -87,7 +87,7 @@ registerGametype(main)
         return;
     }
 
-    game["mods"] = arrayPush( game["mods"], main, "main" );
+    game["mods"] = maps\mp\uox\_uox_arrays::arrayPush( game["mods"], main, "main" );
 }
 
 registerMod(mod, name)
@@ -95,6 +95,6 @@ registerMod(mod, name)
     if(!isDefined(mod))
         return;
 
-    game["mods"] = arrayPush( game["mods"], mod, name );
+    game["mods"] = maps\mp\uox\_uox_arrays::arrayPush( game["mods"], mod, name );
 }
 
