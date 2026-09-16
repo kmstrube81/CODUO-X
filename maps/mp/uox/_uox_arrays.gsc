@@ -686,7 +686,10 @@ arrayReadEach(arr, callback)
 	{
 		key = arr["keys"][i];
 		item = arr["values"][key];
-		[[callback]](item);
+        if(isDefined(callback))
+            [[callback]](item);
+        else //if callback isn't defined then the aray value is the callback
+            [[item]]();
 	}
 }
 

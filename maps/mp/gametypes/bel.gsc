@@ -63,13 +63,11 @@
 main()
 {
 
-	modtype = uox\modtype::modtype(getCvar("g_gametype"));
-	
-	if(isDefined(modtype))
-	{
-		[[modtype]]();
+	uox\modtype::modtype(getCvar("g_gametype"));
+	maps\mp\uox\_uox_arrays::arrayReadEach(game["mods"]);
+
+	if(isDefined(getValue(game["mods"],"main"))) //if main thread already ran then exit stock gametype
 		return;
-	}
 	
 	spawnpointname = "mp_teamdeathmatch_spawn";
 	spawnpoints = getentarray(spawnpointname, "classname");

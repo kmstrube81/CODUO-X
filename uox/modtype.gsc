@@ -4,30 +4,97 @@
    NEW SKINS OR SOUND EFFECTS WILL STILL LOAD OF COURSE */
 modtype(gt)
 {
+
+    game["mods"] = maps\mp\uox\_uox_arrays::superArray();
+
 	switch(gt)
 	{
 		//UOX DEATHMATCH
-		case "dm":
-			return maps\mp\gametypes\_uox_dm::UOX_Main;
+        case "dm":
+            //register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_dm::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main"
+            registerMod( );
+            break;
 		//UOX TEAM DEATHMATCH
 		case "tdm":
-			return maps\mp\gametypes\_uox_tdm::UOX_Main;
+			//register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_tdm::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main"
+            registerMod( );
+            break;
+        //UOX BEHIND ENEMY LINES
         case "bel":
-            return maps\mp\gametypes\_uox_bel::UOX_Main;
+            //register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_bel::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main" 
+            registerMod( );
+            break;
+        //UOX RETRIEVAL
 		case "re":
-			return maps\mp\gametypes\_uox_re::UOX_Main;
+			//register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_re::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main" 
+            registerMod( );
+            break
+        //UOX SEARCH AND DESTROY
 		case "sd":
-			return maps\mp\gametypes\_uox_sd::UOX_Main;
+			//register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_sd::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main" 
+            registerMod( );
+            break;
+        //UOX HEADQUARTERS
 		case "hq":
-			return maps\mp\gametypes\_uox_hq::UOX_Main;
+			//register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_hq::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main" 
+            registerMod( );
+            break;
+        //UOX DOMINATION
 		case "dom":
-			return maps\mp\gametypes\_uox_dom::UOX_Main;;
+			//register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_dom::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main"
+            registerMod( );
+            break;
+        //UOX CAPTURE THE FLAG
 		case "ctf":
-			return maps\mp\gametypes\_uox_ctf::UOX_Main;
-		case "bas":
-			return;
+			//register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_dm::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main"
+            registerMod();
+            break;
+        case "bas":
+            //register gametype logic here
+			registerGametype( );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main"
+            registerMod( );
+            break;
 		default:
-			return;
+			//register gametype logic here
+			registerGametype( maps\mp\gametypes\_uox_dm::UOX_Main );
+            //register mods here - first agurement is mod init function, second argument is name - can not be "main" 
+            registerMod( );
 	}
 
 }
+
+registerGametype(main)
+{
+    if(!isDefined(main))
+    {
+        return;
+    }
+
+    game["mods"] = arrayPush( game["mods"], main, "main" );
+}
+
+registerMod(mod, name)
+{
+    if(!isDefined(mod))
+        return;
+
+    game["mods"] = arrayPush( game["mods"], mod, name );
+}
+

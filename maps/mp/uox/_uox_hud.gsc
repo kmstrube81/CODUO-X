@@ -1979,7 +1979,7 @@ updateScoreboard()
 updatePlayersLeft()
 {
 
-    options["x"] = 480;
+    options["x"] = 485;
     options["y"] = 460;
     options["alignX"] = "right";
     options["alignY"] = "bottom";
@@ -1990,7 +1990,7 @@ updatePlayersLeft()
 
     level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.alive["allies"], options);
     
-    options["x"] = 480;
+    options["x"] = 485;
     options["y"] = 475;
     options["alignX"] = "right";
     options["alignY"] = "bottom";
