@@ -1983,7 +1983,7 @@ updatePlayersLeft()
     options["y"] = 460;
     options["alignX"] = "right";
     options["alignY"] = "bottom";
-    options["fontscale"] = .85;
+    options["fontscale"] = .9;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["alliesleftText"];
@@ -1994,7 +1994,7 @@ updatePlayersLeft()
     options["y"] = 475;
     options["alignX"] = "right";
     options["alignY"] = "bottom";
-    options["fontscale"] = .85;
+    options["fontscale"] = .9;
     options["color"] = (1, 1, 1);
     options["alpha"] = 1;
     options["label"] = game["axisleftText"];

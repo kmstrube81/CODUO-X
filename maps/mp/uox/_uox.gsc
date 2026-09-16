@@ -769,9 +769,6 @@ endRound(roundwinner)
 	level.switchprevent = false; //allow player to switch teams at end of round
 	level endon("kill_endround"); //abort end round if notify is sent
 
-    //final scoreboard update
-    level thread maps\mp\uox\_uox_hud::updateScoreboard();
-
 	if(level.roundended) //if round already ended
 		return; //nothing to do
 	level.roundended = true; //set roundend flag
@@ -834,8 +831,12 @@ endRound(roundwinner)
 		setTeamScore("allies", game["alliedscore"]); //set team score
 	}
 	
-//	if(!isDefined([[level.getVars]]("scr_killcam")Failsafe))
-//		level thread maps\mp\uox\_uox_killcam::killcam_failsafe();
+    if(game["matchstarted"])
+    {
+        if( ([[level.getVars]]("scr_countdraws") && roundwinner == "draw")
+            || (roundwinner != "draw" && roundwinner != "half") )
+            game["roundsplayed"]++;
+    }	
 
 	maps\mp\uox\_uox_hud::updateServerScoreboard();
 	wait 5; //wait five seconds before ending round
@@ -1051,12 +1052,7 @@ endRound(roundwinner)
 */
 	level waittill("end_finalkillcam");
 	if(game["matchstarted"]) //if game is in progress (not pregame)
-	{
-		if( ([[level.getVars]]("scr_countdraws") && (roundwinner == "draw" || tied) )
-			|| (roundwinner != "draw" && roundwinner != "half"))
-			//if draws count or game was not a draw
-			game["roundsplayed"]++; //increment number of rounds played
-				
+	{		
 		if(game["suddendeath"] && !checkTie([[level.getVars]]("scr_score_rounds"))) //if in sudden death and game in not tied
 		{
 			if(level.mapended) //if map already ended
@@ -1527,6 +1523,7 @@ getWinningRoundNum(round, roundLimit)
 		//set rw2p to the # of rounds won by the second place player
 		if(!isDefined(secondplace)) rwB = 0; else rwB = secondplace.roundsWon;
 	}
+
 	scores = rwA + rwB;
 	return ((roundsRemaining + scores)/2) + 1;
 }
