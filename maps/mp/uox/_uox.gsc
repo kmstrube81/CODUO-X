@@ -1148,7 +1148,7 @@ updateTeamStatus()
             level.exist[player.pers["team"]]++; //increment number of alive players on team
             level.exist["2players"]++; //increment number of alive players in general
 		}
-        if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && self.sessionstate == "playing")
+        if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
             level.alive[player.pers["team"]]++;
 	}
 
