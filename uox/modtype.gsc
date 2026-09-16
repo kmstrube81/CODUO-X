@@ -36,7 +36,7 @@ modtype(gt)
 			registerGametype( maps\mp\gametypes\_uox_re::UOX_Main );
             //register mods here - first agurement is mod init function, second argument is name - can not be "main" 
             registerMod( );
-            break
+            break;
         //UOX SEARCH AND DESTROY
 		case "sd":
 			//register gametype logic here
