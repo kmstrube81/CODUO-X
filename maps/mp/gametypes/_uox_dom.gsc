@@ -167,7 +167,7 @@ UOX_Main()
 	level.callbackPlayerDamage = maps\mp\uox\_uox_callbacks::Callback_PlayerDamage;
 	level.callbackPlayerKilled = maps\mp\uox\_uox_callbacks::Callback_PlayerKilled;
 
-	maps\mp\gametypes\_callbacksetup::SetupCallbacks(); // Run this script upon load.
+	maps\mp\uox\_uox_callbacks::SetupCallbacks(); // Run this script upon load.
 
 	allowed[0] = "flag_cap"; 
 	allowed[1] = "dom"; 	
