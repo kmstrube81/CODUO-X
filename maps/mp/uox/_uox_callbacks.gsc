@@ -2,24 +2,24 @@ SetupCallbacks()
 {
     maps\mp\gametypes\_callbacksetup::SetupCallbacks();
 
-    StartGametype_Callbacks = [];
-    PlayerConnect_Callbacks = [];
-    PlayerDisconnect_Callbacks = [];
-    PlayerDamage_Callbacks = [];
-    PlayerKilled_Callbacks = [];
+    level.StartGametype_Callbacks = [];
+    level.PlayerConnect_Callbacks = [];
+    level.PlayerDisconnect_Callbacks = [];
+    level.PlayerDamage_Callbacks = [];
+    level.PlayerKilled_Callbacks = [];
 
-    StartGametype_Callbacks[0] = ::Default_StartGameType;
-    PlayerConnect_Callbacks[0] = ::Default_PlayerConnect;
-    PlayerDisconnect_Callbacks[0] = ::Default_PlayerDisconnect;
-    PlayerDamage_Callbacks[0] = ::Default_PlayerDamage;
-    PlayerKilled_Callbacks[0] = ::Default_PlayerKilled;
+    level.StartGametype_Callbacks[0] = ::Default_StartGameType;
+    level.PlayerConnect_Callbacks[0] = ::Default_PlayerConnect;
+    level.PlayerDisconnect_Callbacks[0] = ::Default_PlayerDisconnect;
+    level.PlayerDamage_Callbacks[0] = ::Default_PlayerDamage;
+    level.PlayerKilled_Callbacks[0] = ::Default_PlayerKilled;
 }
 
 Callback_StartGameType()
 {
-    for(i = 0; i < StartGametype_Callbacks.size; i++)
+    for(i = 0; i < level.StartGametype_Callbacks.size; i++)
     {
-        [[StartGameType_Callbacks[i]]]();
+        [[level.StartGameType_Callbacks[i]]]();
     }
 }
 
@@ -192,9 +192,9 @@ Default_StartGameType()
 
 Callback_PlayerConnect()
 {
-    for(i = 0; i < PlayerConnect_Callbacks.size; i++)
+    for(i = 0; i < level.PlayerConnect_Callbacks.size; i++)
     {
-        [[PlayerConnect_Callbacks[i]]]();
+        [[level.PlayerConnect_Callbacks[i]]]();
     }
 }
 
@@ -308,9 +308,9 @@ Default_PlayerConnect()
 
 Callback_PlayerDisconnect()
 {
-    for(i = 0; i < PlayerDisconnect_Callbacks.size; i++)
+    for(i = 0; i < level.PlayerDisconnect_Callbacks.size; i++)
     {
-        [[PlayerDisconnect_Callbacks[i]]]();
+        [[level.PlayerDisconnect_Callbacks[i]]]();
     }
 }
 
@@ -333,9 +333,9 @@ Default_PlayerDisconnect()
 
 Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
 {
-    for(i = 0; i < PlayerDamage_Callbacks.size; i++)
+    for(i = 0; i < level.PlayerDamage_Callbacks.size; i++)
     {
-        [[PlayerDamage_Callbacks[i]]](eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+        [[level.PlayerDamage_Callbacks[i]]](eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
     }
 }
 
@@ -465,9 +465,9 @@ Default_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWe
 
 Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
 {
-    for(i = 0; i < PlayerKilled_Callbacks.size; i++)
+    for(i = 0; i < level.PlayerKilled_Callbacks.size; i++)
     {
-        [[PlayerKilled_Callbacks[i]]](eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc);
+        [[level.PlayerKilled_Callbacks[i]]](eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc);
     }
 }
 
