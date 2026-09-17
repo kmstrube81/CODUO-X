@@ -1,4 +1,29 @@
+SetupCallbacks()
+{
+    maps\mp\gametypes\_callbacksetup::SetupCallbacks();
+
+    StartGametype_Callbacks = [];
+    PlayerConnect_Callbacks = [];
+    PlayerDisconnect_Callbacks = [];
+    PlayerDamage_Callbacks = [];
+    PlayerKilled_Callbacks = [];
+
+    StartGametype_Callbacks[0] = ::Default_StartGameType;
+    PlayerConnect_Callbacks[0] = ::Default_PlayerConnect;
+    PlayerDisconnect_Callbacks[0] = ::Default_PlayerDisconnect;
+    PlayerDamage_Callbacks[0] = ::Default_PlayerDamage;
+    PlayerKilled_Callbacks[0] = ::Default_PlayerKilled;
+}
+
 Callback_StartGameType()
+{
+    for(i = 0; i < StartGameType_Callbacks.size; i++)
+    {
+        [[StartGameType_Callbacks[i]]]();
+    }
+}
+
+Default_StartGameType()
 {   
     //init loops
 	level thread maps\mp\uox\_uox_loops::initServerLoop();
@@ -167,6 +192,14 @@ Callback_StartGameType()
 
 Callback_PlayerConnect()
 {
+    for(i = 0; i < PlayerConnect_Callbacks.size; i++)
+    {
+        [[PlayerConnect_Callbacks[i]]]();
+    }
+}
+
+Default_PlayerConnect()
+{
 	self thread maps\mp\uox\_uox_loops::initPlayerLoop();
 	self maps\mp\uox\_uox_loops::addToLoop(self, "slow",
 		maps\mp\uox\_uox_vars::enforceClientCvars); 
@@ -275,6 +308,14 @@ Callback_PlayerConnect()
 
 Callback_PlayerDisconnect()
 {
+    for(i = 0; i < PlayerDisconnect_Callbacks.size; i++)
+    {
+        [[PlayerDisconnect_Callbacks[i]]]();
+    }
+}
+
+Default_PlayerDisconnect()
+{
 	self notify("disconnect");
 	iprintln(&"MPSCRIPT_DISCONNECTED", self);
 
@@ -290,7 +331,15 @@ Callback_PlayerDisconnect()
 		level thread maps\mp\uox\_uox::updateTeamStatus();
 }
 
-Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
+Callback_PlayerDamage()
+{
+    for(i = 0; i < PlayerDamage_Callbacks.size; i++)
+    {
+        [[PlayerDamage_Callbacks[i]]]();
+    }
+}
+
+Default_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
 {
     if ( (isdefined (eAttacker)) && (isPlayer(eAttacker)) && (isdefined (eAttacker.god)) && (eAttacker.god == true) )
 		return; //ignore damage from god mode players
@@ -414,7 +463,15 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 	}
 }
 
-Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
+Callback_PlayerKilled()
+{
+    for(i = 0; i < PlayerKilled_Callbacks.size; i++)
+    {
+        [[PlayerKilled_Callbacks[i]]]();
+    }
+}
+
+Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
 {
 	self endon("spawned");
 

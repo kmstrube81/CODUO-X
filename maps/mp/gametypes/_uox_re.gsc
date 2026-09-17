@@ -142,7 +142,7 @@ UOX_Main()
 	level.callbackPlayerDamage = maps\mp\uox\_uox_callbacks::Callback_PlayerDamage;
 	level.callbackPlayerKilled = maps\mp\uox\_uox_callbacks::Callback_PlayerKilled;
 
-	maps\mp\gametypes\_callbacksetup::SetupCallbacks();
+	maps\mp\uox\_uox_callbacks::SetupCallbacks();
 
 	allowed[0] = "re";
 	allowed[1] = "retrieval";
