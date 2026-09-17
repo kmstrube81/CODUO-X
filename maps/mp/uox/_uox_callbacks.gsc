@@ -17,7 +17,7 @@ SetupCallbacks()
 
 Callback_StartGameType()
 {
-    for(i = 0; i < StartGameType_Callbacks.size; i++)
+    for(i = 0; i < StartGametype_Callbacks.size; i++)
     {
         [[StartGameType_Callbacks[i]]]();
     }
@@ -331,11 +331,11 @@ Default_PlayerDisconnect()
 		level thread maps\mp\uox\_uox::updateTeamStatus();
 }
 
-Callback_PlayerDamage()
+Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
 {
     for(i = 0; i < PlayerDamage_Callbacks.size; i++)
     {
-        [[PlayerDamage_Callbacks[i]]]();
+        [[PlayerDamage_Callbacks[i]]](eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
     }
 }
 
@@ -463,11 +463,11 @@ Default_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWe
 	}
 }
 
-Callback_PlayerKilled()
+Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
 {
     for(i = 0; i < PlayerKilled_Callbacks.size; i++)
     {
-        [[PlayerKilled_Callbacks[i]]]();
+        [[PlayerKilled_Callbacks[i]]](eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc);
     }
 }
 
