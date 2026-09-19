@@ -26,6 +26,8 @@ doReadyUp(switchingSides)
 {
 	if(level.doingReadyUp)
 		return;
+
+    level notify("readyup");
 		
 	level.warmup = true;
 	
@@ -75,6 +77,8 @@ doWarmUp(switchingSides)
 {
 	if(level.doingReadyUp)
 		return;
+
+    level notify("readyup");
 	
 	level.warmup = true;
 	

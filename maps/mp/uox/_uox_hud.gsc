@@ -1277,6 +1277,9 @@ deleteHUDLivesLeft()
 
 createHUDNextRound(time, lastRound, doHalfTime)
 {
+    if(![[level.getVars]]("sv_showEndRoundScoreboard"))
+        return;
+
 	if ( time < 3 )
 		time = 3;
 	
@@ -1338,6 +1341,9 @@ createHUDNextRound(time, lastRound, doHalfTime)
 
 createHUDEndRoundScore(time, lastRound, doHalfTime)
 {
+    if(![[level.getVars]]("sv_showEndRoundScoreboard"))
+        return;
+
 	if(time < 3)
 		time = 3;
 	

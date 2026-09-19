@@ -126,11 +126,11 @@ UOX_Main()
 	maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "obj", "", "", "Respawn Mode");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false,
 											"random", "", "", "Respawn Type");
-	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "sd", "", "", "Spawnpoints");
+	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "re", "", "", "Spawnpoints");
 	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, 1, -1, 999, "Reinforcements");
 
 	/* init spawns */
-	if(!maps\mp\uox\_uox_respawns::initSpawns("sd"))
+	if(!maps\mp\uox\_uox_respawns::initSpawns("re"))
 	{
 		maps\mp\gametypes\_callbacksetup::AbortLevel();
 		return;

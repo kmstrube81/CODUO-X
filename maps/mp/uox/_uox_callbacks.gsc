@@ -160,13 +160,13 @@ Default_StartGameType()
 	if (!isdefined (game["BalanceTeamsNextRound"]))
 		game["BalanceTeamsNextRound"] = false;
 	
-	if([[level.getVars]]("scr_roundlimit") % 2)
-		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
-	else
+//	if([[level.getVars]]("scr_roundlimit") % 2)
+//		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
+//	else
 		level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
-	if([[level.getVars]]("scr_scorelimit") % 2)
-		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
-	else
+//	if([[level.getVars]]("scr_scorelimit") % 2)
+//		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
+//	else
 		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
 
     //init objectives

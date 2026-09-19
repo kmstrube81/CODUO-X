@@ -124,6 +124,46 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 }
 
 /* *************************************************************************************************
+**** updateCvar(string prefix, string varname, mixedType value)
+****
+**** sets the stock, gametype, and map cvar all to the specified value
+****
+************************************************************************************************** */
+updateCvar(prefix, varname, value, gt, map)
+{
+    if(!isDefined(gt) && !isDefined(map)) { gt = getCvar("g_gametype"); map = getCvar("mapname"); setGTMap = true; setMap = true; setGT = true; setAll = true; }
+    else if(!isDefined(gt) && isDefined(map)) { gt = getCvar("g_gametype"); setGTMap = true; setGT = true; setMap = true; setAll = false; }
+	else if(!isDefined(map) && isDefined(gt)) { map = getCvar("mapname"); setGTMap = true; setMap = true; setGT = true; setAll = false; }
+    else { setGTMap = true; setMap = false; setGT = false; setAll = false; }
+
+    if(setGTMap)
+    {
+        cvar = prefix + "_" + gt + "_" + varname + "_" + map;
+        setCvar(cvar, value);
+    }
+
+    if(setMap)
+    {
+        cvar = prefix + "_" + varname + "_" + map;
+        setCvar(cvar, value);
+    }
+
+    if(setGT)
+    {
+        cvar = prefix + "_" + gt + "_" + varname;
+        setCvar(cvar, value);
+    }
+
+    if(setAll)
+    {
+        cvar = prefix + "_" + varname;
+        setCvar(cvar, value);
+    }
+
+    return value;
+}
+
+/* *************************************************************************************************
 **** monitorVar(string prefix, string varname, string type, string hrName (optional) )
 ****
 **** adds variable to monitor loop to 
@@ -229,6 +269,10 @@ initGameTypeVars()
 
 	varDef("scr", "scorelimit", "int", true,
 								50, 0, undefined, "Score Limit", maps\mp\uox\_uox::updateScoreLimit);
+
+    varDef("scr", "ot_scorelimit", "int", true,
+								1, 0, undefined, "Score Limit", maps\mp\uox\_uox::checkOTScoreLimit);
+
 	setCvar("ui_" + gt + "_scorelimit", [[level.getVars]]("scr_scorelimit"));
 	makeCvarServerInfo("ui_" + gt + "_scorelimit", "50");
 	
@@ -252,7 +296,8 @@ initGameTypeVars()
 	varDef("scr", "halftime", "bool", true, false, undefined, undefined, "Halftime");
 	varDef("scr", "overtime", "bool", true, false, undefined, undefined, "Overtime");
 	varDef("scr", "ot_roundlimit", "int", true, 1, 1, undefined, "Overtime Rounds");
-	
+	level.ot_roundlength = varDef("scr", "ot_roundlength", "float", true, 2.5, 0, 60, "OT Round Length");
+
 	game["roundbased"] = false;
 	if([[level.getVars]]("scr_roundlimit") != 1)
 		game["roundbased"] = true;
@@ -291,6 +336,8 @@ initGameTypeVars()
 	}
 	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
 	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
+    varDef("scr", "forcerank", "int", true, 0, 0, 99, "Force Battle Rank Level");
+    varDef("scr", "rank_ppr", "int", true, 10, 0, 99, "Points Per Rank");
 	makeCvarServerInfo("ui_battlerank", "0");
 	//needed for compatibility with built in UO battlerank
 	level.battlerank = [[level.getVars]]("scr_battlerank");
@@ -346,12 +393,14 @@ initGameTypeVars()
 		varDef("scr", "spectateenemy", true, true, undefined, undefined, "Spectate Enemy Team",
 					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
 	}
-	
+	varDef("g", "deadChat", "bool", true, true, undefined, undefined, "Dead Chat");
+
 	//define scoreboard vars
 	varDef("sv", "showScoreboard", "bool", true, true);
 	varDef("sv", "showScoreboardScoreLimit", "bool", true, true);
 	varDef("sv", "showPlayersLeft", "bool", true, true);
 	varDef("sv", "endRoundScoreboardTime", "int", true, 7, 3, 15);
+    varDef("sv", "showEndRoundScoreboard", "bool", true, true);
 	
 	//define enforce client cvars
 	varDef("sv", "enforcedClientCvars", "string", false, "");

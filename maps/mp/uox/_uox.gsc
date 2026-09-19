@@ -130,6 +130,12 @@ checkScoreLimit()
 {
 	if(!game["matchstarted"]) //if match isn't started
 		return; //then nothing to do
+
+    if(!game["suddendeath"] && game["roundsplayed"] > [[level.getVars]]("scr_roundlimit")) //if in ot
+    {
+        checkOTScoreLimit();
+        return;
+    }
 	
 	if([[level.getVars]]("scr_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
 		return; //nothing to do in that case
@@ -226,6 +232,96 @@ checkScoreLimit()
 	iprintln(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
 	level thread endMap(true); //end map
 	
+}
+
+checkOTScoreLimit()
+{
+    if([[level.getVars]]("scr_ot_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
+		return; //nothing to do in that case
+		
+	alliedscore = getAlliesTeamScore();
+    axisscore = getAxisTeamScore();
+
+	doHalftime = false; //init doHalftime flag 
+	
+	
+    if(level.uox_teamplay && level.objective != "bel") //if team game
+    {	//if one team has reached the halfscore and game is in the first half
+        if([[level.getVars]]("scr_halftime")
+           && (alliedscore >= level.halfscore || axisscore >= level.halfscore) 
+           && game["half"] == 1)
+        {	//if game is roundbased and both teams are less than the scorelimit and not scoring rounds
+            if(game["roundbased"] && alliedscore < [[level.getVars]]("scr_ot_scorelimit")
+                && axisscore < [[level.getVars]]("scr_ot_scorelimit") 
+                && ![[level.getVars]]("scr_score_rounds"))
+                    doHalftime(true);	//doHalftime
+        }
+        //if both teams or below the scorelimit
+        if(alliedscore < [[level.getVars]]("scr_ot_scorelimit")
+            && axisscore < [[level.getVars]]("scr_ot_scorelimit"))
+            return; //nothing to do
+    }
+    else //if free for all game
+    {
+        players = getentarray("player", "classname"); //get players
+        for(i = 0; i < players.size; i++) //loop players
+        {	//if current player score is greater than halfscore and game is in the first half
+            if([[level.getVars]]("scr_halftime") && players[i].score >= level.halfscore 
+            && game["half"] == 1 && players[i].score < [[level.getVars]]("scr_ot_scorelimit"))
+            {	//if not scoring rounds and game is round based
+                if(![[level.getVars]]("scr_score_rounds") && game["roundbased"])
+                    doHalftime = true; //set doHalftime flag
+            }
+            
+            if(players[i].score >= [[level.getVars]]("scr_ot_scorelimit")) //if current player is over the scorelimit
+                break; //exit the loop
+        }
+
+        if(i >= players.size) //if loop fully completed
+        {	//if doHalftime is true
+            if(doHalftime)
+                doHalftime(true); //do halftime
+            return; //nothing left to do
+        }
+    }
+	
+	
+	//Loop exited early, because a player reached score limit
+	if(level.mapended) //if map already ended
+		return; //nothing to do
+		
+	if(game["roundbased"] && [[level.getVars]]("scr_score_rounds")) //if game is round based
+	{
+		if(!level.roundended) //and round hasn't ended
+			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
+			
+		if(![[level.getVars]]("scr_roundreset") && (!level.uox_teamplay || level.objective == "bel")) //if not reseting scores and a free for all game 
+		{	//free for all kills are the score so the game ends when score limit is reached
+			level.mapended = true; //set map as ended
+			level.roundended = true; //set round as ended
+			players[i].pers["roundswon"] = players[i].score;	
+			game["roundsplayed"]++;
+			wait 5; //wait five seconds before ending round
+			//maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
+	
+			level thread endMap(); //end map
+			return;
+		}	//if resetting scores do regular end round shenanigans.
+		if(level.uox_teamplay && level.objective != "bel") //if team game
+		{	//if allies are over the score limit
+			if(alliedscore >= [[level.getVars]]("scr_ot_scorelimit"))
+				endRound("allies"); //end round in allies favor
+			else //if allies didn't end the round, then axis must have
+				endRound("axis"); //end round in axis favor
+		}
+		else //if free for all game
+			endRound("deathmatch");	//end round in deathmatch mode
+		return; //let endRound take over
+	}
+
+	level.mapended = true; //set map as ended
+	iprintln(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
+	level thread endMap(true); //end map
 }
 
 /* *************************************************************************************************
@@ -671,7 +767,10 @@ startRound()
 	}
 	else//otherwise
 	{	//set time to the round time limit
-		timer = level.roundlength * 60;
+        if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit")) //if in ot
+            timer = level.ot_roundlength * 60;
+        else
+            timer = level.roundlength * 60;
 	}
 	
 	level startRoundTimer(timer, true);
@@ -751,8 +850,12 @@ checkMatchStart()
 **** for all games, draw, or reset. doKillcam flag is to specify whether to wait for a final killcam
 **** 
 ************************************************************************************************* */
-endRound(roundwinner)
+endRound(roundwinner, numRoundWins)
 {
+
+    if(!isDefined(numRoundWins))
+        numRoundWins = 1;
+
 	//overtime check for single round games
 	if(roundwinner == "deathmatch" && [[level.getVars]]("scr_roundlimit") == 1
 		&& [[level.getVars]]("scr_overtime") && checkTie(false)) //if tied and a single round game
@@ -799,7 +902,7 @@ endRound(roundwinner)
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_allies_win"); //make audio announcement
-		game["alliesRoundsWon"]++;
+		game["alliesRoundsWon"] += numRoundsWon;
 		//increment allied score
 		if([[level.getVars]]("scr_score_rounds"))
 		{
@@ -814,7 +917,7 @@ endRound(roundwinner)
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_axis_win"); //make audio announcement
 		//increment axis score
-		game["axisRoundsWon"]++;
+		game["axisRoundsWon"] += numRoundsWon;
 		if([[level.getVars]]("scr_score_rounds"))
 		{
 			game["axisscore"] = game["axisRoundsWon"];
@@ -849,16 +952,16 @@ endRound(roundwinner)
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round1team1score"]++; //increment team 1 score for the half
+				game["round1team1score"] += numRoundsWon; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round1team2score"]++; //increment team 2 score for the half
+				game["round1team2score"] += numRoundsWon; //increment team 2 score for the half
 		}
 		else //if 2nd Half
 		{
 			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round2team1score"]++; //increment team 1 score for the half
+				game["round2team1score"] += numRoundsWon; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round2team2score"]++; //increment team 2 score for the half
+				game["round2team2score"] += numRoundsWon; //increment team 2 score for the half
 		}
 		//get players
 		players = getentarray("player", "classname");
@@ -872,26 +975,7 @@ endRound(roundwinner)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "axis"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
 		}
-/*		if(level.clutchsituation["allies"])
-		{
-			lpattackname = level.clutchplayer["allies"].name;
-			lpattackerteam = "allies";
-			lpattackguid = level.clutchplayer["allies"] getGuid();
-			lpattacknum = level.clutchplayer["allies"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_clutch" + "\n");
-			iprintln("ROUND CLUTCH: " + lpattackname);
-		}
-		
-		if(level.acesituation["allies"])
-		{
-			lpattackname = level.aceplayer["allies"].name;
-			lpattackerteam = "allies";
-			lpattackguid = level.aceplayer["allies"] getGuid();
-			lpattacknum = level.aceplayer["allies"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_ace" + "\n");
-			iprintln("ROUND ACE: " + lpattackname);
-		}
-*/
+
 		logPrint("RW;allies;" + winners + "\n"); //print round win to log
 		logPrint("RL;axis;" + losers + "\n");	 //print round loss to log
 	}
@@ -900,16 +984,16 @@ endRound(roundwinner)
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round1team1score"]++; //increment team 1 score for the half
+				game["round1team1score"] += numRoundsWon; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round1team2score"]++; //increment team 2 score for the half
+				game["round1team2score"] += numRoundsWon; //increment team 2 score for the half
 		}
 		else //if 2nd Half
 		{
 			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round2team1score"]++; //increment team 1 score for the half
+				game["round2team1score"] += numRoundsWon; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round2team2score"]++; //increment team 2 score for the half
+				game["round2team2score"] += numRoundsWon; //increment team 2 score for the half
 		}
 
 		players = getentarray("player", "classname"); //get players
@@ -923,25 +1007,6 @@ endRound(roundwinner)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "allies"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
 		}
-/*		if(level.clutchsituation["axis"])
-		{
-			lpattackname = level.clutchplayer["axis"].name;
-			lpattackerteam = "axis";
-			lpattackguid = level.clutchplayer["axis"] getGuid();
-			lpattacknum = level.clutchplayer["axis"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_clutch" + "\n");
-			iprintln("ROUND CLUTCH: " + lpattackname);
-		}
-		
-		if(level.acesituation["axis"])
-		{
-			lpattackname = level.aceplayer["axis"].name;
-			lpattackerteam = "axis";
-			lpattackguid = level.aceplayer["axis"] getGuid();
-			lpattacknum = level.aceplayer["axis"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_ace" + "\n");
-			iprintln("ROUND ACE: " + lpattackname);
-		} */
 		
 		logPrint("RW;axis;" + winners + "\n"); //log round win
 		logPrint("RL;allies;" + losers + "\n");//log round loss
@@ -956,14 +1021,14 @@ endRound(roundwinner)
 		if(!tied) //if game tied flag was not set
 		{
 			winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
-			winner.pers["roundswon"]++; //increment rounds won
+			winner.pers["roundswon"] += numRoundsWon; //increment rounds won
 			
 			if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
 			{
 				if(game["half"] % 2) //if game is in 1st Half
-					winner.pers["1HScore"]++; //increment 1st half score rounds won
+					winner.pers["1HScore"] += numRoundsWon; //increment 1st half score rounds won
 				else //if game is in second half
-					winner.pers["2HScore"]++; //increment 2nd half score rounds won
+					winner.pers["2HScore"] += numRoundsWon; //increment 2nd half score rounds won
 				//get rounds won leader
 				leader = getHighScore(true);
 				if(game["half"] % 2) //if game is in 1st half
@@ -1044,12 +1109,7 @@ endRound(roundwinner)
 
 	//send notify that game is in post round
 	level notify("postround");
-/*	if(doKillcam) //if final killcam flag is set
-	{
-		game["finaldelay"] = (getTime() - game["finaldelay"]) / 1000; //get how long ago the killcam was
-		level waittill("final_killcam_over"); //wait until kilcam is over
-	}
-*/
+
 	level waittill("end_finalkillcam");
 	if(game["matchstarted"]) //if game is in progress (not pregame)
 	{		
@@ -1097,7 +1157,7 @@ endRound(roundwinner)
 	{ //if teams are marked to balanced and teambalance is enforced
 		level.lockteams = true; //don't let players switch team
 		level thread maps\mp\gametypes\_teams::TeamBalance(); //start team balance routine
-		level thread maps\mp\uox\_uox_utils::notifyLater("Teams Balanced", 15);
+		level thread maps\mp\uox\_uox_utils::notifyLater("Teams Balanced", 5); //failsafe if team balance takes more than 5 seconds
 		level waittill ("Teams Balanced"); //wait until teams are balanced
 		wait 4; //give us a second to reset
 	}

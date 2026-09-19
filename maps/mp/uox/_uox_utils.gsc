@@ -6,8 +6,13 @@
 **** returns substring array
 ****  
 ************************************************************************************************* */
-stringSplit(str, seperator)
+stringSplit(str, seperator, skipEmpty)
 {
+    if(!isDefined(skipEmpty))
+    {
+        skipEmpty = true;
+    }
+
 	if(seperator.size > 1)
 		seperator = seperator[0];
 		
@@ -18,7 +23,8 @@ stringSplit(str, seperator)
 	{
 		if(str[charIndex] == seperator) //if the current char is the seperator char
 		{
-			substringArrayIndex++;
+            if(substrings[substringArrayIndex] != "" || !skipEmpty) 
+                substringArrayIndex++;
 			substrings[substringArrayIndex] = ""; //init next index in substring array
 		}
 		else
@@ -189,3 +195,40 @@ round(num, places)
     return rounded;
 }
 
+findStr( find, str, pos )
+{
+	if ( !isdefined( find ) || ( find == "" ) || 
+		 !isdefined( str ) || 
+		 !isdefined( pos ) || 
+		 ( find.size > str.size ) )
+		return ( -1 );
+
+	fsize = find.size;
+	ssize = str.size;
+
+	switch ( pos )
+	{
+	  case "start": place = 0 ; break;
+	  case "end":	place = ssize - fsize; break;
+	  default:	place = 0 ; break;
+	}
+
+	for ( i = place; i < ssize; i++ )
+	{
+		if ( i + fsize > ssize )
+			break;			// Too late to compare
+
+		// Compare now ...
+		for ( j = 0; j < fsize; j++ )
+			if ( str[ i + j ] != find[ j ] )
+				break;		// No match
+
+		if ( j >= fsize )
+			return ( i );		// Found it!
+
+		if ( pos == "start" )
+			break;			// Didn't find at start
+	}
+
+	return ( -1 );
+}

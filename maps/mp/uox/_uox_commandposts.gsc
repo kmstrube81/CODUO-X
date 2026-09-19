@@ -1067,7 +1067,7 @@ Flag_Monitor_All()
         if(![[level.getVars]]("scr_domination_endround")) 
             return;
 
-        thread maps\mp\uox\_uox::endRound("allies");
+        thread maps\mp\uox\_uox::endRound("allies", 2);
         
         return;
     }
@@ -1081,7 +1081,7 @@ Flag_Monitor_All()
         if(![[level.getVars]]("scr_domination_endround")) 
             return;
 
-        thread maps\mp\uox\_uox::endRound("axis");
+        thread maps\mp\uox\_uox::endRound("axis", 2);
 
         return;
     }
