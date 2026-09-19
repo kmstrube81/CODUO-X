@@ -213,6 +213,15 @@ precache()
         game["hud_axis_victory_image"] = "gfx/hud/axis_win";
     precacheShader(game["hud_allies_victory_image"]);
     precacheShader(game["hud_axis_victory_image"]);
+
+    //logos
+    if(isDefined(game["headerR"]))
+        precacheString(game["headerR"]);
+    if(isDefined(game["headerL"]))
+        precacheString(game["headerL"]);
+    if(isDefined(game["serverlogo"]))
+        precacheString(game["serverlogo"]);
+
 }
 
 initClientHUD()
@@ -1330,6 +1339,9 @@ createHUDNextRound(time, lastRound, doHalfTime)
 			
 		player thread stopwatch_start("match_start", time);
 	}
+
+    createHUDHeaders();
+    createServerLogo();
 	
 	wait (time);
 
@@ -1337,6 +1349,8 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	level.roundnum = deleteHUDElement(level.roundnum);
 	level.starting = deleteHUDElement(level.starting);
 	
+    deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 
 createHUDEndRoundScore(time, lastRound, doHalfTime)
@@ -1604,6 +1618,10 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			}
 		}
 	}
+
+    createHUDHeaders();
+    createServerLogo();
+
 	wait (time); //wait for timer
 	
 	//delete HUD elements
@@ -1636,6 +1654,9 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			
 		}
 	}
+
+    deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 
 createPlayerHUDEndRoundScore()
@@ -1715,6 +1736,9 @@ createReadyUpHUD(switchingSides)
 	options["color"] = (.98, .98, .60);
 	
 	level.notReadyHUD = updateHUDElement(level.notReadyHUD, "number", 0, options);
+
+    createHUDHeaders();
+    createServerLogo();
 }
 
 createPlayerReadyUpHUD(switchingSides)
@@ -1774,7 +1798,8 @@ deleteReadyUpHUD()
 		player deletePlayerReadyUpHUD();
 		
 	}
-	
+	deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 
 deletePlayerReadyUpHUD()
@@ -1830,6 +1855,8 @@ createWarmUpHUD(playercount, timer, switchingSides)
 		
 		level.allReadyHUD = updateHUDElement(level.allReadyHUD, "number", playercount, options);
 	}
+    createHUDHeaders();
+    createServerLogo();
 }
 
 createPlayerWarmUpHUD(switchingSides)
@@ -1870,6 +1897,9 @@ deleteWarmupHUD()
 	level.notReadyDivHUD = deleteHUDElement(level.notReadyDivHUD);
 	level.allReadyHUD = deleteHUDElement(level.allReadyHUD);
 	level.SwitchingHUD = deleteHUDElement(level.SwitchingHUD);
+
+    deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 // ----------------------------------------------------------------------------------
 //	clock_start
@@ -2155,3 +2185,56 @@ Victory_DisplayImage( image )
 	level.victory_image = updateHUDElement(level.victory_image, "shader", image, options);		
 	
 }
+
+createHUDHeaders()
+{
+    if(isDefined(game["headerL"]))
+    {
+        options = [];
+        
+    	options["x"] = 10;
+    	options["y"] = 10;
+    	options["alignX"] = "left";
+    	options["alignY"] = "middle";
+    	options["fontScale"] = 1;
+    	options["color"] = (1, 1, 0);
+    	level.headerLeft = updateHUDElement(level.headerLeft, "text", game["headerL"], options);
+    }
+    if(isDefined(game["headerR"]))
+    {
+        options = [];
+        
+    	options["x"] = 630;
+    	options["y"] = 10;
+    	options["alignX"] = "right";
+    	options["alignY"] = "middle";
+    	options["fontScale"] = 1;
+    	options["color"] = (1, 1, 0);
+    	level.headerRight = updateHUDElement(level.headerRight, "text", game["headerR"], options);
+    }
+}
+
+createServerLogo()
+{
+    if(isDefined(game["serverlogo"]))
+    {
+        options["x"] = 3;
+    	options["y"] = 474;
+    	options["alignX"] = "left";
+    	options["alignY"] = "middle";
+    	options["fontScale"] = .7;
+        options["sort"] = -3;
+        options["alpha"] = 1;
+        options["archived"] = true;
+    	options["color"] = (1, 1, 0);
+
+        level.serverlogo = updateHUDElement(level.serverlogo, "text", game["serverlogo"], options);
+    }
+}
+
+destroyHUDHeaders()
+{
+    level.headerLeft = deleteHUDElement(level.headerLeft);
+    level.headerRight = deleteHUDElement(level.headerRight);
+}
+
