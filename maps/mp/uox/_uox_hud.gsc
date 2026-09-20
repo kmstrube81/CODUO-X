@@ -2232,7 +2232,7 @@ createServerLogo()
     }
 }
 
-destroyHUDHeaders()
+deleteHUDHeaders()
 {
     level.headerLeft = deleteHUDElement(level.headerLeft);
     level.headerRight = deleteHUDElement(level.headerRight);
