@@ -335,7 +335,7 @@ respawn_obj()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	if([[level.getVars]]("scr_reinforcements") == -1 || self.lives > 0 || (self.lives == 0 && level.graceperiod))
+	if([[level.getVars]]("scr_reinforcements") == -1 || self.lives > 0)
 	{
 		self thread respawn_forced(true);
 	}
