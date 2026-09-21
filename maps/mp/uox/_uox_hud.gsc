@@ -103,6 +103,7 @@ precache()
 	precacheString(game["livesText"]);
 	precacheString(game["dividerText"]);
 	precacheString(game["warmupText"]);
+    precacheString(game["waitingText"]);
 	precacheString(game["allreadyText"]);
 	
 	precacheString(game["readyText"]);
