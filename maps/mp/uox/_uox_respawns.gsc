@@ -328,6 +328,8 @@ respawn_pool(team, timer)
 
 respawn_obj()
 {
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " respawn obj spawn lives left -- " + self.name ); 
+
 	if(self.pers["team"] != "allies" && self.pers["team"] != "axis")
 	{
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
