@@ -41,7 +41,9 @@ menu_spawn(weapon)
 		}
 	}
 	else
-	{		
+	{
+        self.sessionteam = self.pers["team"];
+        		
 		if(isDefined(self.pers["weapon"]))
 		{
 			if(level.graceperiod && !self.usedweapons)

@@ -255,7 +255,7 @@ plantBomb(trigger)
     {
         trigger endon("bomb_planted");
 
-        wait 7;
+        wait 8;
         level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
     }
 	
