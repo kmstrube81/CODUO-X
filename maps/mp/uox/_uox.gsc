@@ -131,7 +131,7 @@ checkScoreLimit()
 	if(!game["matchstarted"]) //if match isn't started
 		return; //then nothing to do
 
-    if(!game["suddendeath"] && game["roundsplayed"] > [[level.getVars]]("scr_roundlimit")) //if in ot
+    if(!game["suddendeath"] && game["roundsplayed"] > [[level.getVars]]("scr_roundlimit") && [[level.getVars]]("scr_roundlimit") > 0) //if in ot
     {
         checkOTScoreLimit();
         return;
@@ -1555,6 +1555,30 @@ checkGameWon(checkRounds, roundScore, roundScoreLimit)
 			return false;
 		}
 	}
+}
+
+isOvertime()
+{
+    if(![[level.getVars]]("scr_overtime")) 
+        return false;
+    if([[level.getVars]]("scr_score_rounds"))
+    {
+        roundlimit = [[level.getVars]]("scr_roundlimit");
+
+        if(game["roundsPlayed"] > roundlimit && roundlimit > 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+    else
+    {
+        if(game["suddendeath"])
+            return true;
+        return false;
+    }
+    return false;
 }
 
 getWinningRoundNum(round, roundLimit)

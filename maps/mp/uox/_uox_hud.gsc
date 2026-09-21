@@ -1058,7 +1058,7 @@ updateServerScoreboard()
 		if(level.scoreboardKillsRounds)
 		{
 			//if in OT
-			if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+			if(maps\mp\uox\_uox::isOvertime())
 			{
 				if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
 					OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
@@ -1207,7 +1207,7 @@ updatePlayerScoreboard()
 			if(level.scoreboardKillsRounds)
 			{
 				//if in OT
-				if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+				if(maps\mp\uox\_uox::isOvertime())
 				{
 					if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
 						OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
@@ -1297,7 +1297,7 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	
 	thread createHUDEndRoundScore(time, lastRound, doHalfTime);
 
-	if(game["roundsplayed"] >= [[level.getVars]]("scr_roundlimit"))
+	if( maps\mp\uox\_uox::isOvertime() )
 	{
 		text = game["OTroundText"];
 		round = game["roundsplayed"] + 1 - [[level.getVars]]("scr_roundlimit");
@@ -1370,7 +1370,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	options["color"] = (0, 1, 0);
 	
 	//if in OT
-	if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+	if(maps\mp\uox\_uox::isOvertime())
 	{
 		//get OT number
 		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
@@ -1542,7 +1542,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			options["x"] = 575;
 			options["y"] = 290;
 			options["color"] = (.99, .99, .75);
-			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 1st Half text
+			if(!maps\mp\uox\_uox::isOvertime()) //if game is in regulation set 1st Half text
 				text = game["1HText"];
 			else //if game is in OT set OT 1H text
 				text = game["OT1HText"];
@@ -1555,7 +1555,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			level.ers1HAxisScoreHUD = updateHUDElement(level.ers1HAxisScoreHUD, "number", 
 				firstHalfTeam1Score, options);
 			
-			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 2nd Half text
+			if(!maps\mp\uox\_uox::isOvertime()) //if game is in regulation set 2nd Half text
 				text = game["2HText"];
 			else //if game is in OT set OT 2H text
 				text = game["OT2HText"];
