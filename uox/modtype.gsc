@@ -77,6 +77,8 @@ modtype(gt)
             //register mods here - first agurement is mod init function, second argument is name - can not be "main" 
             registerMod( );
 	}
+    //apply mod to all types
+    registerMod( );
 
 }
 

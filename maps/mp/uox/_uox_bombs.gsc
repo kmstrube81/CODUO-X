@@ -93,8 +93,8 @@ bombzones()
 	bombzone_A.bombzone_other = bombzone_B;
 	bombzone_B.bombzone_other = bombzone_A;
 
-    bombzone_A thread maps\mp\uox\_uox_loops::initEntityLoop(bombzone_A);
-    bombzone_B thread maps\mp\uox\_uox_loops::initEntityLoop(bombzone_B);
+    bombzone_A thread maps\mp\uox\_uox_loops::initEntityLoop();
+    bombzone_B thread maps\mp\uox\_uox_loops::initEntityLoop();
 
     bombzone_A maps\mp\uox\_uox_loops::addToWaitTills(bombzone_A, "trigger", ::bombzone_think, true);
     bombzone_B maps\mp\uox\_uox_loops::addToWaitTills(bombzone_B, "trigger", ::bombzone_think, true);
@@ -234,7 +234,7 @@ plantBomb(trigger)
 	
 	//bombtrigger thread bomb_think(bombmodel);
 
-    bombtrigger thread maps\mp\uox\_uox_loops::initEntityLoop(bombtrigger);
+    bombtrigger thread maps\mp\uox\_uox_loops::initEntityLoop();
 
     bombtrigger maps\mp\uox\_uox_loops::addToWaitTills(bombtrigger, "trigger", ::bomb_think, true);
 
