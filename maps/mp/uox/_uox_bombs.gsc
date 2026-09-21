@@ -99,8 +99,8 @@ bombzones()
     bombzone_A maps\mp\uox\_uox_loops::addToWaitTills(bombzone_A, "trigger", ::bombzone_think, true);
     bombzone_B maps\mp\uox\_uox_loops::addToWaitTills(bombzone_B, "trigger", ::bombzone_think, true);
 
-    bombzone_A maps\mp\uox\_uox_loops::removeFromWaitTills(bombzone_A, "trigger", level, "round_ended");
-    bombzone_B maps\mp\uox\_uox_loops::removeFromWaitTills(bombzone_B, "trigger", level, "round_ended");
+    bombzone_A thread maps\mp\uox\_uox_loops::removeFromWaitTills(bombzone_A, "trigger", level, "round_ended");
+    bombzone_B thread maps\mp\uox\_uox_loops::removeFromWaitTills(bombzone_B, "trigger", level, "round_ended");
 
 	wait 1;	// TEMP: without this one of the objective icon is the default. Carl says we're overflowing something.
 	objective_add(0, "current", bombzone_A.origin, "gfx/hud/hud@objectiveA.tga");
@@ -204,7 +204,7 @@ plantBomb(trigger)
 	
 	options = [];
 	options["x"] = 320;
-	options["y"] = 445;
+	options["y"] = 440;
 	options["alignX"] = "center";
 	options["alignY"] = "middle";
 	options["fontscale"] = 1.5;
@@ -242,7 +242,7 @@ plantBomb(trigger)
 
     bombtrigger maps\mp\uox\_uox_loops::addToWaitTills(bombtrigger, "trigger", ::bomb_think, true);
 
-    bombtrigger maps\mp\uox\_uox_loops::removeFromWaitTills(bombtrigger, "trigger", bombtrigger, "bomb_exploded");
+    bombtrigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(bombtrigger, "trigger", bombtrigger, "bomb_exploded");
 
 	bombtrigger thread bomb_countdown(bombmodel);
 	
