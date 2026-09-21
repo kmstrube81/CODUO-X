@@ -39,10 +39,10 @@ initVars()
 		2 = can dual plant bombsites, round ends after timer/elims or both bombs explode */
 	level.bombmode = maps\mp\uox\_uox_vars::varDef("scr", "bombplantmode", "int", true,
 		0, 0, 2, "Bomb Plant Mode");
-	if([[level.getVars]]("scr_score_rounds"))
-		level.defense_points = 1;
-	else
+	if(![[level.getVars]]("scr_score_rounds") && level.bombmode > 1)
 		level.defense_points = 2;
+	else 
+		level.defense_points = 1;
 		
 	/* Bomb Plant Bonus Points:
 		extra points given to players who plant the bomb*/
@@ -218,23 +218,26 @@ plantBomb(trigger)
 									- ( (getTime() - level.roundstarttime) / 1000 );
 	else if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
 		level.roundTimeLeft = level.roundTimeLeft - ( (getTime() - level.roundresumetime) / 1000 );
-	
-	if(!isDefined(level.mainBombClock))
-	{
-		maps\mp\uox\_uox_hud::updateHUDMainBombClock([[level.getVars]]("scr_bombtimer"));
-		//if secondary clock exists, move it
-		if(isDefined(level.secondBombClock))
-			level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
-				level.secondBombClock, "x", 180);
-		bombmodel.clock = level.mainBombClock;
-	}
-	else
-	{
-		maps\mp\uox\_uox_hud::updateHUDSecondaryBombClock(
-			[[level.getVars]]("scr_bombtimer"));
-		bombmodel.clock = level.secondBombClock;
-	}
-	level.bombs[trigger.objectiveName] = bombmodel;
+
+	if([[level.getVars]]("sv_showbombtimer"))
+    {
+        if(!isDefined(level.mainBombClock))
+        {
+            maps\mp\uox\_uox_hud::updateHUDMainBombClock([[level.getVars]]("scr_bombtimer"));
+            //if secondary clock exists, move it
+            if(isDefined(level.secondBombClock))
+                level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
+                    level.secondBombClock, "x", 180);
+            bombmodel.clock = level.mainBombClock;
+        }
+        else
+        {
+            maps\mp\uox\_uox_hud::updateHUDSecondaryBombClock(
+                [[level.getVars]]("scr_bombtimer"));
+            bombmodel.clock = level.secondBombClock;
+        }
+        level.bombs[trigger.objectiveName] = bombmodel;
+    }
 	
 	//bombtrigger thread bomb_think(bombmodel);
 
@@ -323,20 +326,23 @@ bomb_countdown(bomb)
 	radiusDamage(origin, range, maxdamage, mindamage);
 
 	//delete clock
-	if(clock == level.mainBombClock)
-	{
-		//delete clock
-		level.mainBombClock = level maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
-		//if secondary clock exists, move it
-		if(isDefined(level.secondBombClock))
-			level.secondBombClock = level maps\mp\uox\_uox_hud::updateHUDElementProperty(
-				level.secondBombClock, "x", 320);
-	}
-	else if(clock == level.secondBombClock)
-	{
-		//delete clock
-		level.mainBombClock = level maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
-	}
+    if(isdefined(clock))
+    {
+        if(clock == level.mainBombClock)
+        {
+            //delete clock
+            level.mainBombClock = level maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
+            //if secondary clock exists, move it
+            if(isDefined(level.secondBombClock))
+                level.secondBombClock = level maps\mp\uox\_uox_hud::updateHUDElementProperty(
+                    level.secondBombClock, "x", 320);
+        }
+        else if(clock == level.secondBombClock)
+        {
+            //delete clock
+            level.mainBombClock = level maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
+        }
+    }
 	if(![[level.getVars]]("scr_score_rounds"))
 	{
 		level maps\mp\uox\_uox::incrementTeamScore(game["attackers"]);
@@ -352,10 +358,11 @@ bomb_countdown(bomb)
 			announcement(game["axisSuccessText"]);
 		}
 		level thread maps\mp\uox\_uox::endRound(game["attackers"]);
+        return;
 	}
 	
 	//if no bombs are planted go ahead turn round timer back on
-	if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
+	if( ( !(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]) ))
 	{
 		level.roundresumetime = getTime();
 		timer = level.roundTimeLeft + ( [[level.getVars]]("scr_bombbonustime") * 60 );
@@ -436,29 +443,33 @@ defuseBomb(trigger)
 	
 	//delete hud elements 
 	//delete clock
-	if(clock == level.mainBombClock)
-	{
-		//delete clock
-		level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
-		//if secondary clock exists, move it
-		if(isDefined(level.secondBombClock))
+    if(isdefined(clock))
+    {
+        if(clock == level.mainBombClock)
         {
-                level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
-                    level.secondBombClock, "x", 320);
+            //delete clock
+            level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
+            //if secondary clock exists, move it
+            if(isDefined(level.secondBombClock))
+            {
+                    level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
+                        level.secondBombClock, "x", 320);
+            }
+            else
+                level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
         }
-        else
-            level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
-	}
-	else if(clock == level.secondBombClock)
-	{
-		//delete clock
-		level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
-	} 
+        else if(clock == level.secondBombClock)
+        {
+            //delete clock
+            level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
+        } 
+    }
 	
 	if(level.bombmode == 0)
 	{
 		maps\mp\uox\_uox::incrementTeamScore(game["defenders"]);
 		level thread maps\mp\uox\_uox::endRound(game["defenders"]);
+        return;
 	}
 	
 	//if no bombs are planted go ahead turn round timer back on

@@ -131,7 +131,7 @@ checkScoreLimit()
 	if(!game["matchstarted"]) //if match isn't started
 		return; //then nothing to do
 
-    if(!game["suddendeath"] && game["roundsplayed"] > [[level.getVars]]("scr_roundlimit") && [[level.getVars]]("scr_roundlimit") > 0) //if in ot
+    if(!game["suddendeath"] && isOvertime()) //if in ot
     {
         checkOTScoreLimit();
         return;
@@ -767,7 +767,7 @@ startRound()
 	}
 	else//otherwise
 	{	//set time to the round time limit
-        if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit")) //if in ot
+        if(isOvertime()) //if in ot
             timer = level.ot_roundlength * 60;
         else
             timer = level.roundlength * 60;
@@ -1372,7 +1372,7 @@ checkRoundLimit()
 		return; //nothing to check if no round limit
 	
 	//if rounds played is greater than the round limit, we are in OT
-	if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+	if(isOvertime())
 	{
 		//if the number of rounds over regulation divided by the rounds per OT has a remainder
 		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
