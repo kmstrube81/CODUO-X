@@ -17,7 +17,7 @@ menu_spawn(weapon)
 		{
 			self.lives = getMidRoundLives();
 		}
-        maps\mp\uox\_uox_debug::debugLog("info", "menu spawn lives counter -- " + self.lives);
+        maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn lives counter -- " + self.lives);
 	}
 	if(!game["matchstarted"])
 	{
@@ -32,7 +32,7 @@ menu_spawn(weapon)
 	 		self setWeaponSlotWeapon("primary", weapon);
 			self switchToWeapon(weapon);
 
-            maps\mp\uox\_uox_debug::debugLog("info", "menu spawn pregame weapon swap -- " + weapon);
+            maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn pregame weapon swap -- " + weapon);
 		}
 		else
 		{
@@ -42,7 +42,7 @@ menu_spawn(weapon)
 			spawnPlayer();
 			self thread maps\mp\uox\_uox::printJoinedTeam(self.pers["team"]);
 
-            maps\mp\uox\_uox_debug::debugLog("info", "menu spawn pregame initial spawn -- " + weapon);
+            maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn pregame initial spawn -- " + weapon);
 		}
 	}
 	else
@@ -51,7 +51,7 @@ menu_spawn(weapon)
         if(self.sessionstate != "playing")
 			self.statusicon = "gfx/hud/hud@status_dead.tga";
 
-        maps\mp\uox\_uox_debug::debugLog("info", "menu spawn game in progress");
+        maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn game in progress");
         		
 		if(isDefined(self.pers["weapon"]))
 		{
@@ -66,11 +66,11 @@ menu_spawn(weapon)
 				self setWeaponSlotWeapon("primary", weapon);
 				self switchToWeapon(weapon);
 
-                maps\mp\uox\_uox_debug::debugLog("info", "menu spawn grace period weapon swap --" + weapon);
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn grace period weapon swap --" + weapon);
 			}
 			else
 			{
-                maps\mp\uox\_uox_debug::debugLog("info", "menu spawn post grace period weapon select --" + weapon);
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn post grace period weapon select --" + weapon);
 
 				self.pers["weapon"] = weapon;
                 self.pers[myteam + "_weapon"] = weapon;
@@ -88,7 +88,7 @@ menu_spawn(weapon)
 			if(isDefined(self.lives) && self.lives == 0)
 			{
 
-                maps\mp\uox\_uox_debug::debugLog("info", "menu spawn game in progress out of lives weapon select --" + weapon);
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn game in progress out of lives weapon select --" + weapon);
 
 				self.pers["weapon"] = weapon;
                 self.pers[myteam + "_weapon"] = weapon;
@@ -112,7 +112,7 @@ menu_spawn(weapon)
 			}
 			else
 			{
-                maps\mp\uox\_uox_debug::debugLog("info", "menu spawn game in progress either no lives or lives left weapon select --" + weapon);
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn game in progress either no lives or lives left weapon select --" + weapon);
 
 				self.pers["weapon"] = weapon;
                 self.pers[myteam + "_weapon"] = weapon;
