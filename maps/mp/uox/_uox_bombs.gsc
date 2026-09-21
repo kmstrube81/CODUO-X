@@ -263,8 +263,6 @@ check_bombzone(trigger)
     if(isDefined(self.checking) && self.checking == trigger) //already checking this bombzone
         return;
 
-    self notify("kill_check_plant_bomb");
-	self endon("kill_check_plant_bomb");
 	level endon("round_ended");
     level endon("halftime");
 
@@ -479,9 +477,6 @@ check_bomb(trigger)
 {
     if(isDefined(self.checking) && self.checking == trigger) //already checking this bombzone
         return;
-
-	self notify("kill_check_bomb");
-	self endon("kill_check_bomb");
 
     self.checking = trigger;
 

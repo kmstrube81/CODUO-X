@@ -902,7 +902,7 @@ endRound(roundwinner, numRoundWins)
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_allies_win"); //make audio announcement
-		game["alliesRoundsWon"] += numRoundsWins;
+		game["alliesRoundsWon"] += numRoundWins;
 		//increment allied score
 		if([[level.getVars]]("scr_score_rounds"))
 		{
@@ -917,7 +917,7 @@ endRound(roundwinner, numRoundWins)
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_axis_win"); //make audio announcement
 		//increment axis score
-		game["axisRoundsWon"] += numRoundsWon;
+		game["axisRoundsWon"] += numRoundWins;
 		if([[level.getVars]]("scr_score_rounds"))
 		{
 			game["axisscore"] = game["axisRoundsWon"];
@@ -952,16 +952,16 @@ endRound(roundwinner, numRoundWins)
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round1team1score"] += numRoundsWon; //increment team 1 score for the half
+				game["round1team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round1team2score"] += numRoundsWon; //increment team 2 score for the half
+				game["round1team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 		else //if 2nd Half
 		{
 			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round2team1score"] += numRoundsWon; //increment team 1 score for the half
+				game["round2team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round2team2score"] += numRoundsWon; //increment team 2 score for the half
+				game["round2team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 		//get players
 		players = getentarray("player", "classname");
@@ -984,16 +984,16 @@ endRound(roundwinner, numRoundWins)
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round1team1score"] += numRoundsWon; //increment team 1 score for the half
+				game["round1team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round1team2score"] += numRoundsWon; //increment team 2 score for the half
+				game["round1team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 		else //if 2nd Half
 		{
 			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round2team1score"] += numRoundsWon; //increment team 1 score for the half
+				game["round2team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round2team2score"] += numRoundsWon; //increment team 2 score for the half
+				game["round2team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 
 		players = getentarray("player", "classname"); //get players
@@ -1021,14 +1021,14 @@ endRound(roundwinner, numRoundWins)
 		if(!tied) //if game tied flag was not set
 		{
 			winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
-			winner.pers["roundswon"] += numRoundsWon; //increment rounds won
+			winner.pers["roundswon"] += numRoundWins; //increment rounds won
 			
 			if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
 			{
 				if(game["half"] % 2) //if game is in 1st Half
-					winner.pers["1HScore"] += numRoundsWon; //increment 1st half score rounds won
+					winner.pers["1HScore"] += numRoundWins; //increment 1st half score rounds won
 				else //if game is in second half
-					winner.pers["2HScore"] += numRoundsWon; //increment 2nd half score rounds won
+					winner.pers["2HScore"] += numRoundWins; //increment 2nd half score rounds won
 				//get rounds won leader
 				leader = getHighScore(true);
 				if(game["half"] % 2) //if game is in 1st half
