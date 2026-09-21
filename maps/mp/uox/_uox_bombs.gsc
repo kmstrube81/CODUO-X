@@ -90,15 +90,24 @@ bombzones()
 	bombzone_B.objectiveName = "B";
 	bombzone_A.objective = 0;
 	bombzone_B.objective = 1;
-	bombzone_A thread bombzone_think(bombzone_B);
-	bombzone_B thread bombzone_think(bombzone_A);
+	bombzone_A.bombzone_other = bombzone_B;
+	bombzone_B.bombzone_other = bombzone_A;
+
+    bombzone_A thread maps\mp\uox\_uox_loops::initEntityLoop(bombzone_A);
+    bombzone_B thread maps\mp\uox\_uox_loops::initEntityLoop(bombzone_B);
+
+    bombzone_A maps\mp\uox\_uox_loops::addToWaitTills(bombzone_A, "trigger", ::bombzone_think, true);
+    bombzone_B maps\mp\uox\_uox_loops::addToWaitTills(bombzone_B, "trigger", ::bombzone_think, true);
+
+    bombzone_A maps\mp\uox\_uox_loops::removeFromWaitTills(bombzone_A, "trigger", level, "round_ended");
+    bombzone_B maps\mp\uox\_uox_loops::removeFromWaitTills(bombzone_B, "trigger", level, "round_ended");
 
 	wait 1;	// TEMP: without this one of the objective icon is the default. Carl says we're overflowing something.
 	objective_add(0, "current", bombzone_A.origin, "gfx/hud/hud@objectiveA.tga");
 	objective_add(1, "current", bombzone_B.origin, "gfx/hud/hud@objectiveB.tga");
 }
 
-bombzone_think(bombzone_other)
+bombzone_think(other)
 {
 	level endon("round_ended");
 	
@@ -110,30 +119,28 @@ bombzone_think(bombzone_other)
 	iconOptions["width"] = 64;
 	iconOptions["height"] = 64;
 	
-	for(;;)
-	{
-		self waittill("trigger", other);
+	other thread check_bombzone(self);
 
-		//don't allow plant if someone else is planting and its single site plant mode
-		if(isDefined(bombzone_other.planting) && level.bombmode < 1)
-		{
-			other maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
-			continue;
-		}
-		//can plant if you are a player and are on the attacking team, and are on the ground and not
-		//in a vehicle and canPlant is true
-		if(isPlayer(other) && (other.pers["team"] == game["attackers"]) && (other isOnGround()) && !(other isinvehicle()) && (other maps\mp\_util_mp_gmi::canPlantGMI()))
-		{
-			//test if element already exists, don't spam hud updates
-			if(!isDefined(other maps\mp\uox\_uox_hud::getClientHUDElement("plant_icon")))
-				other maps\mp\uox\_uox_hud::updateClientHUDElement("plant_icon", "shader",
-					"ui_mp/assets/hud@plantbomb.tga", iconOptions);
-			
-			other maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
-				::planting, ::plantBomb, ::check_bombzone, true, true, true, self, "MP_bomb_plant");
-			
-		}
-	}
+    //don't allow plant if someone else is planting and its single site plant mode
+    if(isDefined(self.bombzone_other.doing) && level.bombmode < 1)
+    {
+        other maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
+        return;
+    }
+    //can plant if you are a player and are on the attacking team, and are on the ground and not
+    //in a vehicle and canPlant is true
+    if(isPlayer(other) && (other.pers["team"] == game["attackers"]) && (other isOnGround()) && !(other isinvehicle()) && (other maps\mp\_util_mp_gmi::canPlantGMI()))
+    {
+        //test if element already exists, don't spam hud updates
+        if(!isDefined(other maps\mp\uox\_uox_hud::getClientHUDElement("plant_icon")))
+            other maps\mp\uox\_uox_hud::updateClientHUDElement("plant_icon", "shader",
+                "ui_mp/assets/hud@plantbomb.tga", iconOptions);
+        
+        other maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
+            ::planting, ::plantBomb, undefined, true, true, true, self, "MP_bomb_plant");
+        
+    }
+	
 }
 
 planting(trigger)
@@ -225,7 +232,14 @@ plantBomb(trigger)
 	}
 	level.bombs[trigger.objectiveName] = bombmodel;
 	
-	bombtrigger thread bomb_think(bombmodel);
+	//bombtrigger thread bomb_think(bombmodel);
+
+    bombtrigger thread maps\mp\uox\_uox_loops::initEntityLoop(bombtrigger);
+
+    bombtrigger maps\mp\uox\_uox_loops::addToWaitTills(bombtrigger, "trigger", ::bomb_think, true);
+
+    bombtrigger maps\mp\uox\_uox_loops::removeFromWaitTills(bombtrigger, "trigger", self, "bomb_exploded");
+
 	bombtrigger thread bomb_countdown(bombmodel);
 	
 	level notify("timer_paused");
@@ -234,14 +248,20 @@ plantBomb(trigger)
 
 check_bombzone(trigger)
 {
-	self notify("kill_check_plant_bomb");
+    if(isDefined(self.checking) && self.checking == trigger) //already checking this bombzone
+        return;
+
+    self notify("kill_check_plant_bomb");
 	self endon("kill_check_plant_bomb");
 	level endon("round_ended");
     level endon("halftime");
 
+    self.checking = trigger;
+
 	while(isDefined(trigger) && !isDefined(trigger.doing) && self istouching(trigger) && isAlive(self) && !(self isinvehicle()))
 		wait 0.05;
 
+    self.checking = undefined;
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
 	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
 }
@@ -334,7 +354,7 @@ bomb_countdown(bomb)
 	}
 }
 
-bomb_think(bomb)
+bomb_think(other)
 {
 	self endon("bomb_exploded");
 	
@@ -346,26 +366,22 @@ bomb_think(bomb)
 	iconOptions["width"] = 64;
 	iconOptions["height"] = 64;
 	
-	clock = bomb.clock;
-	
-	for(;;)
-	{
-		self waittill("trigger", other);
+    other thread check_bombzone(self);
 		
-		// check for having been triggered by a valid player
-		if(isPlayer(other) && (other.pers["team"] == game["defenders"]) && other isOnGround())
-		{	//don't spam hud updates
-			if(!isDefined(other maps\mp\uox\_uox_hud::getClientHUDElement("defuse_icon")))
-			{
-				other maps\mp\uox\_uox_hud::updateClientHUDElement("defuse_icon", 
-					"shader", "ui_mp/assets/hud@defusebomb.tga", iconOptions);			
-			}
-			
-			other maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
-				::defusing, ::defuseBomb, ::check_bomb, true, true, true, self, "MP_bomb_defuse");
-			
-		}
-	}
+    // check for having been triggered by a valid player
+    if(isPlayer(other) && (other.pers["team"] == game["defenders"]) && other isOnGround())
+    {	//don't spam hud updates
+        if(!isDefined(other maps\mp\uox\_uox_hud::getClientHUDElement("defuse_icon")))
+        {
+            other maps\mp\uox\_uox_hud::updateClientHUDElement("defuse_icon", 
+                "shader", "ui_mp/assets/hud@defusebomb.tga", iconOptions);			
+        }
+        
+        other maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
+            ::defusing, ::defuseBomb, undefined, true, true, true, self, "MP_bomb_defuse");
+        
+    }
+	
 }
 
 defusing(trigger)
@@ -443,11 +459,18 @@ defuseBomb(trigger)
 
 check_bomb(trigger)
 {
+    if(isDefined(self.checking) && self.checking == trigger) //already checking this bombzone
+        return;
+
 	self notify("kill_check_bomb");
 	self endon("kill_check_bomb");
 
+    self.checking = trigger;
+
 	while(isDefined(trigger) && !isDefined(trigger.defusing) && distance(self.origin, trigger.origin) < 32 && self islookingat(trigger) && isAlive(self))
 		wait 0.05;
+
+    self.checking = undefined;
 
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("defuse_icon");
 	self maps\mp\uox\_uox_inputs::removeHoldUse("defuse_bomb");

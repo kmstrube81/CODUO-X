@@ -902,7 +902,7 @@ endRound(roundwinner, numRoundWins)
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_allies_win"); //make audio announcement
-		game["alliesRoundsWon"] += numRoundsWon;
+		game["alliesRoundsWon"] += numRoundsWins;
 		//increment allied score
 		if([[level.getVars]]("scr_score_rounds"))
 		{
