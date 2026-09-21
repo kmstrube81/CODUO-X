@@ -137,7 +137,7 @@ bombzone_think(other)
                 "ui_mp/assets/hud@plantbomb.tga", iconOptions);
         
         other maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
-            ::planting, ::plantBomb, undefined, true, true, true, self, "MP_bomb_plant");
+            ::planting, ::plantBomb, ::check_bombzone, true, true, true, self, "MP_bomb_plant");
         
     }
 	
@@ -153,6 +153,8 @@ planting(trigger)
 
 plantBomb(trigger)
 {
+    trigger notify("bomb planted")
+
 	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
 	self.pers["score"] += [[level.getVars]]("scr_bombplantbonuspoints");
@@ -183,6 +185,8 @@ plantBomb(trigger)
 	bombtrigger = getent("bombtrigger", "targetname");
 	bombtrigger.origin = bombmodel.origin;
 
+    bombtrigger.bomb = bombmodel;
+
 	if(level.bombmode < 1)
 		objective_add(0, "current", bombtrigger.origin, "gfx/hud/hud@bombplanted.tga");
 
@@ -200,7 +204,7 @@ plantBomb(trigger)
 	
 	options = [];
 	options["x"] = 320;
-	options["y"] = 390;
+	options["y"] = 445;
 	options["alignX"] = "center";
 	options["alignY"] = "middle";
 	options["fontscale"] = 1.5;
@@ -238,11 +242,19 @@ plantBomb(trigger)
 
     bombtrigger maps\mp\uox\_uox_loops::addToWaitTills(bombtrigger, "trigger", ::bomb_think, true);
 
-    bombtrigger maps\mp\uox\_uox_loops::removeFromWaitTills(bombtrigger, "trigger", self, "bomb_exploded");
+    bombtrigger maps\mp\uox\_uox_loops::removeFromWaitTills(bombtrigger, "trigger", bombtrigger, "bomb_exploded");
 
 	bombtrigger thread bomb_countdown(bombmodel);
 	
 	level notify("timer_paused");
+
+    if([[level.getVars]]("sv_showbombtimer"))
+    {
+        trigger endon("bomb_planted");
+
+        wait 7;
+        level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
+    }
 	
 }
 
@@ -366,7 +378,7 @@ bomb_think(other)
 	iconOptions["width"] = 64;
 	iconOptions["height"] = 64;
 	
-    other thread check_bombzone(self);
+    other thread check_bomb(self);
 		
     // check for having been triggered by a valid player
     if(isPlayer(other) && (other.pers["team"] == game["defenders"]) && other isOnGround())
@@ -378,7 +390,7 @@ bomb_think(other)
         }
         
         other maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
-            ::defusing, ::defuseBomb, undefined, true, true, true, self, "MP_bomb_defuse");
+            ::defusing, ::defuseBomb, ::check_bomb, true, true, true, self, "MP_bomb_defuse");
         
     }
 	
@@ -402,13 +414,15 @@ defuseBomb(trigger)
 	if(level.bombmode == 0)
 		objective_delete(0);
 
+    bomb = trigger.bomb;
+    clock = bomb.clock;
+
 	trigger notify("bomb_defused");
 	bomb setmodel("xmodel/mp_bomb1");
 	bomb stopLoopSound();
 	level.bombsites[bomb.objectiveName]["planted"] = false;
 	bomb delete();
 	trigger delete();
-	level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
 
 	announcement(game["bombDefusedText"]);
 	
@@ -430,8 +444,12 @@ defuseBomb(trigger)
 		level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
 		//if secondary clock exists, move it
 		if(isDefined(level.secondBombClock))
-			level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
-				level.secondBombClock, "x", 320);
+        {
+                level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
+                    level.secondBombClock, "x", 320);
+        }
+        else
+            level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
 	}
 	else if(clock == level.secondBombClock)
 	{
