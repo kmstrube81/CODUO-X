@@ -153,7 +153,7 @@ planting(trigger)
 
 plantBomb(trigger)
 {
-    trigger notify("bomb planted")
+    trigger notify("bomb planted");
 
 	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
