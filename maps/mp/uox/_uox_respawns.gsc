@@ -43,6 +43,8 @@ menu_spawn(weapon)
 	else
 	{
         self.sessionteam = self.pers["team"];
+        if(self.sessionstate != "playing")
+			self.statusicon = "gfx/hud/hud@status_dead.tga";
         		
 		if(isDefined(self.pers["weapon"]))
 		{
@@ -315,7 +317,7 @@ respawn_obj()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	if([[level.getVars]]("scr_reinforcements") == -1 || self.lives > 0)
+	if([[level.getVars]]("scr_reinforcements") == -1 || self.lives > 0 || (self.lives == 0 && level.graceperiod))
 	{
 		self thread respawn_forced(true);
 	}
