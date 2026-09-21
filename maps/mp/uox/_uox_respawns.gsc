@@ -239,6 +239,8 @@ respawn_forced(spawn_immediately)
     if(isDefined(spawn_immediately))
     {
             self thread waitForceRespawnTime(0);
+            self waittill("respawn");
+            self thread spawnPlayer();
             return;
     }
     spawndelay = [[level.getVars]]("scr_forcerespawn");
