@@ -214,10 +214,17 @@ respawn_dm()
 	self thread spawnPlayer();
 }
 
-respawn_forced()
+respawn_forced(spawn_immediately)
 {
-	self thread waitForceRespawnTime();
-	self thread waitRespawnButton([[level.getVars]]("scr_forcerespawn"));
+    if(isDefined(spawn_immediately))
+    {
+            self thread waitForceRespawnTime(0);
+            return;
+    }
+    spawndelay = [[level.getVars]]("scr_forcerespawn");
+
+	self thread waitForceRespawnTime(spawndelay);
+	self thread waitRespawnButton(spawndelay);
 	self waittill("respawn");
 	self thread spawnPlayer();
 }
@@ -308,7 +315,7 @@ respawn_obj()
 	
 	if([[level.getVars]]("scr_reinforcements") == -1 || self.lives > 0)
 	{
-		self thread respawn_forced();
+		self thread respawn_forced(true);
 	}
 	else
 	{
