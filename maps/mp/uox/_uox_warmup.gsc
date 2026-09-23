@@ -267,7 +267,7 @@ readyup(entity, switchingSides)
 
 				// change players hud to indicate player not ready
 				self maps\mp\uox\_uox_hud::updateClientHUDElementProperty("readyHUD", "color", (1, .84, .84));
-				self = maps\mp\uox\_uox_hud::updateClientHUDElementProperty("readyHUD", "text", game["notReadyText"]);
+				self maps\mp\uox\_uox_hud::updateClientHUDElementProperty("readyHUD", "text", game["notReadyText"]);
 				wait 1;
 			}
 			while (self useButtonPressed() == true)
