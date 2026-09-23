@@ -251,6 +251,17 @@ getClientHUDElement(name)
 	return maps\mp\uox\_uox_arrays::getValue(self.uox_hud, name);
 }
 
+updateClientHUDElementProperty(name, property, value)
+{
+    element = getClientHUDElement(name);
+	
+	if(!isDefined(element))
+        return;
+
+    updateHUDElementProperty(element, property, value);
+
+    return element;
+}
 updateClientHUDElement(name, type, value, options)
 {
 	element = getClientHUDElement(name);
@@ -468,12 +479,19 @@ destroyClientHUDElement( element )
 	element = undefined;
 }
 
-updateHUDElementProperty(element, property, value)
+updateHUDElementProperty(element, property, value, width, height, crop_width, crop_height)
 {
 	if(!isDefined(element))
-	{
 		return;
-	}
+
+    if(!isDefined(width))
+		width = 16;
+    if(!isDefined(height))
+        height = 16;
+    if(!isDefined(crop_width))
+        crop_width = 1.0;
+    if(!isDefined(crop_height))
+        crop_height = 1.0;
 	
 	switch(property)
 	{
@@ -505,7 +523,25 @@ updateHUDElementProperty(element, property, value)
 			element.sort = value;
 			break;
         case "label":
-            element.lable = value;
+            element.label = value;
+            break;
+        case "timer":
+			element setTimer(value);
+			break;
+        case "tenthsTimer":
+            element setTenthsTimer(value);
+            break;
+        case "timerUp":
+            element setTimerUp(value);
+            break;
+		case "number":
+            element setValue(value);
+			break;
+		case "shader":
+			element setShader(value, width, height, crop_width, crop_height);
+			break;
+		case "text":
+			element setText(value);
             break;
 	}
 	return element;

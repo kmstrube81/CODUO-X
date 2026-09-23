@@ -252,8 +252,8 @@ readyup(entity, switchingSides)
 				logPrint(playername + ";" + " is Ready Logfile;" + "\n");
 
 				// change players hud to indicate player not ready
-				self.readyHUD = maps\mp\uox\_uox_hud::updateHUDElementProperty(self.readyHUD, "color", (.73, .99, .73));
-				self.readyHUD = maps\mp\uox\_uox_hud::updateHUDElement(self.readyHUD, "text", game["readyText"]);
+				self maps\mp\uox\_uox_hud::updateClientHUDElementProperty("readyHUD", "color", (.73, .99, .73));
+				self maps\mp\uox\_uox_hud::updateClientHUDElementProperty("readyHUD", "text", game["readyText"]);
 
 				wait 1;
 				thread CheckServerReady();
@@ -266,8 +266,8 @@ readyup(entity, switchingSides)
 				logPrint(playername + ";" + " is Not Ready Logfile;" + "\n");
 
 				// change players hud to indicate player not ready
-				self.readyHUD = maps\mp\uox\_uox_hud::updateHUDElementProperty(self.readyHUD, "color", (1, .84, .84));
-				self.readyHUD = maps\mp\uox\_uox_hud::updateHUDElement(self.readyHUD, "text", game["notReadyText"]);
+				self maps\mp\uox\_uox_hud::updateClientHUDElementProperty("readyHUD", "color", (1, .84, .84));
+				self = maps\mp\uox\_uox_hud::updateClientHUDElementProperty("readyHUD", "text", game["notReadyText"]);
 				wait 1;
 			}
 			while (self useButtonPressed() == true)
