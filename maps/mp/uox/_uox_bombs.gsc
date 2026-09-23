@@ -266,7 +266,7 @@ check_bombzone(trigger)
 
     self.checking = trigger;
 
-	if(self canPlantAt(trigger))
+	if(self canPlant(trigger))
 	{
 
         maps\mp\uox\_uox_debug::debugLog("info", self.name + " create plant icon");
@@ -283,7 +283,7 @@ check_bombzone(trigger)
 		self maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
 			::planting, ::plantBomb, ::check_bombzone, true, true, true, trigger, "MP_bomb_plant");
 
-		while(self canPlantAt(trigger))
+		while(self canPlant(trigger))
 			wait 0.05;
 	}
 
@@ -496,7 +496,7 @@ check_bomb(trigger)
 
     self.checking = trigger;
 
-	if(self canDefuseAt(trigger))
+	if(self canDefuse(trigger))
 	{
 		iconOptions = [];
 		iconOptions["alignX"] = "center";
@@ -513,7 +513,7 @@ check_bomb(trigger)
 		self maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
 			::defusing, ::defuseBomb, ::check_bomb, true, true, true, trigger, "MP_bomb_defuse");
 
-		while(self canDefuseAt(trigger))
+		while(self canDefuse(trigger))
 			wait 0.05;
 	}
 
