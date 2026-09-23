@@ -754,6 +754,9 @@ startRound()
 	if ( !game["matchstarted"] )
 		return;
 		
+    //DO STRAT TIME HERE
+
+
 	//set roundstarted flag
 	level.roundstarted = true;
 	
