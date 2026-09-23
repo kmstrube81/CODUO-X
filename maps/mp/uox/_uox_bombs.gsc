@@ -165,7 +165,7 @@ plantBomb(trigger)
     else
     {
         trigger maps\mp\_utility::triggerOff();
-        trigger objective_delete(trigger.objective);
+        objective_delete(trigger.objective);
     }
 
 	plant = self maps\mp\_util_mp_gmi::getPlantGMI();
