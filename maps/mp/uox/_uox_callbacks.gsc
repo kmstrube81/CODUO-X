@@ -610,13 +610,10 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	if(([[level.getVars]]("scr_killcam") <= 0) || ( forcespawntimer > 0 && forcespawntimer < 9))
 		doKillcam = false;
 	
-	if(doKillcam)
-	{
-		self thread maps\mp\uox\_uox_killcam::killcam(attackerNum, lpattackguid, lpattackerteam,
-			lpattackname, delay);
-	}
-	else
-		self thread maps\mp\uox\_uox_respawns::respawn();
+	self thread maps\mp\uox\_uox_killcam::killcam(doKillcam, attackerNum, lpattackguid, lpattackerteam,
+		lpattackname, delay);
+
+	self thread maps\mp\uox\_uox_respawns::respawn();
 }
 
 dropHealth()

@@ -2220,10 +2220,10 @@ createServerLogo()
     if(isDefined(game["serverlogo"]))
     {
         options["x"] = 3;
-    	options["y"] = 474;
+    	options["y"] = 472;
     	options["alignX"] = "left";
-    	options["alignY"] = "middle";
-    	options["fontScale"] = .7;
+    	options["alignY"] = "top";
+    	options["fontScale"] = .55;
         options["sort"] = -3;
         options["alpha"] = 1;
         options["archived"] = true;

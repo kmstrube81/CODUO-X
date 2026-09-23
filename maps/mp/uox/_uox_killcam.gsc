@@ -1,13 +1,11 @@
-killcam(attackerNum, attackerGUID, attackerTeam, attackerName, delay)
+killcam(doKillcam, attackerNum, attackerGUID, attackerTeam, attackerName, delay)
 {
 	
-	self endon("spawned");
-
 	// killcam
 	if(attackerNum < 0)
 		return;
-	
-	if([[level.getVars]]("scr_final_killcam"))
+
+    if([[level.getVars]]("scr_final_killcam"))
 	{
 		level.finalKillcamTime = getTime();
 		level.finalKillcamSpectatorClient = attackerNum;
@@ -16,8 +14,13 @@ killcam(attackerNum, attackerGUID, attackerTeam, attackerName, delay)
 		level.finalKillcamAttackerTeam = attackerTeam;
 		level.finalKillcamDelay = delay;
 	}
-	
-	self.sessionstate = "spectator";
+
+    if(!doKillcam)
+        return;
+
+    self endon("spawned");
+    
+    self.sessionstate = "spectator";
 	self.spectatorclient = attackerNum;
 	self.archivetime = delay + 7;
 	
