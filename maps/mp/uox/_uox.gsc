@@ -755,7 +755,7 @@ startRound()
 		return;
 		
     //DO STRAT TIME HERE
-	doStratTime([[level.getVars]]);
+	doStratTime([[level.getVars]]("scr_strattime");
 
 	//set roundstarted flag
 	level.roundstarted = true;
@@ -813,7 +813,9 @@ doStratTime( time )
 	
 	wait time;
 	
+	level.stratTimeHud = maps\mp\uox\_uox_hud::deleteHUDElement(level.stratTimeHud);
 	maps\mp\uox\_uox_hud::updateHUDMainClockColor( ( 1, 1, 1 ) );
+	unlockPlayersMovement();
 }
 /* *************************************************************************************************
 **** checkMatchStart()
@@ -915,9 +917,10 @@ endRound(roundwinner, numRoundWins)
 		return; //nothing to do
 	level.roundended = true; //set roundend flag
 	
+	postroundtime = [[level.getVars]]("scr_postroundtime");
 	//lock players in place
 	level.playerlock = true;
-	level thread lockPlayersInPlace();
+	level thread lockPlayersInPlace(postroundtime);
 
 	// End bombzone threads and remove related hud elements and objectives
 	level notify("round_ended");
@@ -981,7 +984,8 @@ endRound(roundwinner, numRoundWins)
     }	
 
 	maps\mp\uox\_uox_hud::updateServerScoreboard();
-	wait 5; //wait five seconds before ending round
+	if(postroundtime < 5) postroundtime = 5;
+	wait postroundtime; //wait at least five seconds before ending round
 
 	winners = ""; //init winners log string
 	losers = "";  //init losers log string
@@ -2242,14 +2246,18 @@ GivePointsToTeam( team, points )
 }
 
 /* *************************************************************************************************
-**** lockPlayersInPlace()
+**** lockPlayersInPlace(int time)
 ****
 **** Called from endRound
 **** loops through players and locks players in place
 **** 
 ************************************************************************************************* */
-lockPlayersInPlace()
+lockPlayersInPlace(time)
 {
+
+	if(isdefined(time))
+		wait time;
+		
 	players = getentarray("player","classname"); //get players
 	for(i = 0; i < players.size; i++) //loop players
 	{
