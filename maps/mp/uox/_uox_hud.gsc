@@ -45,6 +45,7 @@ precache()
 	game["switchWaitText"] = &"Please wait";
 	game["axisScoreText"] = &"AXIS SCORE";		
 	game["alliesScoreText"] = &"ALLIES SCORE";
+	game["stratTimeText"] = &"Strat Time";
     if(!level.uox_teamplay || level.objective == "bel") {
         game["leaderText"] = &"LEADER";
         game["youText"] = &"YOU";

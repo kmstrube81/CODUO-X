@@ -755,7 +755,7 @@ startRound()
 		return;
 		
     //DO STRAT TIME HERE
-
+	doStratTime([[level.getVars]]);
 
 	//set roundstarted flag
 	level.roundstarted = true;
@@ -784,6 +784,37 @@ startRound()
 	level startRoundTimer(timer, true);
 }
 
+/* *****************************************************************************************
+**** doStratTime( int time )
+**** 
+**** Called from start round
+**** Freezes in players in place and 
+***************************************************************************************** */
+doStratTime( time )
+{
+	if(time <= 0)
+		return;
+	//lock players in place
+	level.playerlock = true;
+	level thread lockPlayersInPlace();	
+	
+	maps\mp\uox\_uox_hud::updateHUDMainClock(time);
+	maps\mp\uox\_uox_hud::updateHUDMainClockColor( ( 1, 0, 0 ) );
+	
+	options = [];
+	options["x"] = 320;
+	options["y"] = 440;
+	options["alignX"] = "center";
+	options["alignY"] = "middle";
+	options["fontscale"] = 1.5;
+	options["color"] = (1, 0, 0);
+	level.stratTimeHud = maps\mp\uox\_uox_hud::updateHUDElement(level.stratTimeHud, "text",
+		game["stratTimeText"], options);
+	
+	wait time;
+	
+	maps\mp\uox\_uox_hud::updateHUDMainClockColor( ( 1, 1, 1 ) );
+}
 /* *************************************************************************************************
 **** checkMatchStart()
 ****
