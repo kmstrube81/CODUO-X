@@ -31,7 +31,7 @@ initVars()
 		7, 3, 20, "Bomb Plant Time");
 	maps\mp\uox\_uox_vars::varDef("scr", "bombdefusetime", "int", true,
 		10, 3, 20, "Bomb Defuse Time");
-	maps\mp\uox\_uox_vars::varDef("scr", "bombtimer", "int", true,
+	level.countdowntime = maps\mp\uox\_uox_vars::varDef("scr", "bombtimer", "int", true,
 		60, 3, 120, "Bomb Explode Timer");
 	/* Bomb Plant Modes:
 		0 = default SD plant mode, single site, round ends after defusal
@@ -300,11 +300,8 @@ bomb_countdown(bomb)
 	
 	bomb playLoopSound("bomb_tick");
 	clock = bomb.clock;
-	
-	// set the countdown time
-	countdowntime = [[level.getVars]]("scr_bombtimer");
 
-	wait countdowntime;
+	wait level.countdowntime;
 		
 	// bomb timer is up
 	if(level.bombmode < 1)
