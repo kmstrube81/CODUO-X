@@ -2256,7 +2256,7 @@ createServerLogo()
     if(isDefined(game["serverlogo"]))
     {
         options["x"] = 3;
-    		options["y"] = 467;
+    		options["y"] = 470;
     		options["alignX"] = "left";
     		options["alignY"] = "top";
     		options["fontscale"] = .7;
