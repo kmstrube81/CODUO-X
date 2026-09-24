@@ -1,4 +1,29 @@
+SetupCallbacks()
+{
+    maps\mp\gametypes\_callbacksetup::SetupCallbacks();
+
+    level.StartGametype_Callbacks = [];
+    level.PlayerConnect_Callbacks = [];
+    level.PlayerDisconnect_Callbacks = [];
+    level.PlayerDamage_Callbacks = [];
+    level.PlayerKilled_Callbacks = [];
+
+    level.StartGametype_Callbacks[0] = ::Default_StartGameType;
+    level.PlayerConnect_Callbacks[0] = ::Default_PlayerConnect;
+    level.PlayerDisconnect_Callbacks[0] = ::Default_PlayerDisconnect;
+    level.PlayerDamage_Callbacks[0] = ::Default_PlayerDamage;
+    level.PlayerKilled_Callbacks[0] = ::Default_PlayerKilled;
+}
+
 Callback_StartGameType()
+{
+    for(i = 0; i < level.StartGametype_Callbacks.size; i++)
+    {
+        [[level.StartGameType_Callbacks[i]]]();
+    }
+}
+
+Default_StartGameType()
 {   
     //init loops
 	level thread maps\mp\uox\_uox_loops::initServerLoop();
@@ -7,58 +32,12 @@ Callback_StartGameType()
 	level.gametype = getCvar("g_gametype");
 	level.mapname = getCvar("mapname");
 	level.uox_teamplay = maps\mp\uox\_uox::isTeamPlayGametype(level.gametype);
-	
-    //init objectives
-	maps\mp\uox\_uox::initObjectives(level.objective);
-	//init vars
-	maps\mp\uox\_uox_vars::initGameTypeVars();
-	maps\mp\gametypes\_teams::initGlobalCvars();
-	maps\mp\gametypes\_teams::initWeaponCvars();
-	
-    if(level.uox_teamplay) {
-        level.exist["allies"] = 0;
-        level.exist["axis"] = 0;
-        level.exist["teams"] = false;
-        level.didexist["allies"] = false;
-        level.didexist["axis"] = false;
-    }
-    else 
-    {
-        level.exist["2players"] = -1;
-        level.didexist["2players"] = false;
-    }
-	
-	level.roundstarted = false;
-	level.roundended = false;
-	level.mapended = false;
-	level.warmup = false;
-	level.doingReadyUp = false;
-	level.playersready = false;
-	level.playerLock = false;
-	level.lockteams = false;
-	level.healthqueue = [];
-	level.healthqueuecurrent = 0;
-	level.alliedscore = 0;
-	level.axisscore = 0;
-	level.defense_points = 0;
-	level.didFinalKillcam = false;
-	
-	if (!isdefined (game["BalanceTeamsNextRound"]))
-		game["BalanceTeamsNextRound"] = false;
-	
-	if([[level.getVars]]("scr_roundlimit") % 2)
-		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
-	else
-		level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
-	if([[level.getVars]]("scr_scorelimit") % 2)
-		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
-	else
-		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
-						
-	maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
-	maps\mp\uox\_uox_hud::initServerHUD();
-		
-	if(!isDefined(game["gamestarted"]))
+
+    //init battle rank
+    maps\mp\gametypes\_rank_gmi::InitializeBattleRank();
+
+    //precache
+    if(!isDefined(game["gamestarted"]))
 	{
 	
 		if(!isDefined(game["timepassed"]))
@@ -116,7 +95,11 @@ Callback_StartGameType()
 			game["team2"] = game["defenders"];
 		if(!isDefined(game["layoutimage"]))
 			game["layoutimage"] = "default";
-		layoutname = "levelshots/layouts/hud@layout_" + game["layoutimage"];
+
+        if(isDefined(game[level.gametype + "_layoutimage"]))
+            layoutname = "levelshots/layouts/hud@layout_" + game[level.gametype + "_layoutimage"];
+        else
+            layoutname = "levelshots/layouts/hud@layout_" + game["layoutimage"];
 		precacheShader(layoutname);
 		setCvar("scr_layoutimage", layoutname);
 		makeCvarServerInfo("scr_layoutimage", "");
@@ -130,16 +113,73 @@ Callback_StartGameType()
 		maps\mp\gametypes\_teams::precache();
 		maps\mp\gametypes\_teams::scoreboard();
 	}
+
+    //define player models
+    maps\mp\gametypes\_teams::modeltype();
+
+	//init vars
+	maps\mp\uox\_uox_vars::initGameTypeVars();
+	maps\mp\gametypes\_teams::initGlobalCvars();
+	maps\mp\gametypes\_teams::initWeaponCvars();
+    //init hud
+	maps\mp\uox\_uox_hud::initServerHUD();
 	
-	maps\mp\gametypes\_teams::modeltype();
+
+    level.alive["allies"] = 0;
+    level.alive["axis"] = 0;
+
+    if(level.uox_teamplay) {
+        level.exist["allies"] = 0;
+        level.exist["axis"] = 0;
+        level.exist["teams"] = false;
+        level.didexist["allies"] = false;
+        level.didexist["axis"] = false;
+    }
+    else 
+    {
+        level.exist["2players"] = -1;
+        level.didexist["2players"] = false;
+    }
+	
+	level.roundstarted = false;
+	level.roundended = false;
+	level.mapended = false;
+	level.warmup = false;
+	level.doingReadyUp = false;
+    level.halftime = false;
+	level.playersready = false;
+	level.playerLock = false;
+	level.lockteams = false;
+	level.healthqueue = [];
+	level.healthqueuecurrent = 0;
+	level.alliedscore = 0;
+	level.axisscore = 0;
+	level.defense_points = 0;
+	level.didFinalKillcam = false;
+	
+	if (!isdefined (game["BalanceTeamsNextRound"]))
+		game["BalanceTeamsNextRound"] = false;
+	
+//	if([[level.getVars]]("scr_roundlimit") % 2)
+//		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
+//	else
+		level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
+//	if([[level.getVars]]("scr_scorelimit") % 2)
+//		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
+//	else
+		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
+
+    //init objectives
+	maps\mp\uox\_uox::initObjectives(level.objective);
+	
 	maps\mp\gametypes\_teams::restrictPlacedWeapons();
 	thread maps\mp\gametypes\_teams::updateGlobalCvars();
 	thread maps\mp\gametypes\_teams::updateWeaponCvars();
-	thread maps\mp\uox\_uox_hud::updateScoreboard();
+    maps\mp\uox\_uox_loops::addToLoop(level, "medium", maps\mp\uox\_uox_hud::updateScoreboard, "updateScoreboard");
 	
 	game["gamestarted"] = true;
 	
-	if(game["roundbased"])
+	if(game["roundbased"] && [[level.getVars]]("scr_reinforcements") == 1)
 		setClientNameMode("manual_change");
 	else
 		setClientNameMode("auto_change");
@@ -147,10 +187,18 @@ Callback_StartGameType()
 	thread maps\mp\uox\_uox::addBotClients(); // For development testing
 	
 	thread maps\mp\uox\_uox::startGame();
-	maps\mp\uox\_uox_loops::addToLoop(level, "slow", maps\mp\uox\_uox_vars::updateVars);
+	maps\mp\uox\_uox_loops::addToLoop(level, "slow", maps\mp\uox\_uox_vars::updateVars, "updateVars");
 }
 
 Callback_PlayerConnect()
+{
+    for(i = 0; i < level.PlayerConnect_Callbacks.size; i++)
+    {
+        [[level.PlayerConnect_Callbacks[i]]]();
+    }
+}
+
+Default_PlayerConnect()
 {
 	self thread maps\mp\uox\_uox_loops::initPlayerLoop();
 	self maps\mp\uox\_uox_loops::addToLoop(self, "slow",
@@ -161,6 +209,7 @@ Callback_PlayerConnect()
 	self waittill("begin");
 	self.statusicon = "";
 	self.pers["teamTime"] = 1000000;
+    self.usedweapons = false;
 
 	if(!isDefined(self.pers["team"]))
 		iprintln(&"MPSCRIPT_CONNECTED", self);
@@ -182,6 +231,9 @@ Callback_PlayerConnect()
 		self.pers["deaths"] = 0;
 	if(!isDefined(self.pers["kills"]))
 		self.pers["kills"] = 0;
+    if(!isDefined(self.pers["totalscore"]))
+        self.pers["totalscore"] = 0;
+
 	self.score = self.pers["score"];
 	self.deaths = self.pers["deaths"];
 	if(!isDefined(self.pers["1HScore"]))
@@ -256,6 +308,14 @@ Callback_PlayerConnect()
 
 Callback_PlayerDisconnect()
 {
+    for(i = 0; i < level.PlayerDisconnect_Callbacks.size; i++)
+    {
+        [[level.PlayerDisconnect_Callbacks[i]]]();
+    }
+}
+
+Default_PlayerDisconnect()
+{
 	self notify("disconnect");
 	iprintln(&"MPSCRIPT_DISCONNECTED", self);
 
@@ -272,6 +332,14 @@ Callback_PlayerDisconnect()
 }
 
 Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
+{
+    for(i = 0; i < level.PlayerDamage_Callbacks.size; i++)
+    {
+        [[level.PlayerDamage_Callbacks[i]]](eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+    }
+}
+
+Default_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
 {
     if ( (isdefined (eAttacker)) && (isPlayer(eAttacker)) && (isdefined (eAttacker.god)) && (eAttacker.god == true) )
 		return; //ignore damage from god mode players
@@ -397,6 +465,14 @@ Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sW
 
 Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
 {
+    for(i = 0; i < level.PlayerKilled_Callbacks.size; i++)
+    {
+        [[level.PlayerKilled_Callbacks[i]]](eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc);
+    }
+}
+
+Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir, sHitLoc)
+{
 	self endon("spawned");
 
 	if(self.sessionteam == "spectator" || (self.god == true) )
@@ -422,11 +498,18 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	// send out an obituary message to all clients about the kill
 	obituary(self, attacker, sWeapon, sMeansOfDeath);
 
+    maps\mp\uox\_uox::playerKilledObjectives(level.objective, self, attacker);
+
 	self.sessionstate = "dead";
 	if(!level.doingReadyUp)
 		self.statusicon = "gfx/hud/hud@status_dead.tga";
-	self.deaths++;
-	self.pers["deaths"] = self.deaths;
+
+    if(!level.warmup)
+    {
+        self.deaths++;
+        self.pers["deaths"] = self.deaths;
+        self.pers["totaldeaths"] = self.deaths;
+    }
 
 	lpselfnum = self getEntityNumber();
 	lpselfname = self.name;
@@ -441,7 +524,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		{
             self.dontmove = true;
 			doKillcam = false;
-            if([[level.getVars]]("scr_respawn_mode") == "bel")
+            if(level.respawn_mode == "bel")
             {
                 if(self.pers["team"] == "allies")
                     self thread maps\mp\uox\_uox::moveTeams();
@@ -456,14 +539,13 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattackguid = attacker getGuid();
 		lpattackname = attacker.name;
 		level thread maps\mp\uox\_uox::checkPlayerKilled(self, attacker);
-        if([[level.getVars]]("scr_respawn_mode") == "bel")
+        if(level.respawn_mode == "bel")
         {
-            if(self.pers["team"] == "allies") //killed an allied player
+            if(self.pers["team"] == "allies" && attacker != self) //killed an allied player
             {
                 attacker.god = true;
                 iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
-                attacker maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", 2, true, &"BEL_BLACKSCREEN_KILLEDALLIED");
-                attacker thread maps\mp\uox\_uox::moveTeams();
+                attacker thread maps\mp\uox\_uox::moveTeams(true, &"BEL_BLACKSCREEN_KILLEDALLIED");
                 
                 if (attacker.pers["team"] == "axis") // only move victim teams if killer is axis
                 {
@@ -481,7 +563,7 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		lpattackname = "";
 		lpattackerteam = "world";
 
-        if([[level.getVars]]("scr_respawn_mode") == "bel")
+        if(level.respawn_mode == "bel")
         {
             if(self.pers["team"] == "allies")
                 self thread maps\mp\uox\_uox::moveTeams();
@@ -508,6 +590,16 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	//immediately deduct life when its your last one
 	if(isDefined(self.lives) && self.lives == 0)
 		self.lives--;
+
+    if(level.respawn_mode == "hq")
+    {
+        if(level.wavecounter <= 2) //if killed in the last 2 seconds of the wave
+        self.freerespawn = true;
+        //mark which wave you are a part of
+        if(isDefined(level.wavenumber))
+            self.wavenumber = level.wavenumber;
+    }
+    
 	maps\mp\uox\_uox::updateTeamStatus();
 
 	delay = 2;	// Delay the player becoming a spectator till after he's done dying
@@ -518,13 +610,10 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	if(([[level.getVars]]("scr_killcam") <= 0) || ( forcespawntimer > 0 && forcespawntimer < 9))
 		doKillcam = false;
 	
-	if(doKillcam)
-	{
-		self thread maps\mp\uox\_uox_killcam::killcam(attackerNum, lpattackguid, lpattackerteam,
-			lpattackname, delay);
-	}
-	else
-		self thread maps\mp\uox\_uox_respawns::respawn();
+	self thread maps\mp\uox\_uox_killcam::killcam(doKillcam, attackerNum, lpattackguid, lpattackerteam,
+		lpattackname, delay);
+
+	self thread maps\mp\uox\_uox_respawns::respawn();
 }
 
 dropHealth()

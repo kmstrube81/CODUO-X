@@ -65,30 +65,14 @@ checkPlayerKilled(victim, attacker)
 	{
 		attacker.pers["kills"]++; //give attacker a kill
 	}
-	/* Objective Based Kill checks */
-	obj = level.objective; //get gametype
-	
-	if(!isDefined(obj))
-		obj = "none";
-	
-	switch(obj)
-	{
-		case "none": //if dm, check score limit
-			doCheckScoreLimit = true;
-			if(level.uox_teamplay)
-				addKillToTeamScore = true;
-			break;
-		case "bomb": //SD/DEM bonus
-			maps\mp\uox\_uox_bombs::onPlayerKill(victim, attacker);
-			break;
-		case "retrieval": //RE bonus
-			maps\mp\uox\_uox_retrievals::onPlayerKill(victim, attacker);
-			break;
-        case "bel":
-            doCheckScoreLimit = true;
-            maps\mp\uox\_uox_behindenemylines::onPlayerKill(victim, attacker);
-            break;
-	}
+
+    if(level.objective == "none" || level.objective == "bel") 
+    {
+        doCheckScoreLimit = true;
+		if(level.uox_teamplay)
+			addKillToTeamScore = true;
+    }
+
 	if(addKillToTeamScore) //if add to team score flag set.
 	{
 		if(victim.pers["team"] == attacker.pers["team"]) // killed by a friendly
@@ -108,6 +92,34 @@ checkPlayerKilled(victim, attacker)
 }
 
 /* *************************************************************************************************
+   ** playerKilledObjectives( str objective )
+   **
+   ** Called from callbackPlayerKilled
+   ** Runs function on player killed
+************************************************************************************************* */
+playerKilledObjectives(objective, victim, attacker)
+{
+    /* Objective Based Kill checks */
+	switch(objective)
+	{
+		case "bomb": //SD/DEM bonus
+			maps\mp\uox\_uox_bombs::onPlayerKill(victim, attacker);
+			break;
+		case "retrieval": //RE bonus
+			maps\mp\uox\_uox_retrievals::onPlayerKill(victim, attacker);
+			break;
+        case "bel":
+            maps\mp\uox\_uox_behindenemylines::onPlayerKill(victim, attacker);
+            break;
+        case "ctf":
+            maps\mp\uox\_uox_flags::onPlayerKill(victim, attacker);
+            break;
+        case "commandpost":
+            maps\mp\uox\_uox_commandposts::onPlayerKill(victim, attacker);
+            break;
+	}
+}
+/* *************************************************************************************************
 **** checkScoreLimit()
 ****
 **** Called from checkPlayerKilled, endRound
@@ -118,20 +130,19 @@ checkScoreLimit()
 {
 	if(!game["matchstarted"]) //if match isn't started
 		return; //then nothing to do
+
+    if(!game["suddendeath"] && isOvertime()) //if in ot
+    {
+        checkOTScoreLimit();
+        return;
+    }
 	
 	if([[level.getVars]]("scr_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
 		return; //nothing to do in that case
 		
-	if([[level.getVars]]("scr_score_rounds"))
-	{ //init team scores if scoring rounds
-		alliedscore = level.alliedscore;
-		axisscore = level.axisscore;
-	}
-	else
-	{ //init teamscores if not scoring rounds
-		alliedscore = game["alliedscore"];
-		axisscore = game["axisscore"];
-	}	
+	alliedscore = getAlliesTeamScore();
+    axisscore = getAxisTeamScore();
+
 	doHalftime = false; //init doHalftime flag 
 	
 	if(game["suddendeath"]) //if suddendeath overtime
@@ -188,26 +199,26 @@ checkScoreLimit()
 	if(level.mapended) //if map already ended
 		return; //nothing to do
 		
-	if(game["roundbased"]) //if game is round based
+	if(game["roundbased"] && [[level.getVars]]("scr_score_rounds")) //if game is round based
 	{
 		if(!level.roundended) //and round hasn't ended
 			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
 			
-		if(![[level.getVars]]("scr_roundreset") && !level.uox_teamplay) //if not reseting scores and a free for all game 
+		if(![[level.getVars]]("scr_roundreset") && (!level.uox_teamplay || level.objective == "bel")) //if not reseting scores and a free for all game 
 		{	//free for all kills are the score so the game ends when score limit is reached
 			level.mapended = true; //set map as ended
 			level.roundended = true; //set round as ended
 			players[i].pers["roundswon"] = players[i].score;	
 			game["roundsplayed"]++;
 			wait 5; //wait five seconds before ending round
-			maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
+			//maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
 	
 			level thread endMap(); //end map
 			return;
 		}	//if resetting scores do regular end round shenanigans.
 		if(level.uox_teamplay && level.objective != "bel") //if team game
 		{	//if allies are over the score limit
-			if(level.alliedscore >= [[level.getVars]]("scr_scorelimit"))
+			if(alliedscore >= [[level.getVars]]("scr_scorelimit"))
 				endRound("allies"); //end round in allies favor
 			else //if allies didn't end the round, then axis must have
 				endRound("axis"); //end round in axis favor
@@ -219,8 +230,98 @@ checkScoreLimit()
 
 	level.mapended = true; //set map as ended
 	iprintln(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
-	level thread endMap(); //end map
+	level thread endMap(true); //end map
 	
+}
+
+checkOTScoreLimit()
+{
+    if([[level.getVars]]("scr_ot_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
+		return; //nothing to do in that case
+		
+	alliedscore = getAlliesTeamScore();
+    axisscore = getAxisTeamScore();
+
+	doHalftime = false; //init doHalftime flag 
+	
+	
+    if(level.uox_teamplay && level.objective != "bel") //if team game
+    {	//if one team has reached the halfscore and game is in the first half
+        if([[level.getVars]]("scr_halftime")
+           && (alliedscore >= level.halfscore || axisscore >= level.halfscore) 
+           && game["half"] == 1)
+        {	//if game is roundbased and both teams are less than the scorelimit and not scoring rounds
+            if(game["roundbased"] && alliedscore < [[level.getVars]]("scr_ot_scorelimit")
+                && axisscore < [[level.getVars]]("scr_ot_scorelimit") 
+                && ![[level.getVars]]("scr_score_rounds"))
+                    doHalftime(true);	//doHalftime
+        }
+        //if both teams or below the scorelimit
+        if(alliedscore < [[level.getVars]]("scr_ot_scorelimit")
+            && axisscore < [[level.getVars]]("scr_ot_scorelimit"))
+            return; //nothing to do
+    }
+    else //if free for all game
+    {
+        players = getentarray("player", "classname"); //get players
+        for(i = 0; i < players.size; i++) //loop players
+        {	//if current player score is greater than halfscore and game is in the first half
+            if([[level.getVars]]("scr_halftime") && players[i].score >= level.halfscore 
+            && game["half"] == 1 && players[i].score < [[level.getVars]]("scr_ot_scorelimit"))
+            {	//if not scoring rounds and game is round based
+                if(![[level.getVars]]("scr_score_rounds") && game["roundbased"])
+                    doHalftime = true; //set doHalftime flag
+            }
+            
+            if(players[i].score >= [[level.getVars]]("scr_ot_scorelimit")) //if current player is over the scorelimit
+                break; //exit the loop
+        }
+
+        if(i >= players.size) //if loop fully completed
+        {	//if doHalftime is true
+            if(doHalftime)
+                doHalftime(true); //do halftime
+            return; //nothing left to do
+        }
+    }
+	
+	
+	//Loop exited early, because a player reached score limit
+	if(level.mapended) //if map already ended
+		return; //nothing to do
+		
+	if(game["roundbased"] && [[level.getVars]]("scr_score_rounds")) //if game is round based
+	{
+		if(!level.roundended) //and round hasn't ended
+			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
+			
+		if(![[level.getVars]]("scr_roundreset") && (!level.uox_teamplay || level.objective == "bel")) //if not reseting scores and a free for all game 
+		{	//free for all kills are the score so the game ends when score limit is reached
+			level.mapended = true; //set map as ended
+			level.roundended = true; //set round as ended
+			players[i].pers["roundswon"] = players[i].score;	
+			game["roundsplayed"]++;
+			wait 5; //wait five seconds before ending round
+			//maps\mp\uox\_uox_hud::createHUDEndRoundScore([[level.getVars]]("sv_endRoundScoreboardTime"), true, false); //create game over scoreboard
+	
+			level thread endMap(); //end map
+			return;
+		}	//if resetting scores do regular end round shenanigans.
+		if(level.uox_teamplay && level.objective != "bel") //if team game
+		{	//if allies are over the score limit
+			if(alliedscore >= [[level.getVars]]("scr_ot_scorelimit"))
+				endRound("allies"); //end round in allies favor
+			else //if allies didn't end the round, then axis must have
+				endRound("axis"); //end round in axis favor
+		}
+		else //if free for all game
+			endRound("deathmatch");	//end round in deathmatch mode
+		return; //let endRound take over
+	}
+
+	level.mapended = true; //set map as ended
+	iprintln(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit reached
+	level thread endMap(true); //end map
 }
 
 /* *************************************************************************************************
@@ -231,16 +332,18 @@ checkScoreLimit()
 **** loads next map
 **** 
 ************************************************************************************************* */
-endMap()
+endMap(make_announcement)
 {
-	
+
 	if(!level.didFinalKillcam)
 	{
 		level notify("postround");
 		level waittill("end_finalkillcam");
 	}
-	game["state"] = "intermission"; //sets game to intermission
-	level notify("intermission"); //send intermission notify
+
+    //clamp rounds played to at least one (have to play a round to end the match)
+	if(game["roundsplayed"] < 1)
+        game["roundsplayed"] = 1;
 	
 	if(isdefined(level.bombs)) //for objective modes, disable bomb tick
 	{
@@ -250,6 +353,10 @@ endMap()
 			level.bombs["B"] stopLoopSound();
 	}
 	
+    //lock players in place
+	level.playerlock = true;
+	level thread lockPlayersInPlace();
+
 	winners = ""; //init winner string
 	losers = ""; //init loser string
 	logToPrintW = ""; //init log print W string
@@ -259,12 +366,12 @@ endMap()
 	//Determine Winner
 	if(level.uox_teamplay) //if team game
 	{
-		if(game["alliedscore"] == game["axisscore"]) //if score is tied
+		if(getAlliesTeamScore() == getAxisTeamScore()) //if score is tied
 		{	//set scoreboard text to tie and winner to draw
 			text = &"MPSCRIPT_THE_GAME_IS_A_TIE";
 			winner = "draw";
 		}
-		else if(game["alliedscore"] > game["axisscore"]) //if allies have more points than axis
+		else if(getAlliesTeamScore() > getAxisTeamScore()) //if allies have more points than axis
 		{ //set scoreboard text to allies win and winner to allies
 			text = &"MPSCRIPT_ALLIES_WIN";
 			winner = "allies";
@@ -274,7 +381,24 @@ endMap()
 			text = &"MPSCRIPT_AXIS_WIN";
 			winner = "axis";
 		}
+
+        if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundreset"))
+		{	//if scoring rounds over kills
+			resetPlayerScores(); //reset scores
+
+			players = getentarray("player", "classname"); //get players
+			for(i = 0; i < players.size; i++) //loop players
+			{
+				player = players[i]; //current player
+				player.score = player.pers["totalscore"]; //set score to rounds won
+                player.deaths = player.pers["deaths"];
+			}
+		}
+        if(!isDefined(make_announcement))
+            make_announcement = false;
+        level thread maps\mp\uox\_uox_hud::makeVictoryAnnouncement(winner, make_announcement);
 		
+        maps\mp\uox\_uox_hud::createHUDEndRoundScore(5, true, false); //create game over scoreboard
 	}
 	else //if free for all game
 	{
@@ -296,8 +420,9 @@ endMap()
 		}		
 	}
 	
-	
-	
+    game["state"] = "intermission"; //sets game to intermission
+	level notify("intermission"); //send intermission notify
+    
 	players = getentarray("player", "classname"); //get players
 	for(i = 0; i < players.size; i++) //loop through players
 	{
@@ -530,11 +655,11 @@ checkTimeLimit()
 				incrementTeamScore(game["defenders"], level.defense_points);
 				endRound(game["defenders"]);
 			}
-			else if(level.alliedscore == level.axisscore)
+			else if(getAlliesTeamScore() == getAxisTeamScore())
 			{	//round was a tie
 					endRound("draw");
 			} //if allies have more score than axis
-			else if(level.alliedscore > level.axisscore)
+			else if(getAlliesTeamScore() > getAxisTeamScore())
 			{	//allies won the round
 				endRound("allies");
 			} //otherwise axis scored more than allies
@@ -595,11 +720,11 @@ startRoundTimer(timer, doGracePeriod)
 			incrementTeamScore(game["defenders"], level.defense_points);
 			endRound(game["defenders"]);
 		}
-		else if(level.alliedscore == level.axisscore)
+		else if(getAlliesTeamScore() == getAxisTeamScore())
 		{	//round was a tie
 				endRound("draw");
 		} //if allies have more score than axis
-		else if(level.alliedscore > level.axisscore)
+		else if(getAlliesTeamScore() > getAxisTeamScore())
 		{	//allies won the round
 			endRound("allies");
 		} //otherwise axis scored more than allies
@@ -629,6 +754,9 @@ startRound()
 	if ( !game["matchstarted"] )
 		return;
 		
+    //DO STRAT TIME HERE
+
+
 	//set roundstarted flag
 	level.roundstarted = true;
 	
@@ -647,7 +775,10 @@ startRound()
 	}
 	else//otherwise
 	{	//set time to the round time limit
-		timer = level.roundlength * 60;
+        if(isOvertime()) //if in ot
+            timer = level.ot_roundlength * 60;
+        else
+            timer = level.roundlength * 60;
 	}
 	
 	level startRoundTimer(timer, true);
@@ -727,8 +858,12 @@ checkMatchStart()
 **** for all games, draw, or reset. doKillcam flag is to specify whether to wait for a final killcam
 **** 
 ************************************************************************************************* */
-endRound(roundwinner)
+endRound(roundwinner, numRoundWins)
 {
+
+    if(!isDefined(numRoundWins))
+        numRoundWins = 1;
+
 	//overtime check for single round games
 	if(roundwinner == "deathmatch" && [[level.getVars]]("scr_roundlimit") == 1
 		&& [[level.getVars]]("scr_overtime") && checkTie(false)) //if tied and a single round game
@@ -775,7 +910,7 @@ endRound(roundwinner)
 		players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_allies_win"); //make audio announcement
-		game["alliesRoundsWon"]++;
+		game["alliesRoundsWon"] += numRoundWins;
 		//increment allied score
 		if([[level.getVars]]("scr_score_rounds"))
 		{
@@ -790,7 +925,7 @@ endRound(roundwinner)
 		for(i = 0; i < players.size; i++) //loop players
 			players[i] playLocalSound("MP_announcer_axis_win"); //make audio announcement
 		//increment axis score
-		game["axisRoundsWon"]++;
+		game["axisRoundsWon"] += numRoundWins;
 		if([[level.getVars]]("scr_score_rounds"))
 		{
 			game["axisscore"] = game["axisRoundsWon"];
@@ -807,8 +942,12 @@ endRound(roundwinner)
 		setTeamScore("allies", game["alliedscore"]); //set team score
 	}
 	
-//	if(!isDefined([[level.getVars]]("scr_killcam")Failsafe))
-//		level thread maps\mp\uox\_uox_killcam::killcam_failsafe();
+    if(game["matchstarted"])
+    {
+        if( ([[level.getVars]]("scr_countdraws") && roundwinner == "draw")
+            || (roundwinner != "draw" && roundwinner != "half") )
+            game["roundsplayed"]++;
+    }	
 
 	maps\mp\uox\_uox_hud::updateServerScoreboard();
 	wait 5; //wait five seconds before ending round
@@ -821,16 +960,16 @@ endRound(roundwinner)
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round1team1score"]++; //increment team 1 score for the half
+				game["round1team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round1team2score"]++; //increment team 2 score for the half
+				game["round1team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 		else //if 2nd Half
 		{
 			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round2team1score"]++; //increment team 1 score for the half
+				game["round2team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round2team2score"]++; //increment team 2 score for the half
+				game["round2team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 		//get players
 		players = getentarray("player", "classname");
@@ -844,26 +983,7 @@ endRound(roundwinner)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "axis"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
 		}
-/*		if(level.clutchsituation["allies"])
-		{
-			lpattackname = level.clutchplayer["allies"].name;
-			lpattackerteam = "allies";
-			lpattackguid = level.clutchplayer["allies"] getGuid();
-			lpattacknum = level.clutchplayer["allies"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_clutch" + "\n");
-			iprintln("ROUND CLUTCH: " + lpattackname);
-		}
-		
-		if(level.acesituation["allies"])
-		{
-			lpattackname = level.aceplayer["allies"].name;
-			lpattackerteam = "allies";
-			lpattackguid = level.aceplayer["allies"] getGuid();
-			lpattacknum = level.aceplayer["allies"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_ace" + "\n");
-			iprintln("ROUND ACE: " + lpattackname);
-		}
-*/
+
 		logPrint("RW;allies;" + winners + "\n"); //print round win to log
 		logPrint("RL;axis;" + losers + "\n");	 //print round loss to log
 	}
@@ -872,16 +992,16 @@ endRound(roundwinner)
 		if(game["half"] % 2) //if 1st Half
 		{
 			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round1team1score"]++; //increment team 1 score for the half
+				game["round1team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round1team2score"]++; //increment team 2 score for the half
+				game["round1team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 		else //if 2nd Half
 		{
 			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round2team1score"]++; //increment team 1 score for the half
+				game["round2team1score"] += numRoundWins; //increment team 1 score for the half
 			else //if team 2 are the allies
-				game["round2team2score"]++; //increment team 2 score for the half
+				game["round2team2score"] += numRoundWins; //increment team 2 score for the half
 		}
 
 		players = getentarray("player", "classname"); //get players
@@ -895,25 +1015,6 @@ endRound(roundwinner)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "allies"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
 		}
-/*		if(level.clutchsituation["axis"])
-		{
-			lpattackname = level.clutchplayer["axis"].name;
-			lpattackerteam = "axis";
-			lpattackguid = level.clutchplayer["axis"] getGuid();
-			lpattacknum = level.clutchplayer["axis"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_clutch" + "\n");
-			iprintln("ROUND CLUTCH: " + lpattackname);
-		}
-		
-		if(level.acesituation["axis"])
-		{
-			lpattackname = level.aceplayer["axis"].name;
-			lpattackerteam = "axis";
-			lpattackguid = level.aceplayer["axis"] getGuid();
-			lpattacknum = level.aceplayer["axis"] getEntityNumber();
-			logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + "sd_ace" + "\n");
-			iprintln("ROUND ACE: " + lpattackname);
-		} */
 		
 		logPrint("RW;axis;" + winners + "\n"); //log round win
 		logPrint("RL;allies;" + losers + "\n");//log round loss
@@ -928,14 +1029,14 @@ endRound(roundwinner)
 		if(!tied) //if game tied flag was not set
 		{
 			winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
-			winner.pers["roundswon"]++; //increment rounds won
+			winner.pers["roundswon"] += numRoundWins; //increment rounds won
 			
 			if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
 			{
 				if(game["half"] % 2) //if game is in 1st Half
-					winner.pers["1HScore"]++; //increment 1st half score rounds won
+					winner.pers["1HScore"] += numRoundWins; //increment 1st half score rounds won
 				else //if game is in second half
-					winner.pers["2HScore"]++; //increment 2nd half score rounds won
+					winner.pers["2HScore"] += numRoundWins; //increment 2nd half score rounds won
 				//get rounds won leader
 				leader = getHighScore(true);
 				if(game["half"] % 2) //if game is in 1st half
@@ -1016,20 +1117,10 @@ endRound(roundwinner)
 
 	//send notify that game is in post round
 	level notify("postround");
-/*	if(doKillcam) //if final killcam flag is set
-	{
-		game["finaldelay"] = (getTime() - game["finaldelay"]) / 1000; //get how long ago the killcam was
-		level waittill("final_killcam_over"); //wait until kilcam is over
-	}
-*/
+
 	level waittill("end_finalkillcam");
 	if(game["matchstarted"]) //if game is in progress (not pregame)
-	{
-		if( ([[level.getVars]]("scr_countdraws") && (roundwinner == "draw" || tied) )
-			|| (roundwinner != "draw" && roundwinner != "half"))
-			//if draws count or game was not a draw
-			game["roundsplayed"]++; //increment number of rounds played
-				
+	{		
 		if(game["suddendeath"] && !checkTie([[level.getVars]]("scr_score_rounds"))) //if in sudden death and game in not tied
 		{
 			if(level.mapended) //if map already ended
@@ -1042,8 +1133,17 @@ endRound(roundwinner)
 			level thread endMap(); //end map
 			return; //exit
 		}
-		
+		maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkRoundLimit rounds played " + game["roundsplayed"] + " of " + [[level.getVars]]("scr_roundlimit"));
 		checkRoundLimit(); //make sure we haven't hit round limit
+        if(roundwinner == "deathmatch")
+        {
+            maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + winner.score + " of " + [[level.getVars]]("scr_scorelimit"));
+        }
+        else
+        {
+
+            maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + getAlliesTeamScore() + "/" + getAxisTeamScore() + " of " + [[level.getVars]]("scr_scorelimit"));
+        }
 		checkScoreLimit(); //make sure we haven't hit score limit
 	}
 
@@ -1065,7 +1165,7 @@ endRound(roundwinner)
 	{ //if teams are marked to balanced and teambalance is enforced
 		level.lockteams = true; //don't let players switch team
 		level thread maps\mp\gametypes\_teams::TeamBalance(); //start team balance routine
-		level thread maps\mp\uox\_uox_utils::notifyLater("Teams Balanced", 15);
+		level thread maps\mp\uox\_uox_utils::notifyLater("Teams Balanced", 5); //failsafe if team balance takes more than 5 seconds
 		level waittill ("Teams Balanced"); //wait until teams are balanced
 		wait 4; //give us a second to reset
 	}
@@ -1098,6 +1198,8 @@ updateTeamStatus()
     oldvalue["axis"] = level.exist["axis"];		//store alive axis
     level.exist["allies"] = 0; //reset alive allies
     level.exist["axis"] = 0; //reset alive axis
+    level.alive["allies"] = 0; //reset alive allies
+    level.alive["axis"] = 0; //reset alive axis
     oldvalue["2players"] = level.exist["2players"]; //store alive players
     level.exist["2players"] = -1; //reset alive players
 
@@ -1114,6 +1216,8 @@ updateTeamStatus()
             level.exist[player.pers["team"]]++; //increment number of alive players on team
             level.exist["2players"]++; //increment number of alive players in general
 		}
+        if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+            level.alive[player.pers["team"]]++;
 	}
 
     if(level.exist["allies"]) //if allies have players allive
@@ -1126,38 +1230,39 @@ updateTeamStatus()
 	if(level.roundended) //if round already ended
 		return; //nothing else to do, return
 	
-    if([[level.getVars]]("scr_respawn_mode") == "bel") //move players over if spawn type is bel
+    if(level.respawn_mode == "bel") //move players over if spawn type is bel
     {
-        alliesallowed = (level.exist["axis"] * 1.0) / [[level.getVars]]("scr_playerRatio");
+        ratio = [[level.getVars]]("scr_playerRatio");
+        denom = ratio + 1;
+
+        total = level.exist["allies"] + level.exist["axis"];
+
+        // allies = ceil(total / (ratio + 1)), floored at 1.
+        // One allied defender holds up to `ratio` axis, so ratio+1 players
+        // per defender. Depends only on total, so it's a stable fixed point.
+        num = total + denom - 1;
+        alliesallowed = (num - (num % denom)) / denom;   // floor(num/denom) = ceil(total/denom)
         if(alliesallowed < 1)
             alliesallowed = 1;
-        if (level.exist["allies"] == alliesallowed)
-    	{
-    		return;
-    	}
-    	
-    	if (level.exist["allies"] < alliesallowed)
-    	{
-    		randomMoveTeams("axis");
 
-    		if (alliesallowed > 1)
-    			iprintln(&"BEL_ADDING_ALLIED");
+        maps\mp\uox\_uox_debug::debugLog("info","bel check: total="+total+" ratio="+ratio+" allowed="+alliesallowed+" allies="+level.exist["allies"]+" axis="+level.exist["axis"]);
 
-    		return;
-    	}
-    	
-    	if (level.exist["allies"] > (alliesallowed + 1))
-    	{
-    		randomMoveTeams("allies");
-    		iprintln(&"BEL_REMOVING_ALLIED");
-    		return;
-    	}
-    	if ( (level.exist["allies"] > alliesallowed) && (alliesallowed == 1) )
-    	{
-    		randomMoveTeams("allies");
-    		iprintln(&"BEL_REMOVING_ALLIED");
-    		return;
-    	}
+        if(level.exist["allies"] < alliesallowed)
+        {
+            randomMoveTeams("axis");
+            if(alliesallowed > 1)
+                iprintln(&"BEL_ADDING_ALLIED");
+            return;
+        }
+
+        if(level.exist["allies"] > alliesallowed)
+        {
+            randomMoveTeams("allies");
+            iprintln(&"BEL_REMOVING_ALLIED");
+            return;
+        }
+
+        return;
     }
 
 	if(level.uox_teamplay) //if  team game
@@ -1275,7 +1380,7 @@ checkRoundLimit()
 		return; //nothing to check if no round limit
 	
 	//if rounds played is greater than the round limit, we are in OT
-	if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+	if(isOvertime())
 	{
 		//if the number of rounds over regulation divided by the rounds per OT has a remainder
 		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
@@ -1460,6 +1565,30 @@ checkGameWon(checkRounds, roundScore, roundScoreLimit)
 	}
 }
 
+isOvertime()
+{
+    if(![[level.getVars]]("scr_overtime")) 
+        return false;
+    if([[level.getVars]]("scr_score_rounds"))
+    {
+        roundlimit = [[level.getVars]]("scr_roundlimit");
+
+        if(game["roundsPlayed"] > roundlimit && roundlimit > 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+    else
+    {
+        if(game["suddendeath"])
+            return true;
+        return false;
+    }
+    return false;
+}
+
 getWinningRoundNum(round, roundLimit)
 {
 	roundsRemaining = roundLimit - round;
@@ -1486,6 +1615,7 @@ getWinningRoundNum(round, roundLimit)
 		//set rw2p to the # of rounds won by the second place player
 		if(!isDefined(secondplace)) rwB = 0; else rwB = secondplace.roundsWon;
 	}
+
 	scores = rwA + rwB;
 	return ((roundsRemaining + scores)/2) + 1;
 }
@@ -1499,6 +1629,13 @@ getWinningRoundNum(round, roundLimit)
 ************************************************************************************************* */
 doHalftime(midRound)
 {
+    //final scoreboard update
+    level thread maps\mp\uox\_uox_hud::updateScoreboard();
+
+    level notify("halftime");
+    level.halftime = true;
+
+
 	//if midRound flag isn't set
 	if(!isDefined(midRound))
 		midRound = false;
@@ -1879,6 +2016,30 @@ getTeam2Score()
 		return game["axisscore"];
 }
 
+getAlliesTeamScore()
+{
+    if([[level.getVars]]("scr_score_rounds"))
+	{ //init team scores if scoring rounds
+		return level.alliedscore;
+	}
+	else
+	{ //init teamscores if not scoring rounds
+		return game["alliedscore"];
+	}
+}
+
+getAxisTeamScore()
+{
+    if([[level.getVars]]("scr_score_rounds"))
+	{ //init team scores if scoring rounds
+		return level.axisscore;
+	}
+	else
+	{ //init teamscores if not scoring rounds
+		return game["axisscore"];
+	}
+}
+
 /* *************************************************************************************************
 **** getTeam1Kills()
 ****
@@ -1923,6 +2084,7 @@ setPlayerScore(victim, attacker)
 				
 				attacker.score--;
 				attacker.pers["score"]--;
+                attacker.pers["totalscore"]--;
 				attacker.score = attacker.pers["score"];
 				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
@@ -1939,6 +2101,7 @@ setPlayerScore(victim, attacker)
 			if(victim.pers["team"] == attacker.pers["team"] && level.uox_teamplay) // killed by a friendly
 			{	
 				attacker.pers["score"]--;
+                attacker.pers["totalscore"]--;
 				attacker.score = attacker.pers["score"];
 				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
@@ -1952,6 +2115,9 @@ setPlayerScore(victim, attacker)
 			else
 			{
 				attacker.pers["score"]++;
+                attacker.pers["totalscore"]++;
+                if(isDefined(attacker.hudpoints))
+                    attacker.hudpoints++;
 				attacker.score = attacker.pers["score"];
 				if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 				{
@@ -1967,6 +2133,7 @@ setPlayerScore(victim, attacker)
 	else
 	{
 		victim.pers["score"]--;
+        victim.pers["totalscore"]--;
 		victim.score = attacker.pers["score"];
 		if(![[level.getVars]]("scr_score_rounds")) //if not scoring rounds
 		{
@@ -2018,6 +2185,7 @@ incrementTeamScore(team, val)
 			setTeamScore("allies", game["alliedscore"]);
 		}
 	}
+    thread checkScoreLimit();
 }
 
 // ----------------------------------------------------------------------------------
@@ -2304,7 +2472,13 @@ addBotClients()
 
 		if(isPlayer(ent[i]))
 		{
-			
+            if(level.objective == "bel")
+                ent[i] notify("menuresponse", game["menu_team"], "axis");
+            else
+                ent[i] notify("menuresponse", game["menu_team"], "autoassign");
+            wait 0.5;
+			ent[i] giveBotWeapon();
+            /*
 			if(i & 1)
 			{
 				ent[i] notify("menuresponse", game["menu_team"], "axis");
@@ -2316,7 +2490,8 @@ addBotClients()
 				ent[i] notify("menuresponse", game["menu_team"], "allies");
 				wait 0.5;
 				ent[i] giveBotWeapon();
-			}
+            }
+            */
 		}
 	}
 }
@@ -2435,7 +2610,28 @@ initObjectives(objective)
 			thread maps\mp\uox\_uox_retrievals::retrieval();
 			return;
         case "bel":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
             maps\mp\uox\_uox_behindenemylines::initVars();
+            return;
+        case "radio":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
+            maps\mp\uox\_uox_radios::initVars();
+            maps\mp\uox\_uox_radios::hq_setup();
+            return;
+        case "ctf":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
+            maps\mp\uox\_uox_flags::initVars();
+            thread maps\mp\uox\_uox_flags::ctf();
+            return;
+        case "commandpost":
+            game["attackers"] = undefined;
+			game["defenders"] = undefined;
+            maps\mp\uox\_uox_commandposts::initVars();
+            maps\mp\uox\_uox_commandposts::flag_setup();
+            thread maps\mp\gametypes\_secondary_gmi::SetupSecondaryObjectives();
             return;
 		default:
 			game["attackers"] = undefined;
@@ -2467,6 +2663,15 @@ precacheObjectives(objective)
         case "bel":
             maps\mp\uox\_uox_behindenemylines::precache();
             return;
+        case "radio":
+            maps\mp\uox\_uox_radios::precache();
+            return;
+        case "ctf":
+            maps\mp\uox\_uox_flags::precache();
+            return;
+        case "commandpost":
+            maps\mp\uox\_uox_commandposts::precache();
+            return;
 		default:
 			return;
 	}
@@ -2494,6 +2699,13 @@ disconnectObjectives(objective)
         case "bel":
             self maps\mp\uox\_uox_behindenemylines::check_delete_objective();
             return;
+        case "ctf":
+            // make sure the flag gets dropped
+        	if(isdefined(self.hasflag))
+        	{
+        		self.hasflag maps\mp\uox\_uox_flags::drop_flag(self);
+        	}
+            return;
         default:
 			return;
 	}
@@ -2511,7 +2723,18 @@ spectateObjectives(objective)
 	if(!isDefined(objective))
 		objective = "none";
 
-    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
+    switch(objective)
+    {
+        case "ctf":
+            spectateObjective = "ctf_spec";
+            break;
+        case "commandpost":
+            spectateObject = "commandpost_spec";
+        default:
+            spectateObjective = objective;
+    }
+
+    self setObjectiveText(spectateObjective);
 
 	switch(objective)
 	{
@@ -2540,7 +2763,7 @@ playerSpawnObjectives(objective)
 	if(!isDefined(objective))
 		objective = "none";
 
-    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
+    self setObjectiveText(objective);
 
 	switch(objective)
 	{
@@ -2568,33 +2791,78 @@ getObjectiveText(objective)
 {
 	if(!isDefined(objective))
 		objective = "none";
+
+    array = [];
 	
 	switch(objective)
 	{
 		case "bomb":
 			if(game["attackers"] == "allies")
-				return &"SD_OBJ_SPECTATOR_ALLIESATTACKING";
+				array["text"] = &"SD_OBJ_SPECTATOR_ALLIESATTACKING";
 			else if(game["attackers"] == "axis")
-				return &"SD_OBJ_SPECTATOR_AXISATTACKING";
+				array["text"] = &"SD_OBJ_SPECTATOR_AXISATTACKING";
+            break;
         case "bel":
             if(self.pers["team"] == "allies")
-                return &"BEL_OBJ_ALLIED";
+                array["text"] = &"BEL_OBJ_ALLIED";
             else if(self.pers["team"] == "axis")
-                return &"BEL_OBJ_AXIS";
+                array["text"] = &"BEL_OBJ_AXIS";
+            break;
+        case "radio":
+            array["text"] = &"HQ_OBJ_TEXT";
+            array["value"] = [[level.getVars]]("scr_scorelimit");
+            break;
+        case "ctf":
+            array["text"] = &"GMI_CTF_ATTACKER_OBJECTIVE";
+            break;
+        case "ctf_spec":
+            array["text"] = &"GMI_CTF_SPECTATOR_OBJECTIVE";
+            break;
+        case "commandpost":
+            if(self.pers["team"] == "allies")
+                array["text"] = &"GMI_DOM_OBJ_ALLIES";
+            else
+                array["text"] = &"GMI_DOM_OBJ_AXIS";
+            break;
+        case "commandpost_spec":
+            if(self.pers["team"] == "allies")
+                array["text"] = &"GMI_DOM_OBJ_SPECTATOR_ALLIES";
+            else
+                array["text"] = &"GMI_DOM_OBJ_SPECTATOR_AXIS";
+            break;
 		default:
 			if(level.uox_teamplay)
 			{
 				if(self.pers["team"] == "allies")
-					return &"TDM_KILL_AXIS_PLAYERS";
+					array["text"] = &"TDM_KILL_AXIS_PLAYERS";
 				else if(self.pers["team"] == "axis")
-					return &"TDM_KILL_ALLIED_PLAYERS";
+					array["text"] = &"TDM_KILL_ALLIED_PLAYERS";
 				else
-					return &"TDM_ALLIES_KILL_AXIS_PLAYERS";
+					array["text"] = &"TDM_ALLIES_KILL_AXIS_PLAYERS";
 			}
 			else
-				return &"DM_KILL_OTHER_PLAYERS";
+				array["text"] = &"DM_KILL_OTHER_PLAYERS";
 	}
-	return &"DM_KILL_OTHER_PLAYERS";
+	return array;
+}
+
+/* **************************************************************************************************
+**** setObjectiveText(objective)
+****
+**** sets client cvar for objective text for scoreboard
+****
+*************************************************************************************************** */
+setObjectiveText(objective)
+{
+    array = getObjectiveText(objective);
+
+    text = array["text"];
+    value = array["value"];
+
+    if(isDefined(value))
+        self setClientCvar("cg_objectiveText", text, value);
+    else
+        self setClientCvar("cg_objectiveText", text);
 }
 
 checkObjective()
@@ -2614,20 +2882,6 @@ checkObjective()
 	return true;
 }
 
-spawnPlayerObjective(objective)
-{
-    self setClientCvar("cg_objectiveText", maps\mp\uox\_uox::getObjectiveText(objective));
-
-    switch(objective)
-	{
-        case "bel":
-            self maps\mp\uox\_uox_behindenemylines::check_delete_objective();
-            if(self.pers["team"] == "allies")
-            {
-                self maps\mp\uox\_uox_behindenemylines::make_obj_marker();
-            }
-    }
-}
 numOnTeam()
 {
     numonteam["allies"] = 0;
@@ -2647,14 +2901,8 @@ numOnTeam()
     return numonteam;
 }
 
-moveTeams(auto)
+moveTeams(didkill, reason)
 {
-
-    if(isDefined(auto))
-    {
-        if(randomInt(2))
-            return;
-    }
 
     if (self.pers["team"] == "spectator")
 		return;
@@ -2662,9 +2910,15 @@ moveTeams(auto)
     myteam = self.pers["team"];
 
     if(myteam == "allies")
-        newteam = "axis";
+    {
+            newteam = "axis";
+            alliedsavedmodel = self.pers["savedmodel"];
+    }
     else
-        newteam = "allies";
+    {
+            newteam = "allies";
+            axissavedmodel = self.pers["savedmodel"];
+    }
 
     self.pers["weapon"] = undefined;
     self.pers["weapon1"] = undefined;
@@ -2674,12 +2928,20 @@ moveTeams(auto)
     
     self notify("end_respawn");
     
+    wait 0.05; //wait to let existing threads die
+
     self.pers["team"] = newteam;
     self.sessionteam = newteam;
     self.sessionstate = "spectator";
     self.spectatorclient = -1;
     self.archivetime = 0;
     self.reflectdamage = undefined;
+
+    //Swap Models
+    if ( (isdefined(self.pers["team"]) ) && (self.pers["team"] == "axis") )
+         self.pers["savedmodel"] = axissavedmodel;
+    else if ( (isdefined(self.pers["team"])) && (self.pers["team"] == "allies") )
+        self.pers["savedmodel"] = alliedsavedmodel;
     
     maps\mp\uox\_uox_debug::debugLog("info", self.name + " moving teams from " + myteam + " to " + newteam);
 	
@@ -2689,10 +2951,10 @@ moveTeams(auto)
 		maps\mp\uox\_uox::giveBotWeapon();
 	}
 
-    if([[level.getVars]]("scr_respawn_mode") == "bel")
+    if(level.respawn_mode == "bel")
     {
 		self notify("remove_respawntext");
-        self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN");
+        self maps\mp\uox\_uox_hud::blackoutClientHUD(&"BEL_BLACKSCREEN_WILLSPAWN", didkill, reason);
     }
 
     if(isDefined(self.pers[newteam + "_weapon"])) 
@@ -2782,6 +3044,58 @@ randomMoveTeams(team)
         player moveTeams();
 }
 
+setPlayerIcons(battlerank, drawfriend)
+{
+
+    if(!isDefined(battlerank))
+        battlerank = level.battlerank;
+    if(!isDefined(drawfriend))
+        drawfriend = level.drawfriend;
+
+    if(drawfriend)
+    {
+        // battle rank takes precidence
+        if(battlerank)
+        {
+            self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+            self.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(self);
+            self.headiconteam = self.pers["team"];
+        }
+        else
+        {
+            if(self.pers["team"] == "allies")
+            {
+                self.headicon = game["headicon_allies"];
+                self.headiconteam = "allies";
+            }
+            else if(self.pers["team"] == "axis")
+            {
+                self.headicon = game["headicon_axis"];
+                self.headiconteam = "axis";
+            }
+            else
+            {
+                self.headicon = "";
+            }
+            
+            self.statusicon = "";
+        }
+    }
+    else
+    {
+        if(battlerank)
+        {
+            self.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(self);
+        }
+        else
+        {
+            self.statusicon = "";
+        }
+        self.headicon = "";
+        self.headiconteam = "none";
+    }
+}
+
 /* **************************************************************************************************
 **** updateTimeLimit(float timer)
 ****
@@ -2793,20 +3107,21 @@ updateTimeLimit(timer)
 {
 	gt = level.gametype;
 	setCvar("ui_" + gt + "_timelimit", timer);
+    roundlimit = [[level.getVars]]("scr_roundlimit");
 	game["timepassed"] = 0;
 	if(timer > 0)
 	{
-		//int game timer [[level.getVars]]("scr_timelimit") is in minutes, so is game["timepassed"] convert to seconds; 
+		//game timer [[level.getVars]]("scr_timelimit") is in minutes, so is game["timepassed"] convert to seconds; 
 		//subtract timed pass from time limit to get correct time instead of re-initing the timer after
 		gameTimer = (timer * 60) - (game["timepassed"] * 60); //each round
-		if([[level.getVars]]("scr_roundlimit") == 1) //if game is a single round, set game clock in bottom center
+		if(roundlimit == 1) //if game is a single round, set game clock in bottom center
 			maps\mp\uox\_uox_hud::updateHUDMainClock(gameTimer);
 		else //if game will last multiple rounds then set game clock above the compass
 			maps\mp\uox\_uox_hud::updateHUDCompassClock(gameTimer);
 	}
 	else
 	{
-		if([[level.getVars]]("scr_roundlimit") == 1) //if game is a single round, set game clock in bottom center
+		if(roundlimit == 1) //if game is a single round, set game clock in bottom center
 			maps\mp\uox\_uox_hud::deleteHUDMainClock();
 		else //if game will last multiple rounds then set game clock above the compass
 			maps\mp\uox\_uox_hud::deleteHUDCompassClock();
@@ -2828,9 +3143,7 @@ updateScoreLimit(scorelimit)
 	gt = level.gametype;
 	setCvar("ui_" + gt +"_scorelimit", scorelimit);
 
-	players = getentarray("player", "classname");
-	for(i = 0; i < players.size; i++)
-		players[i] maps\mp\uox\_uox::checkScoreLimit();
+	checkScoreLimit();
 }
 
 /* **************************************************************************************************
@@ -2842,6 +3155,7 @@ updateScoreLimit(scorelimit)
 *************************************************************************************************** */
 updateKillcam(enableKillcam)
 {
+
 	if(enableKillcam)
 		setarchive(true);
 	else if([[level.getVars]]("scr_final_killcam"))
@@ -2890,75 +3204,24 @@ updateBattleRank(battlerank)
 		drawfriend = [[level.getVars]]("scr_drawfriend");
 	else
 		drawfriend = false;
-	
+    
 	// battle rank has precidence over draw friend
 	if(battlerank > 0)
-	{	//if rank change check is not in loop, add it
+		//if rank change check is not in loop, add it
 		maps\mp\uox\_uox_loops::addToLoop(level, "slow",
 				maps\mp\gametypes\_rank_gmi::CheckPlayersForRankChanges, "CheckPlayersForRankChanges");
-				
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				// setup the hud rank indicator
-				player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
-
-				player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
-				if ( drawfriend )
-				{
-					player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
-					player.headiconteam = player.pers["team"];
-				}
-				else
-				{
-					player.headicon = "";
-				}
-			}
-		}
-	}
-	else if(drawfriend)
-	{
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				if(player.pers["team"] == "allies")
-				{
-					player.headicon = game["headicon_allies"];
-					player.headiconteam = "allies";
-				}
-				else
-				{
-					player.headicon = game["headicon_axis"];
-					player.headiconteam = "axis";
-				}
-			}
-		}
-	}
-	else
-	{
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-				player.headicon = "";
-				player.statusicon = "";
-		}
-	}
+	
+    players = getentarray("player", "classname");
+    for(i = 0; i < players.size; i++)
+    {
+        player = players[i];
+        
+        player setPlayerIcons(battlerank, drawfriend);
+    }
+	
 	if(battlerank == 0)
 	{
-		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "CheckPlayersForRankChanges");
+		maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "checkPlayersForRankChanges");
 	}
 }
 
@@ -2975,71 +3238,16 @@ updateDrawFriend(drawfriend)
 		return;
 	else
 		battlerank = [[level.getVars]]("scr_battlerank");
-	
+    
 	level.drawfriend = drawfriend;
-	
-	// battle rank has precidence over draw friend
-	if(battlerank > 0)
-	{
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				// setup the hud rank indicator
-				player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
 
-				player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
-				if ( drawfriend )
-				{
-					player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
-					player.headiconteam = player.pers["team"];
-				}
-				else
-				{
-					player.headicon = "";
-				}
-			}
-		}
-	}
-	else if(drawfriend)
-	{
-		// for all living players, show the appropriate headicon
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-			{
-				if(player.pers["team"] == "allies")
-				{
-					player.headicon = game["headicon_allies"];
-					player.headiconteam = "allies";
-				}
-				else
-				{
-					player.headicon = game["headicon_axis"];
-					player.headiconteam = "axis";
-				}
-			}
-		}
-	}
-	else
-	{
-		players = getentarray("player", "classname");
-		for(i = 0; i < players.size; i++)
-		{
-			player = players[i];
-			
-			if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
-				player.headicon = "";
-				player.statusicon = "";
-		}
-	}
+    players = getentarray("player", "classname");
+    for(i = 0; i < players.size; i++)
+    {
+        player = players[i];
+        
+        player setPlayerIcons(battlerank, drawfriend);
+    }
 }
 
 /* **************************************************************************************************
@@ -3077,7 +3285,7 @@ updateTeamBalance(teamBalance)
 			
 	if(teamBalance)
 	{
-		if(game["roundbased"])
+		if(game["roundbased"] && [[level.getVars]]("scr_reinforcements") == 1)
 		{
 			maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "TeamBalance_Check");
 			level thread maps\mp\gametypes\_teams::TeamBalance_Check_Roundbased();

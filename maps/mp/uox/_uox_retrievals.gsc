@@ -204,7 +204,7 @@ retrieval_think(other) //each objective model runs this to find it's trigger and
 
     objective = self.objective;
 
-    if(!game["matchstarted"] || level.roundended || level.mapended)
+    if(!game["matchstarted"] || level.roundended || level.mapended || level.halftime)
         return;
 
     if((isPlayer(other)) && (other.pers["team"] == game["re_attackers"]))

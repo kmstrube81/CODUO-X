@@ -124,6 +124,46 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 }
 
 /* *************************************************************************************************
+**** updateCvar(string prefix, string varname, mixedType value)
+****
+**** sets the stock, gametype, and map cvar all to the specified value
+****
+************************************************************************************************** */
+updateCvar(prefix, varname, value, gt, map)
+{
+    if(!isDefined(gt) && !isDefined(map)) { gt = getCvar("g_gametype"); map = getCvar("mapname"); setGTMap = true; setMap = true; setGT = true; setAll = true; }
+    else if(!isDefined(gt) && isDefined(map)) { gt = getCvar("g_gametype"); setGTMap = true; setGT = true; setMap = true; setAll = false; }
+	else if(!isDefined(map) && isDefined(gt)) { map = getCvar("mapname"); setGTMap = true; setMap = true; setGT = true; setAll = false; }
+    else { setGTMap = true; setMap = false; setGT = false; setAll = false; }
+
+    if(setGTMap)
+    {
+        cvar = prefix + "_" + gt + "_" + varname + "_" + map;
+        setCvar(cvar, value);
+    }
+
+    if(setMap)
+    {
+        cvar = prefix + "_" + varname + "_" + map;
+        setCvar(cvar, value);
+    }
+
+    if(setGT)
+    {
+        cvar = prefix + "_" + gt + "_" + varname;
+        setCvar(cvar, value);
+    }
+
+    if(setAll)
+    {
+        cvar = prefix + "_" + varname;
+        setCvar(cvar, value);
+    }
+
+    return value;
+}
+
+/* *************************************************************************************************
 **** monitorVar(string prefix, string varname, string type, string hrName (optional) )
 ****
 **** adds variable to monitor loop to 
@@ -229,6 +269,10 @@ initGameTypeVars()
 
 	varDef("scr", "scorelimit", "int", true,
 								50, 0, undefined, "Score Limit", maps\mp\uox\_uox::updateScoreLimit);
+
+    varDef("scr", "ot_scorelimit", "int", true,
+								1, 0, undefined, "Score Limit", maps\mp\uox\_uox::checkOTScoreLimit);
+
 	setCvar("ui_" + gt + "_scorelimit", [[level.getVars]]("scr_scorelimit"));
 	makeCvarServerInfo("ui_" + gt + "_scorelimit", "50");
 	
@@ -237,13 +281,13 @@ initGameTypeVars()
 	makeCvarServerInfo("ui_" + gt + "_roundlimit", 1);
 	
 	level.roundlength = varDef("scr", "roundlength", "float", true, 2.5, 0, 60, "Round Length");
-	setCvar("ui_dm_roundlength", [[level.getVars]]("scr_roundlength"));
-	makeCvarServerInfo("ui_dm_roundlength", "30");
+	setCvar("ui_" + gt + "_roundlength", [[level.getVars]]("scr_roundlength"));
+	makeCvarServerInfo("ui_" + gt + "_roundlength", "30");
 	
 	varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
 
-	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset");
-	varDef("scr", "score_rounds", "bool", true, false, undefined, undefined, "Score Round Wins");
+	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset"); //clear scores in between rounds
+	varDef("scr", "score_rounds", "bool", true, false, undefined, undefined, "Score Round Wins"); //game score is round wins, not objective points
 	varDef("scr", "countdraws", "bool", true, true, undefined, undefined, "Count Draws");
 
 	varDef("scr", "warmupmode", "int", true, 0, 0, 2, "Warmup Mode");
@@ -251,8 +295,9 @@ initGameTypeVars()
 	varDef("scr", "autoreadytime", "int", true, 0, 0, undefined, "Auto-Ready Timer");
 	varDef("scr", "halftime", "bool", true, false, undefined, undefined, "Halftime");
 	varDef("scr", "overtime", "bool", true, false, undefined, undefined, "Overtime");
-	varDef("scr", "ot_roundlimit", "int", true, 1, 0, undefined, "Overtime Rounds");
-	
+	varDef("scr", "ot_roundlimit", "int", true, 1, 1, undefined, "Overtime Rounds");
+	level.ot_roundlength = varDef("scr", "ot_roundlength", "float", true, 2.5, 0, 60, "OT Round Length");
+
 	game["roundbased"] = false;
 	if([[level.getVars]]("scr_roundlimit") != 1)
 		game["roundbased"] = true;
@@ -261,7 +306,10 @@ initGameTypeVars()
 	else if([[level.getVars]]("scr_halftime") > 0)
 		game["roundbased"] = true;
 	
-	switch([[level.getVars]]("scr_respawn_mode"))
+
+	varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
+
+	switch(level.respawn_mode)
 	{
 		case "spawndelay":
 			varDef("scr", "spawn_delay_time", "int", true, 7, 1, 60, "Delayed Spawn Timer");
@@ -269,19 +317,27 @@ initGameTypeVars()
 		case "forcerespawn":
 		case "obj":
 		case "dm":
-			varDef("scr", "forcerespawn", "int", true, 0, 0, 60, "Force Respawn");
 			break;
 		case "wave":
 			varDef("scr", "respawn_wave_time", "int", true, 7, 1, 60, "Respawn Wave Timer");
 			break;
         case "bel":
-            varDef("scr", "forcerespawn", "int", true, 0, -1, 60, "Force Respawn");
             varDef("scr", "spawn_delay_time", "int", true, 7, 1, 60, "Delayed Spawn Timer");
             varDef("scr", "playerRatio", "int", true, 1, 1, 10, "Axis to Allies Ratio");
+            break;
+        case "hq":
+            if(!isDefined(level.wavetime))
+                level.wavetime = varDef("scr", "wavetimer", "int", true,
+                                    60, 3, 120, "Wave Timer", maps\mp\uox\_uox_respawns::updateWaveTimer);
+            level maps\mp\uox\_uox_respawns::updateWaveTimer(level.wavetime);
+            level.defenseTeam = "none";
+            level.wavenumber = 0;
             break;
 	}
 	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
 	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
+    varDef("scr", "forcerank", "int", true, 0, 0, 99, "Force Battle Rank Level");
+    varDef("scr", "rank_ppr", "int", true, 10, 0, 99, "Points Per Rank");
 	makeCvarServerInfo("ui_battlerank", "0");
 	//needed for compatibility with built in UO battlerank
 	level.battlerank = [[level.getVars]]("scr_battlerank");
@@ -325,9 +381,10 @@ initGameTypeVars()
     		level.teambalance = varDef("scr", "teambalance", "bool", true,
     										true, undefined, undefined, "Team Balance", 
     										maps\mp\uox\_uox::updateTeamBalance);
-    		if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
-    			maps\mp\uox\_uox_loops::addToLoop(level, "slow",
-    					maps\mp\uox\_uox::TeamBalance_Check(), "TeamBalance_Check");
+            maps\mp\uox\_uox::updateTeamBalance(level.teambalance);
+    		//if(level.teambalance && (!game["roundbased"] || [[level.getVars]]("scr_roundlimit") == 1))
+    			//maps\mp\uox\_uox_loops::addToLoop(level, "slow",
+    				//	maps\mp\uox\_uox::TeamBalance_Check(), "TeamBalance_Check");
         }
 		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");
 		
@@ -336,12 +393,14 @@ initGameTypeVars()
 		varDef("scr", "spectateenemy", true, true, undefined, undefined, "Spectate Enemy Team",
 					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
 	}
-	
+	varDef("g", "deadChat", "bool", true, true, undefined, undefined, "Dead Chat");
+
 	//define scoreboard vars
 	varDef("sv", "showScoreboard", "bool", true, true);
 	varDef("sv", "showScoreboardScoreLimit", "bool", true, true);
 	varDef("sv", "showPlayersLeft", "bool", true, true);
 	varDef("sv", "endRoundScoreboardTime", "int", true, 7, 3, 15);
+    varDef("sv", "showEndRoundScoreboard", "bool", true, true);
 	
 	//define enforce client cvars
 	varDef("sv", "enforcedClientCvars", "string", false, "");

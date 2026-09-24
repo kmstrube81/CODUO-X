@@ -7,6 +7,7 @@ precache()
 	game["startingText"] = &"Starting";
 	game["resumingText"] = &"Resuming";
 	game["respawnText"] = &"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN";
+    game["skipKillcamText"] = &"MPSCRIPT_PRESS_ACTIVATE_TO_SKIP";
 	game["killcamText"] = &"MPSCRIPT_KILLCAM";
     game["finalKillcamText"] = &"FINAL KILLCAM";
 	game["alliesWinText"] = &"MPSCRIPT_ALLIES_WIN";
@@ -44,7 +45,7 @@ precache()
 	game["switchWaitText"] = &"Please wait";
 	game["axisScoreText"] = &"AXIS SCORE";		
 	game["alliesScoreText"] = &"ALLIES SCORE";
-    if(!level.uox_teamplay) {
+    if(!level.uox_teamplay || level.objective == "bel") {
         game["leaderText"] = &"LEADER";
         game["youText"] = &"YOU";
     }
@@ -56,6 +57,12 @@ precache()
 	game["1HScoresText"] = &"1st Half Scores:";
 	game["2HScoresText"] = &"2nd Half Scores:";
 	game["matchScoreText"] = &"Match Scores:";
+
+    game["axisleftText"] = &"AXIS ALIVE: ";	
+	game["alliesleftText"] = &"ALLIES ALIVE: ";
+
+    game["reinforcementsText"] = &"HQ_REINFORCEMENTS_HUD";
+    game["reinforcementsMsg"] = &"HQ_REINFORCEMENTS";
 
     /* //<-- Remove this and cntr H all references above for free script variable save
     precacheString(&"Round");
@@ -81,6 +88,7 @@ precache()
 	precacheString(game["startingText"]);
 	precacheString(game["resumingText"]);
 	precacheString(game["respawnText"]);
+    precacheString(game["skipKillcamText"]);
 	precacheString(game["killcamText"]);
 	precacheString(game["finalKillcamText"]);
 	precacheString(game["alliesWinText"]);
@@ -95,6 +103,7 @@ precache()
 	precacheString(game["livesText"]);
 	precacheString(game["dividerText"]);
 	precacheString(game["warmupText"]);
+    precacheString(game["waitingText"]);
 	precacheString(game["allreadyText"]);
 	
 	precacheString(game["readyText"]);
@@ -135,9 +144,24 @@ precache()
 	precacheString(&"BEL_PRESS_TO_RESPAWN");
 	precacheString(&"BEL_WONTBE_ALLIED");
 	precacheString(&"BEL_BLACKSCREEN_KILLEDALLIED");
-	precacheString(&"BEL_BLACKSCREEN_WILLSPAWN");			
+	precacheString(&"BEL_BLACKSCREEN_WILLSPAWN");
 
-    if(!level.uox_teamplay) {
+    precacheString(&"num_0");
+    precacheString(&"num_1");
+    precacheString(&"num_2");
+    precacheString(&"num_3");
+    precacheString(&"num_4");
+    precacheString(&"num_5");
+    precacheString(&"num_6");
+    precacheString(&"num_7");
+    precacheString(&"num_8");
+    precacheString(&"num_9");
+    
+    precacheString(game["reinforcementsText"]);
+    precacheString(game["axisleftText"]);
+    precacheString(game["alliesleftText"]);			
+
+    if(!level.uox_teamplay || level.objective == "bel") {
         precacheString(game["leaderText"]);
         precacheString(game["youText"]);
 
@@ -149,15 +173,27 @@ precache()
 	{
 		case "american":
 			game["headicon_allies"] = "gfx/hud/headicon@american.tga";
+
+            game["sound_allies_victory_vo"] = "MP_announcer_allies_win";
+            game["sound_allies_victory_music"] = "us_victory";
 			break;
 		case "british":
 			game["headicon_allies"] = "gfx/hud/headicon@british.tga";
+
+            game["sound_allies_victory_vo"] = "MP_announcer_allies_win";
+            game["sound_allies_victory_music"] = "uk_victory";
 			break;
 		case "russian":
 			game["headicon_allies"] = "gfx/hud/headicon@russian.tga";
+
+            game["sound_allies_victory_vo"] = "MP_announcer_allies_win";
+            game["sound_allies_victory_music"] = "ru_victory";
 			break;
 	}
 	game["headicon_axis"] = "gfx/hud/headicon@german.tga";
+
+    game["sound_axis_victory_vo"] = "MP_announcer_axis_win";
+	game["sound_axis_victory_music"] = "ge_victory";
 	precacheShader(game["headicon_allies"]);
 	precacheShader(game["headicon_axis"]);
 
@@ -170,6 +206,23 @@ precache()
 	precacheStatusIcon("gfx/hud/hud@status_connecting.tga");
 	precacheShader("black");
 	precacheShader("white");
+
+    //victory assets
+    if ( !isDefined( game["hud_allies_victory_image"] ) )
+        game["hud_allies_victory_image"] = "gfx/hud/allies_win";
+    if ( !isDefined( game["hud_axis_victory_image"] ) )
+        game["hud_axis_victory_image"] = "gfx/hud/axis_win";
+    precacheShader(game["hud_allies_victory_image"]);
+    precacheShader(game["hud_axis_victory_image"]);
+
+    //logos
+    if(isDefined(game["headerR"]))
+        precacheString(game["headerR"]);
+    if(isDefined(game["headerL"]))
+        precacheString(game["headerL"]);
+    if(isDefined(game["serverlogo"]))
+        precacheString(game["serverlogo"]);
+
 }
 
 initClientHUD()
@@ -198,6 +251,17 @@ getClientHUDElement(name)
 	return maps\mp\uox\_uox_arrays::getValue(self.uox_hud, name);
 }
 
+updateClientHUDElementProperty(name, property, value)
+{
+    element = getClientHUDElement(name);
+	
+	if(!isDefined(element))
+        return;
+
+    updateHUDElementProperty(element, property, value);
+
+    return element;
+}
 updateClientHUDElement(name, type, value, options)
 {
 	element = getClientHUDElement(name);
@@ -232,6 +296,14 @@ updateClientHUDElement(name, type, value, options)
 			height = options["height"];
 		else
 			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
 		if(isDefined(options["archived"]))
 			element.archived = options["archived"];
 		if(isDefined(options["sort"]))
@@ -256,7 +328,7 @@ updateClientHUDElement(name, type, value, options)
 			element setValue(value);
 			break;
 		case "shader":
-			element setShader(value, width, height);
+			element setShader(value, width, height, crop_width, crop_height);
 			break;
 		default:
 			element setText(value);
@@ -285,24 +357,34 @@ deleteClientHUDElement(name)
 	self.uox_hud = maps\mp\uox\_uox_arrays::removeArrayKey(self.uox_hud, name);
 }
 
-animateClientHUDElement(name, type, options)
+animateClientHUDElement(name, type, options, time)
 {
 	//get hud element
 	element = getClientHUDElement(name);
 	
 	if(!isDefined(element)) //nothing to animate if no hudelement exists
 		return;
+	if(!isDefined(time))
+		time = 0;
+
+	animateHUDElement(element, type, options, time);
+}
+
+animateHUDElement(element, type, options, time)
+{
+    if(!isDefined(element)) //nothing to animate if no hudelement exists
+		return;
 	
-	//process options
+	if(!isDefined(time))
+		time = 0;
+
+    //process options
 	if(isDefined(options))
 	{
 		if(isDefined(options["x"]))
 			x = options["x"];
 		if(isDefined(options["y"]))
 			y = options["y"];
-		if(isDefined(options["time"]))
-			time = options["time"];
-		else time = 0;
 		if(isDefined(options["color"]))
 			color = options["color"];
 		if(isDefined(options["fontscale"]))
@@ -331,7 +413,7 @@ animateClientHUDElement(name, type, options)
 	}
 }
 
-blackoutClientHUD(text, timer, didkill, killtext)
+blackoutClientHUD(text, didkill, killtext)
 {
     options = [];
 
@@ -341,12 +423,8 @@ blackoutClientHUD(text, timer, didkill, killtext)
     options["alignY"] = "middle";
     options["x"] = 320;
     options["y"] = 240;
-    self updateClientHUDElement("blackScreenText1", "text", text, options);
-
-    if(isDefined(timer))
-    {
-        options["y"] = 260;
-        self updateClientHUDElement("blackScreenTimer", "timer", timer, options);
+    if(isDefined(text)) {
+        self updateClientHUDElement("blackScreenText1", "text", text, options);
     }
 	
 	options["sort"] = -2;
@@ -355,19 +433,18 @@ blackoutClientHUD(text, timer, didkill, killtext)
     options["alignY"] = "top";
     options["x"] = 0;
     options["y"] = 0;
-	options["alpha"] = 1;
+    options["alpha"] = 1;
     options["width"] = 640;
     options["height"] = 480;
-    blackscreen = self updateClientHUDElement("blackScreen", "shader", "black", options);
 
-    if(!isDefined(timer))
-        return;
+    blackscreen = self updateClientHUDElement("blackScreen", "shader", "black", options);
 
 	if (isdefined (didkill))
 	{
 		blackscreen = self updateHUDElementProperty(blackscreen, "alpha", 0);
-		self animateClientHUDElement("blackScreen", "fade", timer - 0.5);
-        options["sort"] = -1;
+		self animateClientHUDElement("blackScreen", "fade", options, 1.5);
+        	options["sort"] = -1;
+
 		options["archived"] = false;
 		options["alignX"] = "center";
 		options["alignY"] = "middle";
@@ -402,12 +479,19 @@ destroyClientHUDElement( element )
 	element = undefined;
 }
 
-updateHUDElementProperty(element, property, value)
+updateHUDElementProperty(element, property, value, width, height, crop_width, crop_height)
 {
 	if(!isDefined(element))
-	{
 		return;
-	}
+
+    if(!isDefined(width))
+		width = 16;
+    if(!isDefined(height))
+        height = 16;
+    if(!isDefined(crop_width))
+        crop_width = 1.0;
+    if(!isDefined(crop_height))
+        crop_height = 1.0;
 	
 	switch(property)
 	{
@@ -439,7 +523,25 @@ updateHUDElementProperty(element, property, value)
 			element.sort = value;
 			break;
         case "label":
-            element.lable = value;
+            element.label = value;
+            break;
+        case "timer":
+			element setTimer(value);
+			break;
+        case "tenthsTimer":
+            element setTenthsTimer(value);
+            break;
+        case "timerUp":
+            element setTimerUp(value);
+            break;
+		case "number":
+            element setValue(value);
+			break;
+		case "shader":
+			element setShader(value, width, height, crop_width, crop_height);
+			break;
+		case "text":
+			element setText(value);
             break;
 	}
 	return element;
@@ -480,6 +582,90 @@ updateHUDElement(element, type, value, options)
 			height = options["height"];
 		else
 			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
+        if(isDefined(options["sort"]))
+			element.sort = options["sort"];
+        if(isDefined(options["label"]))
+            element.label = options["label"];
+	}
+	
+	//set value
+	switch(type)
+	{
+		case "timer":
+			element setTimer(value);
+			break;
+        case "tenthsTimer":
+            element setTenthsTimer(value);
+            break;
+        case "timerUp":
+            element setTimerUp(value);
+            break;
+		case "number":
+            element setValue(value);
+			break;
+		case "shader":
+			element setShader(value, width, height, crop_width, crop_height);
+			break;
+		default:
+			element setText(value);
+	}
+	
+	return element;
+}
+
+updateTeamHUDElement(element, team, type, value, options)
+{
+	//create element if it doesn't exist
+	if(!isDefined(element))
+	{
+		element = newTeamHudElem(team);
+	}
+	
+	//process options
+	if(isDefined(options))
+	{
+		if(isDefined(options["x"]))
+			element.x = options["x"];
+		if(isDefined(options["y"]))
+			element.y = options["y"];
+		if(isDefined(options["alignX"]))
+			element.alignX = options["alignX"];
+		if(isDefined(options["alignY"]))
+			element.alignY = options["alignY"];
+		if(isDefined(options["font"]))
+			element.font = options["font"];
+		if(isDefined(options["color"]))
+			element.color = options["color"];
+		if(isDefined(options["fontscale"]))
+			element.fontscale = options["fontscale"];
+		if(isDefined(options["alpha"]))
+			element.alpha = options["alpha"];
+		if(isDefined(options["width"]))
+			width = options["width"];
+		else
+			width = 16;
+		if(isDefined(options["height"]))
+			height = options["height"];
+		else
+			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
+        if(isDefined(options["sort"]))
+			element.sort = options["sort"];
         if(isDefined(options["label"]))
             element.label = options["label"];
 	}
@@ -500,7 +686,7 @@ updateHUDElement(element, type, value, options)
 			element setValue(value);
 			break;
 		case "shader":
-			element setShader(value, width, height);
+			element setShader(value, width, height, crop_width, crop_height);
 			break;
 		default:
 			element setText(value);
@@ -517,47 +703,6 @@ deleteHUDElement(element)
 	element = undefined;
 	
 	return element;
-}
-
-animateHUDElement(element, type, options)
-{
-	if(!isDefined(element)) //nothing to animate if no hudelement exists
-		return;
-	
-	//process options
-	if(isDefined(options))
-	{
-		if(isDefined(options["x"]))
-			x = options["x"];
-		if(isDefined(options["y"]))
-			y = options["y"];
-		if(isDefined(options["time"]))
-			time = options["time"];
-		else time = 0;
-		if(isDefined(options["color"]))
-			color = options["color"];
-		if(isDefined(options["fontscale"]))
-			fontscale = options["fontscale"];
-		if(isDefined(options["alpha"]))
-			alpha = options["alpha"];
-		if(isDefined(options["width"]))
-			width = options["width"];
-		else width = 16;
-		if(isDefined(options["height"]))
-			height = options["height"];
-		else height = 16;
-	}
-	
-	if(time <= 0) //if no timer, nothing to animate
-		return;
-		
-	//do animation
-	switch(type)
-	{
-		case "scaleShader":
-			element scaleOverTime(time, width, height);
-			break;
-	}
 }
 
 /* ****************************************************************************************************
@@ -579,7 +724,10 @@ updateHUDMainClock(timer)
 		Size
 		Alpha
 	*/
-	options["x"] = 320; //center of screen x
+    if(level.objective == "commandpost" || level.objective == "base")
+        options["x"] = 180;
+    else
+        options["x"] = 320; //center of screen x
 	options["y"] = 460; //20 px above bottom of screen y
 	options["alignX"] = "center"; //align text horizontally
 	options["alignY"] = "middle"; //align text vertically
@@ -711,7 +859,7 @@ deleteHUDSecondaryBombClock()
 	level.secondBombClock = deleteHUDElement(level.secondBombClock);
 }
 
-createClientHUDProgressBar(timer)
+createClientHUDProgressBar(timer, text, time)
 {
 	barsize = 288;
 		
@@ -740,29 +888,146 @@ createClientHUDProgressBar(timer)
 	barOptions["height"] = 8;
 	barOptions["width"] = 0;
 	
-	barAnimOptions = [];
-	barAnimOptions["height"] = 8;
-	barAnimOptions["width"] = barsize;
-	
 	//test if element already exists, don't spam hud updates
-	if(!isDefined(self maps\mp\uox\_uox_hud::getClientHUDElement("progressbackground")))
-		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbackground",
+	if(!isDefined(self getClientHUDElement("progressbackground")))
+		self updateClientHUDElement("progressbackground",
 			"shader", "black", backgroundOptions);
 
 	//test if element already exists, don't spam hud updates
-	if(!isDefined(self maps\mp\uox\_uox_hud::getClientHUDElement("progressbar")))
-		self maps\mp\uox\_uox_hud::updateClientHUDElement("progressbar",
+	if(!isDefined(self getClientHUDElement("progressbar")))
+		self updateClientHUDElement("progressbar",
 			"shader", "white", barOptions);
 			
-	barAnimOptions["time"] = timer;
-	self maps\mp\uox\_uox_hud::animateClientHUDElement("progressbar", "scaleShader",
-		barAnimOptions);
+    //if text exists, add it to the progress bar
+    if(isDefined(text))
+    {
+        textOptions = [];
+        textOptions["alignX"] = "center";
+        textOptions["alignY"] = "middle";
+        textOptions["x"] = 320;
+        textOptions["y"] = 384;
+        textOptions["fontscale"] = 0.8;
+        textOptions["color"] = (.5,.5,.5);
+
+        if(!isDefined(self getClientHUDElement("progresstext")))
+		self updateClientHUDElement("progresstext",
+			"text", text, textOptions);
+    }
+
+    if(isDefined(time))
+    {
+        if(time > timer)
+            time = timer;
+        barOptions["width"] = (barsize * time/timer);
+        self updateClientHUDElement("progressbar",
+			"shader", "white", barOptions);
+    }
+    else
+    {
+        barAnimOptions = [];
+    	barAnimOptions["height"] = 8;
+    	barAnimOptions["width"] = barsize;
+        self maps\mp\uox\_uox_hud::animateClientHUDElement("progressbar", "scaleShader",
+            barAnimOptions, timer);
+    }
+}
+
+createTeamHUDProgressBar(elem, team, timer, text, time)
+{
+
+    if(!isDefined(elem))
+    {
+        elem = [];
+    }
+	barsize = 288;
+		
+	iconOptions = [];
+	iconOptions["alignX"] = "center";
+	iconOptions["alignY"] = "middle";
+	iconOptions["x"] = 320;
+	iconOptions["y"] = 400;
+	iconOptions["width"] = 64;
+	iconOptions["height"] = 64;
+	
+	backgroundOptions = [];
+	backgroundOptions["alignX"] = "center";
+	backgroundOptions["alignY"] = "middle";
+	backgroundOptions["x"] = 320;
+	backgroundOptions["y"] = 400;
+	backgroundOptions["alpha"] = 0.5;
+	backgroundOptions["height"] = 12;
+	backgroundOptions["width"] = (barsize + 4);
+	
+	barOptions = [];
+	barOptions["alignX"] = "left";
+	barOptions["alignY"] = "middle";
+	barOptions["x"] = (320 - (barsize / 2.0));
+	barOptions["y"] = 400;
+    barOptions["color"] = (0.8, 0, 0);
+	barOptions["height"] = 8;
+	barOptions["width"] = 0;
+	
+	//test if element already exists, don't spam hud updates
+	if(!isDefined(elem[0]))
+		elem[0] = updateTeamHUDElement(elem[0], team,
+			"shader", "black", backgroundOptions);
+
+	//test if element already exists, don't spam hud updates
+	if(!isDefined(elem[1]))
+		elem[1] = updateTeamHUDElement(elem[1], team,
+			"shader", "white", barOptions);
+			
+    //if text exists, add it to the progress bar
+    if(isDefined(text))
+    {
+        textOptions = [];
+        textOptions["alignX"] = "center";
+        textOptions["alignY"] = "middle";
+        textOptions["x"] = 320;
+        textOptions["y"] = 399;
+        textOptions["fontscale"] = 0.8;
+        textOptions["color"] = (.5,.5,.5);
+
+        if(!isDefined(elem[2]))
+		elem[2] = updateTeamHUDElement(elem[2], team,
+			"text", text, textOptions);
+    }
+
+    if(isDefined(time))
+    {
+        if(time > timer)
+            time = timer;
+        barOptions["width"] = (barsize * time/timer);
+        elem[1] = updateTeamHUDElement(elem[1], team,
+			"shader", "white", barOptions);
+    }
+    else
+    {
+        barAnimOptions = [];
+    	barAnimOptions["height"] = 8;
+    	barAnimOptions["width"] = barsize;
+        maps\mp\uox\_uox_hud::animateHUDElement(elem[1], "scaleShader",
+            barAnimOptions, timer);
+    }
+    return elem;
 }
 
 deleteClientHUDProgressBar()
 {
 	self deleteClientHUDElement("progressbackground");
 	self deleteClientHUDElement("progressbar");
+    self deleteClientHUDElement("progresstext");
+}
+
+deleteTeamHUDProgressBar(element)
+{
+    for(i = 0; i < element.size; i++ )
+    {
+        if(isDefined(element[i]))
+            element[i] destroy();
+        element[i] = undefined;
+    }
+    element = undefined;
 }
 
 updateServerScoreboard()
@@ -779,7 +1044,7 @@ updateServerScoreboard()
 	options["height"] = 24;
 	options["fontScale"] = 1.6;
 	
-	if(level.uox_teamplay)
+	if(level.uox_teamplay && level.objective != "bel")
 		shader = game["headicon_" + game["team1"]];
 	else 
 		shader = game["objective_default"];
@@ -789,7 +1054,7 @@ updateServerScoreboard()
 	options["x"] = 58;
 	options["alignX"] = "right";
 	
-	if(level.uox_teamplay)
+	if(level.uox_teamplay && level.objective != "bel")
 		value = maps\mp\uox\_uox::getTeam1Score();
 	else
 	{
@@ -830,7 +1095,7 @@ updateServerScoreboard()
 		if(level.scoreboardKillsRounds)
 		{
 			//if in OT
-			if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+			if(maps\mp\uox\_uox::isOvertime())
 			{
 				if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
 					OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
@@ -848,7 +1113,7 @@ updateServerScoreboard()
 		level.scoreboardTeam1Limit = updateHUDElement(level.scoreboardTeam1Limit, "number", value, options);
 	}
 	
-	if(level.uox_teamplay)
+	if(level.uox_teamplay && level.objective != "bel")
 	{
 		options["x"] = 10;
 		options["y"] = 270;
@@ -979,7 +1244,7 @@ updatePlayerScoreboard()
 			if(level.scoreboardKillsRounds)
 			{
 				//if in OT
-				if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+				if(maps\mp\uox\_uox::isOvertime())
 				{
 					if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
 						OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
@@ -1058,6 +1323,9 @@ deleteHUDLivesLeft()
 
 createHUDNextRound(time, lastRound, doHalfTime)
 {
+    if(![[level.getVars]]("sv_showEndRoundScoreboard"))
+        return;
+
 	if ( time < 3 )
 		time = 3;
 	
@@ -1066,7 +1334,7 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	
 	thread createHUDEndRoundScore(time, lastRound, doHalfTime);
 
-	if(game["roundsplayed"] >= [[level.getVars]]("scr_roundlimit"))
+	if( maps\mp\uox\_uox::isOvertime() )
 	{
 		text = game["OTroundText"];
 		round = game["roundsplayed"] + 1 - [[level.getVars]]("scr_roundlimit");
@@ -1108,6 +1376,9 @@ createHUDNextRound(time, lastRound, doHalfTime)
 			
 		player thread stopwatch_start("match_start", time);
 	}
+
+    createHUDHeaders();
+    createServerLogo();
 	
 	wait (time);
 
@@ -1115,10 +1386,15 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	level.roundnum = deleteHUDElement(level.roundnum);
 	level.starting = deleteHUDElement(level.starting);
 	
+    deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 
 createHUDEndRoundScore(time, lastRound, doHalfTime)
 {
+    if(![[level.getVars]]("sv_showEndRoundScoreboard"))
+        return;
+
 	if(time < 3)
 		time = 3;
 	
@@ -1131,7 +1407,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	options["color"] = (0, 1, 0);
 	
 	//if in OT
-	if(game["roundsplayed"] > [[level.getVars]]("scr_roundlimit"))
+	if(maps\mp\uox\_uox::isOvertime())
 	{
 		//get OT number
 		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
@@ -1303,7 +1579,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			options["x"] = 575;
 			options["y"] = 290;
 			options["color"] = (.99, .99, .75);
-			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 1st Half text
+			if(!maps\mp\uox\_uox::isOvertime()) //if game is in regulation set 1st Half text
 				text = game["1HText"];
 			else //if game is in OT set OT 1H text
 				text = game["OT1HText"];
@@ -1316,7 +1592,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			level.ers1HAxisScoreHUD = updateHUDElement(level.ers1HAxisScoreHUD, "number", 
 				firstHalfTeam1Score, options);
 			
-			if(round <= [[level.getVars]]("scr_roundlimit")) //if game is in regulation set 2nd Half text
+			if(!maps\mp\uox\_uox::isOvertime()) //if game is in regulation set 2nd Half text
 				text = game["2HText"];
 			else //if game is in OT set OT 2H text
 				text = game["OT2HText"];
@@ -1379,6 +1655,10 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			}
 		}
 	}
+
+    createHUDHeaders();
+    createServerLogo();
+
 	wait (time); //wait for timer
 	
 	//delete HUD elements
@@ -1411,6 +1691,9 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			
 		}
 	}
+
+    deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 
 createPlayerHUDEndRoundScore()
@@ -1490,6 +1773,9 @@ createReadyUpHUD(switchingSides)
 	options["color"] = (.98, .98, .60);
 	
 	level.notReadyHUD = updateHUDElement(level.notReadyHUD, "number", 0, options);
+
+    createHUDHeaders();
+    createServerLogo();
 }
 
 createPlayerReadyUpHUD(switchingSides)
@@ -1549,7 +1835,8 @@ deleteReadyUpHUD()
 		player deletePlayerReadyUpHUD();
 		
 	}
-	
+	deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 
 deletePlayerReadyUpHUD()
@@ -1605,6 +1892,8 @@ createWarmUpHUD(playercount, timer, switchingSides)
 		
 		level.allReadyHUD = updateHUDElement(level.allReadyHUD, "number", playercount, options);
 	}
+    createHUDHeaders();
+    createServerLogo();
 }
 
 createPlayerWarmUpHUD(switchingSides)
@@ -1645,6 +1934,9 @@ deleteWarmupHUD()
 	level.notReadyDivHUD = deleteHUDElement(level.notReadyDivHUD);
 	level.allReadyHUD = deleteHUDElement(level.allReadyHUD);
 	level.SwitchingHUD = deleteHUDElement(level.SwitchingHUD);
+
+    deleteHUDHeaders();
+    level.serverlogo = deleteHUDElement(level.serverlogo);
 }
 // ----------------------------------------------------------------------------------
 //	clock_start
@@ -1736,19 +2028,250 @@ stopwatch_waittill_killrestart(reason)
 updateScoreboard()
 {
 	level endon("intermission");
-	for(;;)
-	{
+
+    if(level.mapended || level.roundended || level.halftime)
+    {
+        maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "updateScoreboard");
+        return;
+    }
 		
-		if([[level.getVars]]("sv_showScoreboard"))
-			updateServerScoreboard();
-		else if(isDefined(level.scoreboard))
-			deleteServerScoreboard();
-		
-		if(isDefined(level.scoreboardScoreLimit) && ([[level.getVars]]("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
-			deleteServerScoreboardScoreLimit();
-		
-		wait 0.25;
-		if(level.mapended || level.roundended)
-			return;
-	}
+    if([[level.getVars]]("sv_showScoreboard"))
+        updateServerScoreboard();
+    else if(isDefined(level.scoreboard))
+        deleteServerScoreboard();
+    
+    if(isDefined(level.scoreboardScoreLimit) && ([[level.getVars]]("sv_showScoreboardScoreLimit") == 0 || ((![[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") <= 0) || ([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") <= 0 ))))
+        deleteServerScoreboardScoreLimit();
+
+    if([[level.getVars]]("sv_showPlayersLeft"))
+        updatePlayersLeft();
+    else
+        deletePlayersLeft();
 }
+
+updatePlayersLeft()
+{
+
+    options["x"] = 485;
+    options["y"] = 460;
+    options["alignX"] = "right";
+    options["alignY"] = "bottom";
+    options["fontscale"] = .9;
+    options["color"] = (1, 1, 1);
+    options["alpha"] = 1;
+    options["label"] = game["alliesleftText"];
+
+    level.alliesLeft = updateHUDElement(level.alliesLeft, "number", level.alive["allies"], options);
+    
+    options["x"] = 485;
+    options["y"] = 475;
+    options["alignX"] = "right";
+    options["alignY"] = "bottom";
+    options["fontscale"] = .9;
+    options["color"] = (1, 1, 1);
+    options["alpha"] = 1;
+    options["label"] = game["axisleftText"];
+	
+    level.axisLeft = updateHUDElement(level.axisLeft, "number", level.alive["axis"], options);
+}
+
+deletePlayersLeft()
+{
+    level.alliesLeft = deleteHUDElement(level.alliesLeft);
+    level.axisLeft = deleteHUDElement(level.axisLeft);
+}
+
+/* **************************************************************************************************
+**** hq_reinforcement_hud()
+****
+**** runs the wave timer for scoring and hq respawning
+****
+*************************************************************************************************** */
+createWaveTimerHUD(msg)
+{
+    if(isDefined(level.reinforcement_hud_bgnd) && isDefined(level.reinforcement_hud))
+        return;
+
+    options = [];
+    options["archived"] = false;
+    options["alpha"] = 0.4;
+    options["x"] = 495;
+    options["y"] = 410;
+    options["sort"] = -1;
+    options["width"] = 135;
+    options["height"] = 15;
+	level.reinforcement_hud_bgnd = updateHUDElement(level.reinforcement_hud_bgnd, "shader", "black", options);
+	
+    options = [];
+    options["archived"] = false;
+    options["alignX"] = "left";
+    options["alignY"] = "top";
+    options["x"] = 497;
+    options["y"] = 411;
+    options["color"] = (1, 1, 1);
+    if(level.respawn_mode != "hq" && level.objective == "radio")
+        options["label"] = &"Radio Timer:";
+    else
+        options["label"] = msg;
+	level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+}
+
+tickWaveTimerHUD()
+{
+	//if timer drops below 0, don't update
+    if(level.wavecounter >= 0) {
+        if (level.wavecounter <= 10) // if less than 10 seconds on the timer
+        {
+            options = [];
+            options["color"] = (1, 0, 0);
+            if(isDefined(level.reinforcement_hud))
+                level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+        }
+        else 
+        {
+            options = [];
+            options["color"] = (1, 1, 1);
+            if(isDefined(level.reinforcement_hud))
+                level.reinforcement_hud = updateHUDElement(level.reinforcement_hud, "number", level.wavecounter, options);
+        }
+    }
+}
+
+deleteWaveTimerHUD()
+{
+    level.reinforcement_hud_bgnd = deleteHUDElement(level.reinforcement_hud_bgnd);
+    level.reinforcement_hud = deleteHUDElement(level.reinforcement_hud);
+}
+
+/* ************************************************************************************************************
+**** makeVictoryAnnouncement( string winner, bool make_announcement )
+****
+**** plays the axis wins/allies wins VO clip and then displays the victory image plus plays the victory jingle
+**** skips the announcement VO if make_announcement is false
+************************************************************************************************************* */
+makeVictoryAnnouncement( winner, make_announcement )
+{
+
+    if(winner == "allies")
+    {
+        if(!make_announcement)
+            announcer = undefined;
+        else
+        {
+            announcer = game["sound_allies_victory_vo"];
+
+            announcement(game["alliesWinText"]);
+        }
+        players = getentarray("player", "classname");
+        for(i = 0; i < players.size; i++)
+        {
+            players[i] thread Victory_PlaySounds(announcer, game["sound_allies_victory_music"]);
+        }
+        level thread Victory_DisplayImage(game["hud_allies_victory_image"]);
+    }
+    else if(winner == "axis") 
+    {
+        if(!make_announcement)
+            announcer = undefined;
+        else
+        {
+            announcer = game["sound_axis_victory_vo"];
+
+            announcement(game["axisWinText"]);
+        }
+        players = getentarray("player", "classname");
+        for(i = 0; i < players.size; i++)
+        {
+            players[i] thread Victory_PlaySounds(announcer, game["sound_axis_victory_music"]);
+        }
+        level thread Victory_DisplayImage(game["hud_axis_victory_image"]);
+    }
+
+}
+
+// ----------------------------------------------------------------------------------
+//	Victory_PlaySounds
+//
+// 		Plays the victory sounds with an appropriate delay in each
+// ----------------------------------------------------------------------------------
+Victory_PlaySounds( announcer, music )
+{
+    if(isDefined(announcer))
+        self playLocalSound(announcer);
+	wait 2.0;
+	self playLocalSound(music);
+}
+
+// ----------------------------------------------------------------------------------
+//	Victory_DisplayImage
+//
+// 		Displays the victory hud image
+// ----------------------------------------------------------------------------------
+Victory_DisplayImage( image )
+{
+    options = [];
+    options["alignX"] = "center";
+	options["alignY"] = "top";
+	options["x"] = 320;
+	options["y"] = 10;
+	options["alpha"] = 0.75;
+	options["sort"] = 0.5;
+    options["width"] = 256;
+    options["height"] = 128;
+    	
+	level.victory_image = updateHUDElement(level.victory_image, "shader", image, options);		
+	
+}
+
+createHUDHeaders()
+{
+    if(isDefined(game["headerL"]))
+    {
+        options = [];
+        
+    	options["x"] = 10;
+    	options["y"] = 10;
+    	options["alignX"] = "left";
+    	options["alignY"] = "middle";
+    	options["fontScale"] = 1;
+    	options["color"] = (1, 1, 0);
+    	level.headerLeft = updateHUDElement(level.headerLeft, "text", game["headerL"], options);
+    }
+    if(isDefined(game["headerR"]))
+    {
+        options = [];
+        
+    	options["x"] = 630;
+    	options["y"] = 10;
+    	options["alignX"] = "right";
+    	options["alignY"] = "middle";
+    	options["fontScale"] = 1;
+    	options["color"] = (1, 1, 0);
+    	level.headerRight = updateHUDElement(level.headerRight, "text", game["headerR"], options);
+    }
+}
+
+createServerLogo()
+{
+    if(isDefined(game["serverlogo"]))
+    {
+        options["x"] = 3;
+    	options["y"] = 472;
+    	options["alignX"] = "left";
+    	options["alignY"] = "top";
+    	options["fontScale"] = .55;
+        options["sort"] = -3;
+        options["alpha"] = 1;
+        options["archived"] = true;
+    	options["color"] = (1, 1, 0);
+
+        level.serverlogo = updateHUDElement(level.serverlogo, "text", game["serverlogo"], options);
+    }
+}
+
+deleteHUDHeaders()
+{
+    level.headerLeft = deleteHUDElement(level.headerLeft);
+    level.headerRight = deleteHUDElement(level.headerRight);
+}
+

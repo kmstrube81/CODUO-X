@@ -69,7 +69,7 @@ UOX_Main()
 {
 	level.getVars = maps\mp\uox\_uox_vars::getVars;
 	
-	maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "dm", "", "", "Respawn Mode");
+	level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "dm", "", "", "Respawn Mode");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false,
 											"deathmatch", "", "", "Respawn Type");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "dm", "", "", "Spawnpoints");
@@ -88,7 +88,7 @@ UOX_Main()
 	level.callbackPlayerDamage = maps\mp\uox\_uox_callbacks::Callback_PlayerDamage;
 	level.callbackPlayerKilled = maps\mp\uox\_uox_callbacks::Callback_PlayerKilled;
 
-	maps\mp\gametypes\_callbacksetup::SetupCallbacks();
+	maps\mp\uox\_uox_callbacks::SetupCallbacks();
 
 	allowed[0] = "dm";
 	maps\mp\gametypes\_gameobjects::main(allowed);

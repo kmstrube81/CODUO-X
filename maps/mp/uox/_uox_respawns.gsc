@@ -17,6 +17,7 @@ menu_spawn(weapon)
 		{
 			self.lives = getMidRoundLives();
 		}
+        maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn lives counter -- " + self.lives);
 	}
 	if(!game["matchstarted"])
 	{
@@ -30,6 +31,8 @@ menu_spawn(weapon)
 			self maps\mp\gametypes\_loadout_gmi::PlayerSpawnLoadout();
 	 		self setWeaponSlotWeapon("primary", weapon);
 			self switchToWeapon(weapon);
+
+            maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn pregame weapon swap -- " + weapon);
 		}
 		else
 		{
@@ -38,10 +41,18 @@ menu_spawn(weapon)
 	 		self.pers["weapon1"] = weapon;
 			spawnPlayer();
 			self thread maps\mp\uox\_uox::printJoinedTeam(self.pers["team"]);
+
+            maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn pregame initial spawn -- " + weapon);
 		}
 	}
 	else
-	{		
+	{
+        self.sessionteam = self.pers["team"];
+        if(self.sessionstate != "playing")
+			self.statusicon = "gfx/hud/hud@status_dead.tga";
+
+        maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn game in progress");
+        		
 		if(isDefined(self.pers["weapon"]))
 		{
 			if(level.graceperiod && !self.usedweapons)
@@ -54,9 +65,13 @@ menu_spawn(weapon)
 				self maps\mp\gametypes\_loadout_gmi::PlayerSpawnLoadout();
 				self setWeaponSlotWeapon("primary", weapon);
 				self switchToWeapon(weapon);
+
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn grace period weapon swap --" + weapon);
 			}
 			else
 			{
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn post grace period weapon select --" + weapon);
+
 				self.pers["weapon"] = weapon;
                 self.pers[myteam + "_weapon"] = weapon;
 				
@@ -72,6 +87,9 @@ menu_spawn(weapon)
 		{
 			if(isDefined(self.lives) && self.lives == 0)
 			{
+
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn game in progress out of lives weapon select --" + weapon);
+
 				self.pers["weapon"] = weapon;
                 self.pers[myteam + "_weapon"] = weapon;
 				
@@ -94,6 +112,8 @@ menu_spawn(weapon)
 			}
 			else
 			{
+                maps\mp\uox\_uox_debug::debugLog("info", self.name + " menu spawn game in progress either no lives or lives left weapon select --" + weapon);
+
 				self.pers["weapon"] = weapon;
                 self.pers[myteam + "_weapon"] = weapon;
 				self.pers["weapon1"] = weapon;
@@ -146,6 +166,7 @@ spawnSpectator(origin, angles)
 	self.spectatorclient = -1;
 	self.archivetime = 0;
     self.god = false;
+    self.usedweapons = false;
 
 	if(self.pers["team"] == "spectator")
 		self.statusicon = "";
@@ -213,10 +234,17 @@ respawn_dm()
 	self thread spawnPlayer();
 }
 
-respawn_forced()
+respawn_forced(spawn_immediately)
 {
-	self thread waitForceRespawnTime();
-	self thread waitRespawnButton([[level.getVars]]("scr_forcerespawn"));
+    if(isDefined(spawn_immediately))
+    {
+            self thread spawnPlayer();
+            return;
+    }
+    spawndelay = [[level.getVars]]("scr_forcerespawn");
+
+	self thread waitForceRespawnTime(spawndelay);
+	self thread waitRespawnButton(spawndelay);
 	self waittill("respawn");
 	self thread spawnPlayer();
 }
@@ -228,11 +256,19 @@ respawn_delayed()
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
 	}
 	
-	death_wait_time = [[level.getVars]]("scr_spawn_delay_time");
-		
-	self thread maps\mp\uox\_uox_hud::stopwatch_start("respawn", death_wait_time);
+    if(self.sessionspawned)
+    {
+        currentorigin = self.origin;
+        currentangles = self.angles;
 
-	wait (death_wait_time);
+        self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
+
+        death_wait_time = [[level.getVars]]("scr_spawn_delay_time");
+        
+        self thread maps\mp\uox\_uox_hud::stopwatch_start("respawn", death_wait_time);
+
+        wait (death_wait_time);
+    }
 
 	self thread spawnPlayer();
 }
@@ -247,14 +283,19 @@ respawn_wave()
 			+ self + " " + self.pers["team"]);
 	}
 
+    currentorigin = self.origin;
+    currentangles = self.angles;
+
+    self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
+
 	wave_time = [[level.getVars]]("scr_respawn_wave_time");	
 	
 	if(!isDefined(level.respawn_timer))
 		level.respawn_timer = [];
 	if(!isDefined(level.respawn_timer[self.pers["team"]]))
-		level.respawn_timer[self.pers["team"]] = timer;	
+		level.respawn_timer[self.pers["team"]] = wave_time;	
 	self maps\mp\uox\_uox_hud::stopwatch_start("respawn", level.respawn_timer[self.pers["team"]] );
-	level thread respawn_pool(self.pers["team"], timer);
+	level thread respawn_pool(self.pers["team"], wave_time);
 	
 	level waittill("respawn_" + self.pers["team"]);
 	
@@ -287,6 +328,8 @@ respawn_pool(team, timer)
 
 respawn_obj()
 {
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " respawn obj spawn lives left -- " + self.lives ); 
+
 	if(self.pers["team"] != "allies" && self.pers["team"] != "axis")
 	{
 		maps\mp\_utility::error("Team not set correctly on spawning player " + self + " " + self.pers["team"]);
@@ -294,13 +337,17 @@ respawn_obj()
 	
 	if([[level.getVars]]("scr_reinforcements") == -1 || self.lives > 0)
 	{
-		self thread respawn_forced();
+		self thread respawn_forced(true);
 	}
 	else
 	{
 		self maps\mp\uox\_uox_hud::deleteHUDLivesLeft();
 		self.lives--;
-		self spawnSpectator();
+		
+        currentorigin = self.origin;
+        currentangles = self.angles;
+
+        self thread spawnSpectator(currentorigin + (0, 0, 60), currentangles);
 	}
 }
 
@@ -334,7 +381,54 @@ getMidRoundLives()
 
 respawn_hq()
 {
-	return;
+	self endon("end_respawn");//kill current respawn if this notifies
+	
+	currentorigin = self.origin; //set spectate location
+	currentangles = self.angles;
+	self spawnSpectator(currentorigin + (0, 0, 60), currentangles);
+	
+	if ( (level.graceperiod) && (self.deaths == 0) ) //skip wait if graceperiod is active
+		instant = "instant";
+	if ( self.pers["team"] != level.defenseTeam ) //skip wait if not on defense
+        instant = "instant";
+    if ( isDefined(self.wavenumber) && self.wavenumber < level.wavenumber) //skip wait if killed during previous wave
+        instant = "instant";
+
+	if (isdefined (instant)) //if wait was skipped
+	{
+        self.wavespawner = true; //mark that the player got spawned in this wave
+		self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg"); //delete the respawn timer
+		self thread spawnPlayer(); //spawn in
+        wait 1;
+        if ( (isdefined (self)) && (isdefined (self.wavespawner)) )
+		self.wavespawner = false;
+		return; //end respawn
+	}
+
+    //if not allowed to spawn instantly, need to wait for a wave event, either the attackers acheived their goal or defense defended for long enough
+	//draw spawn msg
+    options = [];
+    options["alignX"] = "center";
+    options["alignY"] = "middle";
+    options["x"] = 320;
+    options["y"] = 150;
+    options["archived"] = false;
+    options["label"] = game["reinforcementsMsg"];
+    self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "timer", level.wavecounter, options);
+
+    level waittill("hq_reinforcements");
+    self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
+    self.wavespawner = true;
+    if(isDefined(self.freerespawn))
+    {
+        self.freerespawn = undefined;
+        self thread spawnPlayer(true);
+    }
+    else
+        thread spawnPlayer();
+	wait 1;
+    if ( (isdefined (self)) && (isdefined (self.wavespawner)) )
+    self.wavespawner = false;
 }
 
 respawn_bel()
@@ -347,8 +441,9 @@ respawn_bel()
     self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnTimer");
 
     myteam = self.pers["team"];
+    self.sessionteam = myteam;
     self.pers["weapon"] = self.pers[myteam + "_weapon"];
-    self setClientCvar("g_scriptMainMenu", game["menu_weapon_all"]);
+    self setClientCvar("g_scriptMainMenu", game["menu_weapon_" + myteam]);
 
     if(self.pers["team"] != "allies" && self.pers["team"] != "axis")
 	{
@@ -360,7 +455,7 @@ respawn_bel()
     options = [];
     options["alignX"] = "center";
 	options["alignY"] = "middle";
-	options["x"] = 305;
+	options["x"] = 320;
 	options["y"] = 140;
 	options["fontScale"] = 1.5;
 	self maps\mp\uox\_uox_hud::updateClientHUDElement("spawnMsg", "text", &"BEL_TIME_TILL_SPAWN", options);
@@ -379,7 +474,7 @@ respawn_bel()
 getRespawnMode()
 {
 	gt = level.gametype;
-	respawn_mode_override = [[level.getVars]]("scr_respawn_mode");
+	respawn_mode_override = level.respawn_mode;
 	
 	switch(respawn_mode_override)
 	{
@@ -395,6 +490,8 @@ getRespawnMode()
 			return ::respawn_obj;
         case "bel": //behind enemy lines spawn, switch teams on kill
             return ::respawn_bel;
+        case "hq": //headquarters spawning, waiting until objective notify to spawn
+            return ::respawn_hq;
 		default: //get default gametype respawn mode
 			switch(gt)
 			{
@@ -489,6 +586,7 @@ waitRemoveRespawnText(message)
 
 spawnPlayer(farthest)
 {
+	
 	self notify("spawned");
 	self notify("end_respawn");
 	
@@ -528,7 +626,7 @@ spawnPlayer(farthest)
 	self.maxhealth = 100;
 	self.health = self.maxhealth;
 		
-	if([[level.getVars]]("scr_respawn_mode") == "obj")
+	if(level.respawn_mode == "obj")
 	{
 		if(!isDefined(self.lives))
 		{
@@ -547,7 +645,7 @@ spawnPlayer(farthest)
 		}
 	}
 	
-	level maps\mp\uox\_uox::updateTeamStatus();
+
 	if(!game["matchstarted"])
 		level thread maps\mp\uox\_uox::checkMatchStart();
 	self.pers["rank"] = maps\mp\gametypes\_rank_gmi::DetermineBattleRank(self);
@@ -565,7 +663,9 @@ spawnPlayer(farthest)
 	thread maps\mp\gametypes\_teams::watchWeaponUsage();
 
     self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
-	
+	self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnMsg");
+	self maps\mp\uox\_uox_hud::deleteClientHUDElement("spawnTimer");
+	maps\mp\uox\_uox_debug::debugLog("info", "spawnPlayer RUN team=" + self.pers["team"] + " state=" + self.sessionstate);
     self maps\mp\uox\_uox::playerSpawnObjectives(level.objective);
 	
 	if(level.uox_teamplay)
@@ -601,7 +701,9 @@ spawnPlayer(farthest)
 	}	
 
 	// setup the hud rank indicator
-	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();	
+	self thread maps\mp\gametypes\_rank_gmi::RankHudInit();
+
+		level maps\mp\uox\_uox::updateTeamStatus();	
 
 }
 
@@ -615,7 +717,7 @@ getSpawn(gt, farthest)
 		case "near_team":
 		case "random":
 		case "middle":
-		case "near_team_hq":
+		case "hq":
 		case "farthest":
 			spawn_type = spawn_type_override;
 			break;
@@ -662,59 +764,64 @@ getSpawn(gt, farthest)
 			}	
 			spawnpoints = getentarray(base_spawn_name, "classname");
 			
-			// now add to the array any spawnpoints that are related to held flags
-			for(q=1;q<15;q++)
-			{
-				flag_trigger = getent("flag" + q,"targetname");
-				
-				if(!isDefined(flag_trigger)) // If the flag exists, then proceed. Which then tells all of the allies and axis flag to be hidden.
-				{
-					continue;
-				}
-				
-				if ( !isDefined( flag_trigger.target ) )
-					continue;
-					
-				// only get spawnpoints from flags that are held by this team	
-				if ( self.pers["team"] != flag_trigger.team )
-					continue;
-					
-				secondary_spawns =  getentarray(flag_trigger.target, "targetname");
-			
-				for ( i = 0; i < secondary_spawns.size; i++ )
-				{
-					// only get the ones for the current team
-					if ( secondary_spawns[i].classname != secondary_spawn_name )
-						continue;
-						
-					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
-				}
-			}
-			
-			// TODO: GRACEPERIOD secondary spawn points are used after the first few seconds of the round
-			if ( true )
-			{
-				secondary_spawns =  getentarray(secondary_spawn_name, "classname");
-			
-				for ( i = 0; i < secondary_spawns.size; i++ )
-				{
-					
-					// if this is targeted by a trigger then it must be a objective spawn so do not just grab it unless that trigger is 
-					// owned by this team
-					if ( isdefined(secondary_spawns[i].targetname) )
-					{
-						targeter =  getent(secondary_spawns[i].targetname, "target");
-						
-						if ( isdefined( targeter ) && isdefined(targeter.team) && targeter.team != self.pers["team"] )
-						{
-							continue;
-						}
-					}
-				
-					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
-				}
-			}
-			spawnpoints = getentarray(spawnpointname, "classname");
+            if(level.objective == "commandpost") //load domination linked spawns if the domination flags are the objectives
+            {
+                // now add to the array any spawnpoints that are related to held flags
+    			for(q=1;q<15;q++)
+    			{
+    				flag_trigger = getent("flag" + q,"targetname");
+    				
+    				if(!isDefined(flag_trigger)) // If the flag exists, then proceed. Which then tells all of the allies and axis flag to be hidden.
+    				{
+    					continue;
+    				}
+    				
+    				if ( !isDefined( flag_trigger.target ) )
+    					continue;
+    					
+    				// only get spawnpoints from flags that are held by this team	
+    				if ( self.pers["team"] != flag_trigger.team )
+    					continue;
+    					
+    				secondary_spawns =  getentarray(flag_trigger.target, "targetname");
+    			
+    				for ( i = 0; i < secondary_spawns.size; i++ )
+    				{
+    					// only get the ones for the current team
+    					if ( secondary_spawns[i].classname != secondary_spawn_name )
+    						continue;
+    						
+    					spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
+    				}
+    			}
+            }
+			else //load all the secondary spawns otherwise
+            {
+                    // TODO: GRACEPERIOD secondary spawn points are only used after the first ten seconds of the round
+                    if ( level.starttime + ( 10 * 1000 )  < getTime() )
+                    {
+                        secondary_spawns =  getentarray(secondary_spawn_name, "classname");
+                    
+                        for ( i = 0; i < secondary_spawns.size; i++ )
+                        {
+                            
+                            // if this is targeted by a trigger then it must be a objective spawn so do not just grab it unless that trigger is 
+                            // owned by this team
+                            if ( isdefined(secondary_spawns[i].targetname) )
+                            {
+                                targeter =  getent(secondary_spawns[i].targetname, "target");
+                                
+                                if ( isdefined( targeter ) && isdefined(targeter.team) && targeter.team != self.pers["team"] )
+                                {
+                                    continue;
+                                }
+                            }
+                        
+                            spawnpoints = maps\mp\_util_mp_gmi::add_to_array(spawnpoints, secondary_spawns[i]);
+                        }
+                }
+            }
+			//spawnpoints = getentarray(spawnpointname, "classname");
 			break;
 		case "bas":
 			// pick the appropriate spawn point
@@ -781,7 +888,7 @@ getSpawn(gt, farthest)
 		case "middle":
 			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_MiddleThird(spawnpoints);
 			break;
-		case "near_team_hq":
+		case "hq":
 			if (isdefined (farthest))
 				spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_Farthest(spawnpoints);
 			else
@@ -810,7 +917,7 @@ getDefaultSpawnType(gt)
 		case "bel":
 			return "middle";
 		case "hq":
-			return "near_team_hq";
+			return "hq";
 		case "sd":
 		case "re":
 			return "random";
@@ -874,6 +981,8 @@ getSpawnPointsIntermission(gt)
 			return "mp_deathmatch_intermission";
 		case "tdm":
 			return "mp_teamdeathmatch_intermission";
+        case "ctf":
+            return "mp_ctf_intermission";
 		default:
 			return "mp_deathmatch_intermission";
 	}	
@@ -1077,7 +1186,55 @@ halftimeSpawn()
 		wait .1;
 	}
 
+    /* menu spawn should handle this code
 	if (isdefined(self.pers["weapon"]) )
-		spawnPlayer();
+        spawnPlayer();
+    */
+}
+
+/* **************************************************************************************************
+**** updateWaveTimer(timer)
+****
+**** var callback
+**** updates the radio time
+****
+*************************************************************************************************** */
+updateWaveTimer(timer)
+{
+    maps\mp\uox\_uox_debug::debugLog("info", "updateWaveTimer level.wavecounter=" + timer);
+	level.wavetime = timer;
+    level.reinforcement_time = level.wavetime;
+    level.wavecounter = timer;
+
+    level maps\mp\uox\_uox_loops::addToLoop(level, "slow", ::tickWaveTimer, "tickWaveTimer");
+}
+
+tickWaveTimer()
+{
+    maps\mp\uox\_uox_debug::debugLog("info", "tickWaveTimer level.wavecounter=" + level.wavecounter);
+    if(level.mapended || level.roundended)
+    {
+        maps\mp\uox\_uox_debug::debugLog("info", "cancel wave timer" + level.wavecounter);
+        maps\mp\uox\_uox_loops::removeFromLoop(level, "slow", "tickWaveTimer");
+        return;
+    }
+
+    level.wavecounter--; //remove a second from the timer
+    maps\mp\uox\_uox_hud::tickWaveTimerHUD();
+    if (level.wavecounter >= 0) //loop until counter is 0
+    {
+        if ( (level.wavecounter == 15) && (level.teambalance > 0) ) //start team balancing with less than 15 secondsd on the timer
+        {
+            level.checkteambalance = false; //set teambalance flag to false
+            level thread maps\mp\gametypes\_teams::TeamBalance_Check(); //check for balanced teams
+        }
+    }
+    else
+    {
+        level.wavecounter = level.wavetime;
+        level notify("wave timer finished");
+        level notify("hq_reinforcements");
+        level.wavenumber++;
+    }
 }
 

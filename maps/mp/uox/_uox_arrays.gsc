@@ -247,6 +247,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 				tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 				tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 			}
+            tempArr["length"] = tempArr["keys"].size;
 			return tempArr;
 		}
 		if(numToRemove > 0) abs = numToRemove; else abs = numToRemove * -1;
@@ -685,7 +686,10 @@ arrayReadEach(arr, callback)
 	{
 		key = arr["keys"][i];
 		item = arr["values"][key];
-		[[callback]](item);
+        if(isDefined(callback))
+            [[callback]](item);
+        else //if callback isn't defined then the aray value is the callback
+            [[item]]();
 	}
 }
 
@@ -708,3 +712,26 @@ getNextKey(arr, startIndex)
 			return undefined;
 	}
 }
+
+/* *************************************************************************************************
+**** randomizeArray(array arr)
+****
+**** returns an array with the numeric indexes randomized
+****  
+************************************************************************************************* */
+randomizeArray(arr)
+{
+    if(isSuperArray(arr))
+    {
+        return arr;
+    }
+    for (i=0; i<arr.size; i++) //walk trhough 
+	{
+		rand = randomint(arr.size);
+    	temp = arr[i];
+    	arr[i] = arr[rand];
+    	arr[rand] = temp;
+	}
+    return arr;
+}
+

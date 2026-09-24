@@ -1,19 +1,15 @@
 /*
-	Behind Enemy Lines
-	Number of Allies: The more people playing in the round the more Allies there will be. Currently the Allied:Axis radio is about 1:3-4
-	Allied Objective: Kill as many German players as possible before being overrun. You gain more points the longer you stay alive
-	Axis objective: Hunt down Allied players
-	Map ends:	When a player reaches the score limit, or time limit is reached
-	Respawning: 	Axis respawn as Axis when they die, and Allied players respawn as Axis when they die
-			An Axis who kills an Allied player will take that Allied players spot on the Allied team
-			Uses TDM spawnpoints so all TDM maps automatically support this gametype
+	HQ
+	Objective: 	Set up HQ at a radio and run the other teams points down to 0 by not allowing them to have a HQ
+	Map ends:	When one teams score reaches 0, or time limit is reached
+	Respawning:	No wait / Near teammates
 
 	Level requirements
 	------------------
 		Spawnpoints:
 			classname		mp_teamdeathmatch_spawn
-			All players spawn from these. The spawnpoint chosen one is dependent on the current locations of teammates and enemies
-			at the time of spawn. Players generally spawn away from enemies.
+			All players spawn from these. The spawnpoint chosen is dependent on the current locations of teammates and enemies
+			at the time of spawn. Players generally spawn behind their teammates relative to the direction of enemies. 
 
 		Spectator Spawnpoints:
 			classname		mp_teamdeathmatch_intermission
@@ -29,6 +25,29 @@
 	
 		If using minefields or exploders:
 			maps\mp\_load::main();
+		
+		Radio Position information:
+			You can place the radios in your map file using a script_model, and targetname of "hqradio"
+			
+			If you can't put the script_models into the map file (you only have the bsp) you can spawn the radios into the
+			map in the level script (see the official level scripts). Here is how you spawn them into the map via the script...
+			
+			if (getcvar("g_gametype") == "hq")
+			{
+				//spawn radio 1
+				radio = spawn ("script_model", (0,0,0));
+				radio.origin = (-1167, -18611, 64);
+				radio.angles = (0, 82, 0);
+				radio.targetname = "hqradio";
+				
+				//spawn radio 2
+				radio = spawn ("script_model", (0,0,0));
+				radio.origin = (111, -16064, 29);
+				radio.angles = (353, 47, 16);
+				radio.targetname = "hqradio";
+			}
+			
+			and so on...
 		
 	Optional level script settings
 	------------------------------
@@ -64,9 +83,9 @@ UOX_Main()
 {
 	level.getVars = maps\mp\uox\_uox_vars::getVars;
 
-    level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "bel", "", "", "Respawn Mode");
+    level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "hq", "", "", "Respawn Mode");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false,
-											"middle", "", "", "Respawn Type");
+											"hq", "", "", "Respawn Type");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "tdm", "", "", "Spawnpoints");
 	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, -1, -1, 999, "Reinforcements");
 
@@ -85,8 +104,9 @@ UOX_Main()
 
 	maps\mp\uox\_uox_callbacks::SetupCallbacks();
 
-	allowed[0] = "bel";
+	allowed[0] = "tdm";
+	allowed[1] = "hq";
     maps\mp\gametypes\_gameobjects::main(allowed);
 	maps\mp\gametypes\_secondary_gmi::Initialize();
-    level.objective = "bel";
+    level.objective = "radio";
 }

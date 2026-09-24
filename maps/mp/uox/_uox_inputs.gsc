@@ -155,6 +155,8 @@ watchUse()
 				self unlink();
 				self enableWeapon();
 				self.isUsing = false;
+                if(isDefined(trigger))
+                    trigger.doing = undefined;
 				return;
 			}
 			else

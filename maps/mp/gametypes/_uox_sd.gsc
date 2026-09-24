@@ -112,7 +112,7 @@ UOX_Main()
 {
 	level.getVars = maps\mp\uox\_uox_vars::getVars;
 	
-	maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "obj", "", "", "Respawn Mode");
+	level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "obj", "", "", "Respawn Mode");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false,
 											"random", "", "", "Respawn Type");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "sd", "", "", "Spawnpoints");
@@ -131,7 +131,7 @@ UOX_Main()
 	level.callbackPlayerDamage = maps\mp\uox\_uox_callbacks::Callback_PlayerDamage;
 	level.callbackPlayerKilled = maps\mp\uox\_uox_callbacks::Callback_PlayerKilled;
 
-	maps\mp\gametypes\_callbacksetup::SetupCallbacks();
+	maps\mp\uox\_uox_callbacks::SetupCallbacks();
 
 	allowed[0] = "sd";
 	allowed[1] = "bombzone";

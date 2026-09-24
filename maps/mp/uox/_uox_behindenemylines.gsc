@@ -19,7 +19,16 @@ initVars()
 onPlayerKill(victim, attacker)
 {
     victim check_delete_objective();
-    maps\mp\uox\_uox_debug::debugLog("info", "BEL kill: clearing god then moveTeams, attacker god=" + attacker.god);
+
+    if(!isPlayer(attacker)) //world kill, early return
+        return;
+    if(attacker.pers["team"] == "allies" && victim.pers["team"] == "allies") //also delete objective on team kill
+        attacker check_delete_objective();
+    if(attacker.pers["team"] == "axis" && victim.pers["team"] == "allies")
+        maps\mp\uox\_uox_debug::debugLog("info", "BEL kill: clearing god then moveTeams, attacker god=" + attacker.god);
+    else
+        //update hud element
+        attacker maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", attacker.hudpoints);
 }
 
 check_delete_objective()
@@ -65,9 +74,6 @@ allied_hud_element()
 
 	self.hudpoints = 0;
     self maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", self.hudpoints, options);
-	
-
-	self thread give_allied_points();
 }
 
 make_obj_marker()
@@ -80,8 +86,7 @@ make_obj_marker()
 		objective_icon(objnum,"gfx/hud/hud@objective_bel.tga");
 		objective_team(objnum,"axis");
 		objective_position(objnum, self.origin);
-		lastobjpos = self.origin;
-		newobjpos = self.origin;
+		self.lastobjpos = self.origin;
 	}
 	
 	self thread allied_hud_element();
@@ -103,9 +108,10 @@ update_obj_marker()
 	{
         if([[level.getVars]]("scr_showoncompass"))
         {
-            lastobjpos = newobjpos;
-            newobjpos = ( ((lastobjpos[0] + self.origin[0]) * 0.5), ((lastobjpos[1] + self.origin[1]) * 0.5), ((lastobjpos[2] + self.origin[2]) * 0.5) );
-            objective_position(objnum, newobjpos);
+	     objnum = ((self getEntityNumber()) + 1);
+
+            self.lastobjpos = ( ((self.lastobjpos[0] + self.origin[0]) * 0.5), ((self.lastobjpos[1] + self.origin[1]) * 0.5), ((self.lastobjpos[2] + self.origin[2]) * 0.5) );
+            objective_position(objnum, self.lastobjpos);
         }
 	}
     thread maps\mp\uox\_uox_utils::notifyLater("bel update marker", [[level.getVars]]("scr_positiontime"), self );
@@ -113,6 +119,9 @@ update_obj_marker()
 
 survived()
 {
+    if(level.mapended || level.roundended || level.halftime)
+        return;
+
     if((isplayer (self)) && (isalive(self)))
     {
         give_allied_points();
@@ -128,6 +137,7 @@ give_allied_points()
         lpselfnum = self getEntityNumber();
 
 		self.score++;
+        self.pers["score"]++;
 		self.hudpoints++;
 		self.god = false; //failsafe to fix a very rare bug
 		logPrint("A;" + lpselfnum + ";allies;" + self.name + ";bel_alive_tick\n");
