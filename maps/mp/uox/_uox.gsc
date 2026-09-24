@@ -755,7 +755,7 @@ startRound()
 		return;
 		
     //DO STRAT TIME HERE
-	doStratTime([[level.getVars]]("scr_strattime");
+	doStratTime([[level.getVars]]("scr_strattime"));
 
 	//set roundstarted flag
 	level.roundstarted = true;
