@@ -124,43 +124,71 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 }
 
 /* *************************************************************************************************
-**** updateCvar(string prefix, string varname, mixedType value)
+**** updateCvar(string prefix, string varname, mixedType value, string gt (optional),
+****            string map (optional) )
 ****
-**** sets the stock, gametype, and map cvar all to the specified value
+**** Enforces a rule value at the correct scope. getVar precedence is gt+map > map > gt > all,
+**** so the gt+map cvar is always written and wins for the current match.
 ****
+****   no gt, no map : global rule    -> writes gt+map, map, gt, and plain cvar
+****   map only      : map rule       -> writes gt+map and map (never gt-wide)
+****   gt only       : gametype rule  -> writes gt+map only (never map-wide)
+****   gt and map    : exact rule     -> writes gt+map only
+****
+**** Calls whose gt/map don't match the running gametype/map are skipped, since getVar
+**** never reads them and writing them only adds permanent cvars to the table.
+****
+**** returns value
 ************************************************************************************************** */
 updateCvar(prefix, varname, value, gt, map)
 {
-    if(!isDefined(gt) && !isDefined(map)) { gt = getCvar("g_gametype"); map = getCvar("mapname"); setGTMap = true; setMap = true; setGT = true; setAll = true; }
-    else if(!isDefined(gt) && isDefined(map)) { gt = getCvar("g_gametype"); setGTMap = true; setGT = true; setMap = true; setAll = false; }
-	else if(!isDefined(map) && isDefined(gt)) { map = getCvar("mapname"); setGTMap = true; setMap = true; setGT = true; setAll = false; }
-    else { setGTMap = true; setMap = false; setGT = false; setAll = false; }
+	curGT = getCvar("g_gametype");
+	curMap = getCvar("mapname");
 
-    if(setGTMap)
-    {
-        cvar = prefix + "_" + gt + "_" + varname + "_" + map;
-        setCvar(cvar, value);
-    }
+	setAll = false;
+	setGT = false;
+	setMap = false;
 
-    if(setMap)
-    {
-        cvar = prefix + "_" + varname + "_" + map;
-        setCvar(cvar, value);
-    }
+	if(!isDefined(gt) && !isDefined(map)) //global rule
+	{
+		gt = curGT;
+		map = curMap;
+		setAll = true;
+		setGT = true;
+		setMap = true;
+	}
+	else if(!isDefined(gt)) //map-scoped rule
+	{
+		if(map != curMap)
+			return value;
+		gt = curGT;
+		setMap = true;
+	}
+	else if(!isDefined(map)) //gametype-scoped rule
+	{
+		if(gt != curGT)
+			return value;
+		map = curMap;
+	}
+	else //exact gt + map rule
+	{
+		if(gt != curGT || map != curMap)
+			return value;
+	}
 
-    if(setGT)
-    {
-        cvar = prefix + "_" + gt + "_" + varname;
-        setCvar(cvar, value);
-    }
+	//gt + map specific - highest precedence in getVar, always written
+	setCvar(prefix + "_" + gt + "_" + varname + "_" + map, value);
 
-    if(setAll)
-    {
-        cvar = prefix + "_" + varname;
-        setCvar(cvar, value);
-    }
+	if(setMap)
+		setCvar(prefix + "_" + varname + "_" + map, value);
 
-    return value;
+	if(setGT)
+		setCvar(prefix + "_" + gt + "_" + varname, value);
+
+	if(setAll)
+		setCvar(prefix + "_" + varname, value);
+
+	return value;
 }
 
 /* *************************************************************************************************
