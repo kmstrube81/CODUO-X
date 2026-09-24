@@ -635,6 +635,11 @@ startRound()
 	//get epoch time for round start
 	level.roundstarttime = getTime();
 	
+	level.roundTimeLeft = (level.roundlength * 60)
+									- ( level.roundstarttime / 1000 );
+									
+	level.roundresumetime = level.roundstarttime;		
+	
 	//if game is a single round (but uses warm up or OT)
 	if([[level.getVars]]("scr_roundlimit") == 1)
 	{	//set timer to the game time limit

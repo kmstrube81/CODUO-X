@@ -202,10 +202,8 @@ plantBomb(trigger)
 		game["bombPlantedText"], options);
 		
 	level.mainClock = level maps\mp\uox\_uox_hud::deleteHUDMainClock();
-	if(!isDefined(level.roundTimeLeft))
-		level.roundTimeLeft = (level.roundlength * 60)
-									- ( (getTime() - level.roundstarttime) / 1000 );
-	else if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
+	
+	if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
 		level.roundTimeLeft = level.roundTimeLeft - ( (getTime() - level.roundresumetime) / 1000 );
 	
 	if(!isDefined(level.mainBombClock))
