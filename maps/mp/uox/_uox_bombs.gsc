@@ -211,6 +211,8 @@ plantBomb(trigger)
 	
 	if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
 		level.roundTimeLeft = level.roundTimeLeft - ( (getTime() - level.roundresumetime) / 1000 );
+		
+	level.objectivetime = getTime();		
 
 	if([[level.getVars]]("sv_showbombtimer"))
     {
