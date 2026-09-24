@@ -1042,7 +1042,7 @@ updateServerScoreboard()
 	options["alignY"] = "middle";
 	options["width"] = 24;
 	options["height"] = 24;
-	options["fontScale"] = 1.6;
+	options["fontscale"] = 1.6;
 	
 	if(level.uox_teamplay && level.objective != "bel")
 		shader = game["headicon_" + game["team1"]];
@@ -1210,7 +1210,7 @@ updatePlayerScoreboard()
 		options["alignY"] = "middle";
 		options["width"] = 24;
 		options["height"] = 24;
-		options["fontScale"] = 1.6;
+		options["fontscale"] = 1.6;
 		
 		if(player.pers["team"] == "allies")
 			shader = game["headicon_allies"];
@@ -2245,7 +2245,7 @@ createHUDHeaders()
     	options["y"] = 10;
     	options["alignX"] = "right";
     	options["alignY"] = "middle";
-    	options["fontScale"] = 1;
+    	options["fontscale"] = 1;
     	options["color"] = (1, 1, 0);
     	level.headerRight = updateHUDElement(level.headerRight, "text", game["headerR"], options);
     }
@@ -2256,14 +2256,14 @@ createServerLogo()
     if(isDefined(game["serverlogo"]))
     {
         options["x"] = 3;
-    	options["y"] = 472;
-    	options["alignX"] = "left";
-    	options["alignY"] = "top";
-    	options["fontScale"] = .55;
+    		options["y"] = 467;
+    		options["alignX"] = "left";
+    		options["alignY"] = "top";
+    		options["fontscale"] = .7;
         options["sort"] = -3;
         options["alpha"] = 1;
         options["archived"] = true;
-    	options["color"] = (1, 1, 0);
+    		options["color"] = (1, 1, 0);
 
         level.serverlogo = updateHUDElement(level.serverlogo, "text", game["serverlogo"], options);
     }
