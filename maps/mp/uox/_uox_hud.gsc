@@ -1042,7 +1042,7 @@ updateServerScoreboard()
 	options["alignY"] = "middle";
 	options["width"] = 24;
 	options["height"] = 24;
-	options["fontscale"] = 1.6;
+	options["fontscale"] = 1;
 	
 	if(level.uox_teamplay && level.objective != "bel")
 		shader = game["headicon_" + game["team1"]];
@@ -1210,7 +1210,7 @@ updatePlayerScoreboard()
 		options["alignY"] = "middle";
 		options["width"] = 24;
 		options["height"] = 24;
-		options["fontscale"] = 1.6;
+		options["fontscale"] = 1;
 		
 		if(player.pers["team"] == "allies")
 			shader = game["headicon_allies"];
