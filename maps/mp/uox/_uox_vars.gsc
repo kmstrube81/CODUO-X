@@ -285,7 +285,8 @@ initGameTypeVars()
 	makeCvarServerInfo("ui_" + gt + "_roundlength", "30");
 	
 	varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
-
+	varDef("scr", "stratTime", "int", true, 15, 0, undefined, "Strat Time");
+	
 	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset"); //clear scores in between rounds
 	varDef("scr", "score_rounds", "bool", true, false, undefined, undefined, "Score Round Wins"); //game score is round wins, not objective points
 	varDef("scr", "countdraws", "bool", true, true, undefined, undefined, "Count Draws");
