@@ -31,7 +31,7 @@ debugTiming()
 
     newTime = getTime();
 
-    maps\mp\uox\_uox_debug::debugLog("info", "Loop Time =" + (newTime - level.debugTime)/1000);
+    maps\mp\uox\_uox_debug::debugLog("info", "Loop Time =" + (newTime - level.debugTime)/1000.0);
 
     level.debugTime = newTime;
 }
