@@ -147,7 +147,7 @@ finalKillcamListener()
 	level waittill("postround");
 	level.didFinalKillcam = true;
 	
-	if(!isDefined(level.finalKillcamTime))
+	if(!isDefined(level.finalKillcamTime) || !game["matchstarted"])
 	{
 		level notify("end_finalkillcam");
 		return; //if no defined killcam data just abort

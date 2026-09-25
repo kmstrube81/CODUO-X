@@ -1393,34 +1393,36 @@ createHUDNextRound(time, lastRound, doHalfTime)
 
 createHUDEndRoundScore(time, lastRound, doHalfTime)
 {
-    if(![[level.getVars]]("sv_showEndRoundScoreboard"))
+    if(![[level.getVars]]("sv_showEndRoundScoreboard")) //skip if disabled
         return;
 
 	if(time < 3)
-		time = 3;
+		time = 3; //show for at least 3 seconds
 	
+
+    //Half Header Options
 	options = [];
-	options["x"] = 575;
-	options["y"] = 237;
-	options["alignX"] = "center";
-	options["alignY"] = "middle";
-	options["fontscale"] = 1;
-	options["color"] = (0, 1, 0);
+	options["x"] = 575; //middle of score board
+	options["y"] = 237; // header row
+	options["alignX"] = "center"; //align on center
+	options["alignY"] = "middle"; //align vert on mid
+	options["fontscale"] = 1; //normal font size
+	options["color"] = (0, 1, 0); //green
 	
 	//if in OT
-	if(maps\mp\uox\_uox::isOvertime())
+	if(maps\mp\uox\_uox::isOvertime()) //get halfround umber for overtime so to display the correct header text
 	{
-		//get OT number
-		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
+		//get OT number eg 1OT 2OT etc
+		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit")) //odd number of rounds
 			OT = ((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit")) + 1;
-		else
+		else //even number of rounds
 			OT = (game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) / [[level.getVars]]("scr_ot_roundlimit");
 		//get the round limit for the current overtime
 		roundlimit = [[level.getVars]]("scr_roundlimit") + ([[level.getVars]]("scr_ot_roundlimit") * OT);
 		//get the halftime round number for current overtime
-		if([[level.getVars]]("scr_ot_roundlimit") % 2)
+		if([[level.getVars]]("scr_ot_roundlimit") % 2) //odd number of rounds
 			halfround = (roundlimit - [[level.getVars]]("scr_ot_roundlimit")) + (([[level.getVars]]("scr_ot_roundlimit") / 2) + 1);
-		else
+		else //even number of rounds
 			halfround = (roundlimit - [[level.getVars]]("scr_ot_roundlimit")) + ([[level.getVars]]("scr_ot_roundlimit") / 2);
 	}
 	else // if game isn't in OT
@@ -1436,21 +1438,21 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 		//if halftime is disabled
 		if([[level.getVars]]("scr_halftime") == 0)
 			//display Match Starting Header
-			headerText = game["matchStartingText"];
+			headerText = game["matchStartingText"]; //Header says match stating
 		//if halftime is enabled
 		else
 			if(game["half"] == 1)
 				//display first half starting text
-				headerText = game["1stHalfStartingText"];
+				headerText = game["1stHalfStartingText"]; //Header says 1st half starting
 			else if(game["half"] == 2)
 				//display second half starting text;
-				headerText = game["2ndHalfStartingText"];
+				headerText = game["2ndHalfStartingText"]; //Header says 2nd half starting
 			else
 				//display overtime text
-				headerText = game["overtimemodeText"];
+				headerText = game["overtimemodeText"]; //Header says overtime
 	}
 	//if this was the last round
-	else if(lastRound == true)
+	else if(lastRound == true) //game is over
 	{	//if its a team game
 		if(level.uox_teamplay)
 		{
@@ -1480,7 +1482,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	}
 	else if(round == halfround) //if its halftime
 	{
-		headerText = game["halftimeText"];
+		headerText = game["halftimeText"]; //set header to Overtime
 	}
 	else if(game["half"] == 1) //if game is in the first half
 	{
@@ -1490,7 +1492,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	{
 		if(doHalfTime)
 		{
-			headerText = game["2ndHalfStartingText"];
+			headerText = game["2ndHalfStartingText"]; //set header to 2nd half starting out of half time
 		}
 		else
 			headerText = game["2HText"]; //set header to Second Half
@@ -1500,14 +1502,28 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 		headerText = game["overtimemodeText"]; //set header to Overtime
 	}
 	if(isDefined(headerText)) //if headerText was set		
-		level.ersHeaderHUD = updateHUDElement(level.ersHeaderHUD, "text", headerText, options);
+		level.ersHeaderHUD = updateHUDElement(level.ersHeaderHUD, "text", headerText, options); //update the header with the determined text
 		//change Header Text on UI element
 	
 	if(round > 0) //if we started playing
 	{
+        headercolor = (.99, .99, .75);
+        switch(game["allies"])
+        {
+            case "russian":
+                team1color = (0.80, 0.16, 0.24);
+                break;
+            case "british":
+                team1color = (0.35, 0.45, 0.85);
+                break;
+            default:
+                team1color = (0.53, 0.64, 0.32);
+        }
+        team2color = (0.72, 0.75, 0.69);
+
 		//Scoreboard Text
-		options["y"] = 262;
-		options["color"] = (.99, .99, .75);
+		options["y"] = 262; //scoreboard header pos
+		options["color"] =  headercolor; //header color
 		level.ersBoardHUD = updateHUDElement(level.ersBoardHUD, "text", game["scoreboardText"], options);
 
 		if(level.uox_teamplay) //if team game
@@ -1529,19 +1545,20 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 		}
 
 		//Team1 Text
-		options["x"] = 535;
-		options["y"] = 277;
+		options["x"] = 535; //Team 1 column
+		options["y"] = 277; //Team Row
 		options["fontscale"] = .75;
-		options["color"] = (.73, .99, .73);
+		options["color"] = team1color;
 		level.ersTeam1HUD = updateHUDElement(level.ersTeam1HUD, "text", team1Text, options);
 		
 		//Team2 Text
-		options["x"] = 615;
-		options["color"] = (.85, .99, .99);
+		options["x"] = 615; //Team 2 column
+		options["color"] = team2color;
 		level.ersTeam2HUD = updateHUDElement(level.ersTeam2HUD, "text", team2Text, options);
 		
 		if([[level.getVars]]("scr_halftime")) //if halftime is enabled
 		{
+            //Draw Individual half scores on half enabled games
 			if(level.uox_teamplay) //if team game
 			{ 	//set half scores
 				firstHalfTeam1Score = game["round1team1score"];
@@ -1549,23 +1566,22 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 				secondHalfTeam1Score = game["round2team1score"];
 				secondHalfTeam2Score = game["round2team2score"];
 				
-				options["x"] = 618;
-				options["y"] = 290;
-				options["color"] = (.85, .99, .99);
+				options["x"] = 618; //Team 2 column
+				options["y"] = 290; //First Half Score row
+				options["fontscale"] = 1;
+				options["color"] = team2color;
 				//1st Half Team 2 score
-				level.ers1HAlliesScoreHUD = updateHUDElement(level.ers1HAlliesScoreHUD, "number",
+				level.ers1HTeam2ScoreHUD = updateHUDElement(level.ers1HTeam2ScoreHUD, "number",
 					firstHalfTeam2Score, options);
 				
-				options["y"] = 307;
-				options["color"] = (.73, .99, .75);
+				options["y"] = 307; //Second Half Score row
 				//2nd Half Team 2 score
-				level.ers2HAlliesScoreHUD = updateHUDElement(level.ers2HAlliesScoreHUD, "number", 
+				level.ers2HTeam2ScoreHUD = updateHUDElement(level.ers2HTeam2ScoreHUD, "number", 
 					secondHalfTeam2Score, options);
 				
 				options["y"] = 327;
-				options["fontscale"] = 1;
 				//Match Team 2 Score
-				level.ersMatchAlliesScoreHUD = updateHUDElement(level.ersMatchAlliesScoreHUD, "number", 
+				level.ersMatchTeam2ScoreHUD = updateHUDElement(level.ersMatchTeam2ScoreHUD, "number", 
 					matchScoreTeam2, options);
 			}
 			else //if Free for All game mode
@@ -1577,20 +1593,20 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 				createPlayerHUDEndRoundScore();
 			}
 			// First Half Score Display
-			options["x"] = 575;
-			options["y"] = 290;
-			options["color"] = (.99, .99, .75);
+			options["x"] = 575; //Header Column
+			options["y"] = 290; //First Half Score row
+			options["color"] = headercolor;
 			if(!maps\mp\uox\_uox::isOvertime()) //if game is in regulation set 1st Half text
 				text = game["1HText"];
 			else //if game is in OT set OT 1H text
 				text = game["OT1HText"];
 			level.ers1HScoreHUD = updateHUDElement(level.ers1HScoreHUD, "text", text, options);
 			
-			options["x"] = 532;
-			options["color"] = (.73, .99, .75);
+			options["x"] = 532; //Team 1 Column
+			options["color"] = team1color;
 			
 			//First Half Team 1 Score
-			level.ers1HAxisScoreHUD = updateHUDElement(level.ers1HAxisScoreHUD, "number", 
+			level.ers1HTeam1ScoreHUD = updateHUDElement(level.ers1HTeam1ScoreHUD, "number", 
 				firstHalfTeam1Score, options);
 			
 			if(!maps\mp\uox\_uox::isOvertime()) //if game is in regulation set 2nd Half text
@@ -1598,56 +1614,53 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 			else //if game is in OT set OT 2H text
 				text = game["OT2HText"];
 			
-			options["x"] = 575;
-			options["y"] = 307;
-			options["color"] = (.99, .99, .75);
+			options["x"] = 575; //Header Column
+			options["y"] = 307; //Second Half score row
+			options["color"] = headercolor;
 			// Second Half Score Display
 			level.ers2HScoreHUD = updateHUDElement(level.ers2HScoreHUD, "text", text, options);
 			
-			options["x"] = 532;
-			options["color"] = (.85, .99, .99);
+			options["x"] = 532; //Team 1 Column
+			options["color"] = team1color;
 			//Second Half Team 1 Score
-			level.ers2HAxisScoreHUD = updateHUDElement(level.ers2HAxisScoreHUD, "number", 
+			level.ers2HTeam1ScoreHUD = updateHUDElement(level.ers2HTeam1ScoreHUD, "number", 
 				secondHalfTeam1Score, options);
 
-			options["x"] = 575;
-			options["y"] = 327;
-			options["fontscale"] = .8;
-			options["color"] = (.99, .99, .75);
+			options["x"] = 575; //Header Column
+			options["y"] = 327; //Match Score row
+			options["color"] = headercolor;
 			// Match Score Display
 			level.ersMatchScoreHUD = updateHUDElement(level.ersMatchScoreHUD, "text", 
-				game["matchScoreText"], options);
+				game["matchText"], options);
 
-			options["x"] = 532;
-			options["fontscale"] = 1;
-			options["color"] = (.85, .99, .99);
+			options["x"] = 532; //Team 1 Column
+			options["color"] = team1color;
 			// Match Axis Score Display
-			level.ersMatchAxisScoreHUD = updateHUDElement(level.ersMatchAxisScoreHUD, "number", 
+			level.ersMatchTeam1ScoreHUD = updateHUDElement(level.ersMatchTeam1ScoreHUD, "number", 
 				matchScoreTeam1, options);
 		}
 		else //halftime disabled
 		{
-			options["x"] = 575;
-			options["y"] = 290;
-			options["fontscale"] = .8;
-			options["color"] = (.99, .99, .75);
+			options["x"] = 575; //Header Column
+			options["y"] = 290; //First Half Row
+			options["fontscale"] = 1;
+			options["color"] = headercolor;
 			// Match Score Display
 			level.ersMatchScoreHUD = updateHUDElement(level.ersMatchScoreHUD, "text", 
-				game["matchScoreText"], options);
+				game["matchText"], options);
 			
-			options["x"] = 532;
-			options["fontscale"] = .75;
-			options["color"] = (.73, .99, .75);
+			options["x"] = 532; //team 1 column
+			options["color"] = team1color;
 			// Match Score Team 1 Score
-			level.ersMatchAxisScoreHUD = updateHUDElement(level.ersMatchAxisScoreHUD, "number", 
+			level.ersTeam1AxisScoreHUD = updateHUDElement(level.ersMatchTeam1ScoreHUD, "number", 
 				matchScoreTeam1, options);
 
 			if(level.uox_teamplay) //if team game
 			{ 	
-				options["x"] = 618;
-				options["color"] = (.85, .99, .99);
+				options["x"] = 618; //team 2 column
+				options["color"] = team2color;
 				// Match Score Team 2 Score 
-				level.ersMatchAlliesScoreHUD = updateHUDElement(level.ersMatchAlliesScoreHUD, "number", 
+				level.ersMatchTeam2ScoreHUD = updateHUDElement(level.ersMatchTeam2ScoreHUD, "number", 
 					matchScoreTeam2, options);
 			}
 			else //if free for all game
@@ -1667,15 +1680,15 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	level.ersBoardHUD = deleteHUDElement(level.ersBoardHUD);
 	level.ersTeam1HUD = deleteHUDElement(level.ersTeam1HUD);
 	level.ersTeam2HUD = deleteHUDElement(level.ersTeam2HUD);
-	level.ers1HAlliesScoreHUD = deleteHUDElement(level.ers1HAlliesScoreHUD);
-	level.ers1HAxisScoreHUD = deleteHUDElement(level.ers1HAxisScoreHUD);
+	level.ers1HTeam1ScoreHUD = deleteHUDElement(level.ers1HTeam1ScoreHUD);
+	level.ers1HTeam2ScoreHUD = deleteHUDElement(level.ers1HTeam2ScoreHUD);
 	level.ers1HScoreHUD = deleteHUDElement(level.ers1HScoreHUD);
-	level.ers2HAlliesScoreHUD = deleteHUDElement(level.ers2HAlliesScoreHUD);
-	level.ers2HAxisScoreHUD = deleteHUDElement(level.ers2HAxisScoreHUD);
+	level.ers2HTeam1ScoreHUD = deleteHUDElement(level.ers2HTeam1ScoreHUD);
+	level.ers2HTeam2ScoreHUD = deleteHUDElement(level.ers2HTeam2ScoreHUD);
 	level.ers2HScoreHUD = deleteHUDElement(level.ers2HScoreHUD);
 	level.ersMatchScoreHUD = deleteHUDElement(level.ersMatchScoreHUD);
-	level.ersMatchAlliesScoreHUD = deleteHUDElement(level.ersMatchAlliesScoreHUD);
-	level.ersMatchAxisScoreHUD = deleteHUDElement(level.ersMatchAxisScoreHUD);
+	level.ersMatchTeam1ScoreHUD = deleteHUDElement(level.ersMatchTeam1ScoreHUD);
+	level.ersMatchTeam2ScoreHUD = deleteHUDElement(level.ersMatchTeam2ScoreHUD);
 	level.ersSwitchingHUD = deleteHUDElement(level.ersSwitchingHUD);
 	level.ersSwitchWaitHUD = deleteHUDElement(level.ersSwitchWaitHUD);
 	
@@ -1705,23 +1718,37 @@ createPlayerHUDEndRoundScore()
 		options = [];
 		options["alignX"] = "center";
 		options["alignY"] = "middle";
-		options["x"] = 618;
+		options["x"] = 618; //you column
 		
 		player = players[i];
 		if([[level.getVars]]("scr_halftime"))
 		{
-			options["y"] = 290;
-			options["fontscale"] = .75;
-			options["color"] = (.85, .99, .99);
+            switch(player.pers["team"])
+            {
+                case "russian":
+                    youcolor = (0.80, 0.16, 0.24);
+                    break;
+                case "british":
+                    youcolor = (0.35, 0.45, 0.85);
+                    break;
+                case "american":
+                    youcolor = (0.53, 0.64, 0.32);
+                    break;
+                default:
+                    youcolor = (0.72, 0.75, 0.69);
+            }
+        
+			options["y"] = 290; //first half row
+			options["fontscale"] = 1;
+			options["color"] = youcolor;
 			player updateClientHUDElement("ers1HScoreHUD", "number", player.pers["1HScore"], options);
 			
-			options["y"] = 307;
-			options["color"] = (.73, .99, .75);
+			options["y"] = 307; //second half row
+			options["color"] = youcolor;
 			player updateClientHUDElement("ers2HScoreHUD", "number", player.pers["2HScore"], options);
 				
-			options["y"] = 327;
-			options["fontscale"] = 1;
-			options["color"] = (.85, .99, .99);
+			options["y"] = 327; //match row
+			options["color"] = youcolor;
 			if([[level.getVars]]("scr_score_rounds"))
 				value = player.pers["roundswon"];
 			else
@@ -1730,9 +1757,9 @@ createPlayerHUDEndRoundScore()
 		}
 		else
 		{
-			options["y"] = 290;
-			options["fontscale"] = .75;
-			options["color"] = (.85, .99, .99);
+			options["y"] = 290; //first half row
+			options["fontscale"] = 1;
+			options["color"] = youcolor;
 			if([[level.getVars]]("scr_score_rounds"))
 				value = player.pers["roundswon"];
 			else
