@@ -6,33 +6,22 @@
 **** returns substring array
 ****  
 ************************************************************************************************* */
-stringSplit(str, seperator, skipEmpty)
+stringSplit(str, sep, skipEmpty, quote)
 {
-    if(!isDefined(skipEmpty))
-    {
-        skipEmpty = true;
-    }
+    if ( !isdefined( str ) || ( str == "" ) )
+		return ( [] );
 
-	if(seperator.size > 1)
-		seperator = seperator[0];
-		
-	substringArrayIndex = 0; //index of substring char
-	substrings[substringArrayIndex] = ""; //init sub string as a blank char;
-	
-	for(charIndex = 0; charIndex < str.size; charIndex++)
-	{
-		if(str[charIndex] == seperator) //if the current char is the seperator char
-		{
-            if(substrings[substringArrayIndex] != "" || !skipEmpty) 
-                substringArrayIndex++;
-			substrings[substringArrayIndex] = ""; //init next index in substring array
-		}
-		else
-		{
-			substrings[substringArrayIndex] += str[charIndex];
-		}
-	}
-	return substrings;
+	if ( !isdefined( sep ) || ( sep == "" ) )
+		sep = ";";	// Default separator
+
+	if ( !isdefined( quote ) )
+		quote = "";
+
+	skipEmpty = isdefined( skipEmpty );
+
+	a = _splitRecur( 0, str, sep, quote, skipEmpty );
+
+	return ( a );
 }
 
 /* *************************************************************************************************
@@ -231,4 +220,68 @@ findStr( find, str, pos )
 	}
 
 	return ( -1 );
+}
+
+_splitRecur( iter, str, sep, quote, skipEmpty )
+{
+	s = sep[ iter ];
+
+	_a = [];
+	_s = "";
+	doQuote = false;
+	for ( i = 0; i < str.size; i++ )
+	{
+		ch = str[ i ];
+		if ( ch == quote )
+		{
+			doQuote = !doQuote;
+
+			if ( iter + 1 < sep.size )
+				_s += ch;
+		}
+		else
+		if ( ( ch == s ) && !doQuote )
+		{
+			if ( ( _s != "" ) || !skipEmpty )
+			{
+				_l = _a.size;
+
+				if ( iter + 1 < sep.size )
+				{
+					_x = _splitRecur( iter + 1, _s,	sep, quote, skipEmpty );
+
+					if ( ( _x.size > 0 ) || !skipEmpty )
+					{
+						_a[ _l ][ "str" ] = _s;
+						_a[ _l ][ "fields" ] = _x;
+					}
+				}
+				else
+					_a[ _l ] = _s;
+			}
+
+			_s = "";
+		}
+		else
+			_s += ch;
+	}
+
+	if ( _s != "" )
+	{
+		_l = _a.size;
+
+		if ( iter + 1 < sep.size )
+		{
+			_x = _splitRecur( iter + 1, _s, sep, quote, skipEmpty );
+			if ( _x.size > 0 )
+			{
+				_a[ _l ][ "str" ] = _s;
+				_a[ _l ][ "fields" ] = _x;
+			}
+		}
+		else
+			_a[ _l ] = _s;
+	}
+
+	return ( _a );
 }

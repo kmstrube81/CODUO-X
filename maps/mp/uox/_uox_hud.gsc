@@ -1511,15 +1511,18 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
         switch(game["allies"])
         {
             case "russian":
-                team1color = (0.80, 0.16, 0.24);
+                team1color = (0.75, 0.25, 0.25);
                 break;
             case "british":
-                team1color = (0.35, 0.45, 0.85);
+                team1color = (0.25, 0.25, 0.75);
+                break;
+            case "american":
+                team1color = (0.25, 0.75, 0.25);
                 break;
             default:
-                team1color = (0.53, 0.64, 0.32);
+                team1color = (0.25, 0.75, 0.25);
         }
-        team2color = (0.72, 0.75, 0.69);
+        team2color = (0.6, 0.6, 0.6);
 
 		//Scoreboard Text
 		options["y"] = 262; //scoreboard header pos
@@ -1726,16 +1729,16 @@ createPlayerHUDEndRoundScore()
             switch(player.pers["team"])
             {
                 case "russian":
-                    youcolor = (0.80, 0.16, 0.24);
+                    youcolor = (0.75, 0.25, 0.25);
                     break;
                 case "british":
-                    youcolor = (0.35, 0.45, 0.85);
+                    youcolor = (0.25, 0.25, 0.75);
                     break;
                 case "american":
-                    youcolor = (0.53, 0.64, 0.32);
+                    youcolor = (0.25, 0.75, 0.25);
                     break;
                 default:
-                    youcolor = (0.72, 0.75, 0.69);
+                    youcolor = (0.6, 0.6, 0.6);
             }
         
 			options["y"] = 290; //first half row
@@ -2303,3 +2306,133 @@ deleteHUDHeaders()
     level.headerRight = deleteHUDElement(level.headerRight);
 }
 
+/* ****************************************************************************************************
+**** easeValue( float t, string ease )
+****
+**** maps linear progress t (0..1) onto an easing curve
+**** ease: "in" (accelerate), "out" (decelerate), "inout" (smoothstep), anything else = linear
+****
+**** returns eased progress (0..1)
+***************************************************************************************************** */
+easeValue(t, ease)
+{
+    switch(ease)
+    {
+        case "in":
+            return t * t;
+        case "out":
+            return 1 - ((1 - t) * (1 - t));
+        case "inout":
+            return t * t * (3 - (2 * t));
+    }
+    return t;
+}
+
+/* ****************************************************************************************************
+**** tweenFontScale( hudelem element, float from, float to, float duration, string ease, int token )
+****
+**** steps element.fontscale from -> to once per server frame over duration seconds
+**** aborts if the element is destroyed or element.uox_animToken no longer matches token
+**** uses an integer frame count so float accumulation can't add or drop a frame
+****
+**** returns true if the tween completed, false if it was cancelled
+***************************************************************************************************** */
+tweenFontScale(element, from, to, duration, ease, token)
+{
+    if(!isDefined(element))
+        return false;
+
+    frametime = level.frametime;
+    if(!isDefined(frametime))
+        frametime = 0.05;
+
+    frames = (int)((duration / frametime) + 0.5);
+    if(frames < 1)
+        frames = 1;
+
+    element.fontscale = from;
+
+    for(i = 1; i <= frames; i++)
+    {
+        wait frametime;
+
+        if(!isDefined(element))
+            return false;
+        if(element.uox_animToken != token)
+            return false;
+
+        e = easeValue(i / frames, ease);
+        element.fontscale = from + ((to - from) * e);
+
+        //maps\mp\uox\_uox_debug::debugLog("info", "tweenFontScale frame " + i + "/" + frames, "fontscale", element.fontscale);
+    }
+
+    element.fontscale = to; //snap exactly to target
+    return true;
+}
+
+/* ****************************************************************************************************
+**** popText( hudelem element, string type, float target, float alpha )
+****
+**** runs a two-phase text scale animation ending at target fontscale
+****       "pop"  - 0.8x -> 1.2x (ease out) -> 1.0x (ease in-out)
+**** starting a new animation on the same element cancels the old one via uox_animToken
+**** element must be alignX "center" / alignY "middle" to scale around its center
+****
+**** call threaded; returns nothing
+***************************************************************************************************** */
+popText(element, target, alpha)
+{
+    if(!isDefined(element))
+        return;
+    if(!isDefined(target))
+        target = 1.0;
+    if(!isDefined(alpha))
+        alpha = 1.0;
+
+    if(!isDefined(element.uox_animToken))
+        element.uox_animToken = 0;
+    element.uox_animToken++;
+    token = element.uox_animToken;
+
+    element.alpha = alpha;
+
+    if(!tweenFontScale(element, target * 0.8, target * 1.2, 0.15, "out", token))
+        return;
+    tweenFontScale(element, target * 1.2, target, 0.15, "inout", token);
+            
+}
+
+/* ****************************************************************************************************
+**** slamText( hudelem element, float target, float alpha )
+****
+**** runs a two-phase text scale animation ending at target fontscale
+**** "slam" - 2.0x -> 0.9x (ease in) -> 1.0x (ease out), fades in over 0.15s
+**** starting a new animation on the same element cancels the old one via uox_animToken
+**** element must be alignX "center" / alignY "middle" to scale around its center
+****
+**** call threaded; returns nothing
+***************************************************************************************************** */
+slamText(element, target, alpha)
+{
+    if(!isDefined(element))
+        return;
+    if(!isDefined(target))
+        target = 1.0;
+    if(!isDefined(alpha))
+        alpha = 1.0;
+
+    if(!isDefined(element.uox_animToken))
+        element.uox_animToken = 0;
+    element.uox_animToken++;
+    token = element.uox_animToken;
+
+    element.alpha = 0;
+    element fadeOverTime(0.15);
+    element.alpha = alpha;
+
+    if(!tweenFontScale(element, target * 2.0, target * 0.9, 0.2, "in", token))
+        return;
+    tweenFontScale(element, target * 0.9, target, 0.1, "out", token);
+   
+}
