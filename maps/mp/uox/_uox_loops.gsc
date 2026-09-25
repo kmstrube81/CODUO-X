@@ -15,6 +15,10 @@ initServerLoop()
 	level.waitTills = maps\mp\uox\_uox_arrays::superArray();
     level.framerate = getcvar("sv_fps");
 
+    if(!level.framerate)
+        level.framerate = 20;
+    level.framerate = (int)level.framerate;
+
     frames = level.framerate;
     level.frametime = 1.0/frames;
 	
