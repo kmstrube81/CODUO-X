@@ -422,6 +422,7 @@ initGameTypeVars()
 					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
 		level.allowenemyspectate = varDef("scr", "spectateenemy", "int", true, 0, 0, 1, "Spectate Enemy Team",
 					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
+	}	
 	varDef("g", "deadChat", "bool", true, true, undefined, undefined, "Dead Chat");
 
 	//define scoreboard vars
