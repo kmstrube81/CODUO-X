@@ -267,6 +267,8 @@ ctf()
 
 updateFlagIcons(showicons, reason)
 {
+
+	maps\mp\uox\_uox_debug::debugLog("info", "update ctf icons " + showicons + " reason=" + reason);
     //set up flag icons scr_showicons 0 is off, 1 is big icons, 2 is small icons, 3 is both.
     switch(showicons)
     {
