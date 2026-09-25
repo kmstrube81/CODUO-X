@@ -418,9 +418,9 @@ initGameTypeVars()
         }
 		varDef("scr", "teamscorepenalty", "bool", true, true, undefined, undefined, "Team Kill Penalty");
 		
-		varDef("scr", "freelook", "bool", true, true, undefined, undefined, "Free Spectate",
+		level.allowfreelook = varDef("scr", "freelook", "bool", false, true, undefined, undefined, "Free Spectate",
 					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
-		varDef("scr", "spectateenemy", true, true, undefined, undefined, "Spectate Enemy Team",
+		level.allowenemyspectate = varDef("scr", "spectateenemy", true, true, undefined, undefined, "Spectate Enemy Team",
 					maps\mp\gametypes\_teams::UpdateSpectatePermissions);
 	}
 	varDef("g", "deadChat", "bool", true, true, undefined, undefined, "Dead Chat");
