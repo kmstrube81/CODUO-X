@@ -184,6 +184,9 @@ spawnSpectator(origin, angles)
 		else
 			maps\mp\_utility::error("NO " + spawnpointname + " SPAWNPOINTS IN MAP");
 	}
+	
+	if(level.uox_teamplay)
+		self thread maps\mp\gametypes\_teams::SetSpectatePermissions();
 
     self maps\mp\uox\_uox_hud::clearBlackedoutClientHUD();
 
