@@ -40,19 +40,19 @@ debugLog(severity, msg, varName, var)
 		return;
 
     // Build the entire output as one string, then write atomically.
-    output = "\n|**** DEBUG ****|\n";
+    output = "|**** DEBUG ****|   ";
     output = output + severity + ": " + msg;
 
     if(isDefined(varName))
     {
-        output = output + "\n  " + varName + " = ";
+        output = output + "  " + varName + " = ";
         if(isDefined(var))
             output = output + safeDump(var);
         else
             output = output + "undefined";
     }
 
-    output = output + "\n|** END DEBUG **|\n";
+    output = output + "   |** END DEBUG **|\n";
     logPrint(output);
 }
 

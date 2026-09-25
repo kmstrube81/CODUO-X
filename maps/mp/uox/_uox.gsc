@@ -830,6 +830,8 @@ checkMatchStart()
 {
 	if(!game["roundbased"])
 		return;
+
+    wait level.frametime; //wait a server frame to make sure team status is updated
 	//save current team status
 	oldvalue["teams"] = level.exist["teams"];
 	level.exist["teams"] = false; //set team status to false
