@@ -142,7 +142,7 @@ watchUse()
 			while(isAlive(self) && self useButtonPressed() && (progresstime < waittime))
 			{
 				progresstime += 0.05;
-				wait 0.05;
+				wait level.frametime;
 			}
 
 			//delete hud elems
@@ -175,7 +175,7 @@ watchUse()
 	
 	//after recording input, makesure it still isn't held down
 	while(self useButtonPressed())
-		wait 0.05;
+		wait level.frametime;
 	//mark as no using
 	self.isUsing = false;
 }

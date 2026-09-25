@@ -25,7 +25,7 @@ killcam(doKillcam, attackerNum, attackerGUID, attackerTeam, attackerName, delay)
 	self.archivetime = delay + 7;
 	
 	// wait till the next server frame to allow code a chance to update archivetime if it needs trimming
-	wait 0.05;
+	wait level.frametime;
 
 	if(self.archivetime <= delay)
 	{
@@ -108,7 +108,7 @@ waitKillcamTime(extradelay)
 {
 	self endon("end_killcam");
 
-	wait(self.archivetime - extradelay - 0.05);
+	wait(self.archivetime - extradelay - level.frametime);
 	self notify("end_killcam");
 }
 
@@ -160,7 +160,7 @@ finalKillcamListener()
 		"final_killcam" + "\n");
 
 	// wait till the next server frame to allow code a chance to update archivetime if it needs trimming
-	wait 0.05;
+	wait level.frametime;
 	
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++)
@@ -201,7 +201,7 @@ doFinalKillcam()
 	maps\mp\gametypes\_teams::SetKillcamSpectatePermissions();
 
 	// wait till the next server frame to allow code a chance to update archivetime if it needs trimming
-	wait 0.05;
+	wait level.frametime;
 
 	if(self.archivetime <= delay)
 	{

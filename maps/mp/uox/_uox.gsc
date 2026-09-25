@@ -2968,7 +2968,7 @@ moveTeams(didkill, reason)
     
     self notify("end_respawn");
     
-    wait 0.05; //wait to let existing threads die
+    wait level.frametime; //wait to let existing threads die
 
     self.pers["team"] = newteam;
     self.sessionteam = newteam;

@@ -563,11 +563,11 @@ Flag_ZoneThink()
         
         if (self.capping > 0)
         {
-            self.progresstime += (0.05) * ((1 + (self.capping - 1) * 0.5 ));
+            self.progresstime += (level.frametime) * ((1 + (self.capping - 1) * 0.5 ));
         }
         else if (self.capping < 0)
         {
-            self.progresstime +=  (0.05) * ((1 + (-1 * self.capping - 1) * 0.5 ));
+            self.progresstime +=  (level.frametime) * ((1 + (-1 * self.capping - 1) * 0.5 ));
         }
 
         self.scale = (self.progresstime / self.script_timer);

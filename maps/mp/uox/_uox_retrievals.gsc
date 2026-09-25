@@ -874,7 +874,7 @@ drop_objective_on_disconnect_or_death(player)
 		}
 		else
 		{
-			wait 0.05; //required to let threads die
+			wait level.frametime; //required to let threads die
 			announcement(&"RE_OBJ_CAPTURED_ALL");
 			level thread maps\mp\uox\_uox::endRound(game["re_attackers"]);
 			return;

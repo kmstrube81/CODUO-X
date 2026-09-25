@@ -114,7 +114,7 @@ initVars()
 *************************************************************************************************** */
 hq_setup()
 {
-	wait 0.05; // wait a server fram
+	wait level.frametime; // wait a server fram
 	
 	level.radio = getentarray ("hqradio","targetname"); //load radios to level.radio array
 
@@ -327,7 +327,7 @@ hq_radio_think()
         {
             if ( (self.allies > 0) && (self.axis <= 0) && (self.team != "allies") ) //if there are allies in the radius and there are no axis and the radio is not captured by allies
             {
-                self.holdtime_allies += 0.05; //add to the capture bar.
+                self.holdtime_allies += level.frametime; //add to the capture bar.
                 if (self.holdtime_allies >= [[level.getVars]]("scr_radiocapturetime")) //if the hold time is greater than the capture time
                 {
                     if ( (level.captured_radios["allies"] > 0) && (self.team != "none") ) //if a radio is already captured and this radio is not neutral, (dont see how this is ever true)
@@ -338,7 +338,7 @@ hq_radio_think()
             }
             else if ( (self.axis > 0) && (self.allies <= 0) && (self.team != "axis") ) //else if axis are on site and there are no allies and radio is not captured by axis
             {
-                self.holdtime_axis += 0.05; //add to the capture bar.
+                self.holdtime_axis += level.frametime; //add to the capture bar.
                 if (self.holdtime_axis >= 250)
                 {
                     if ( (level.captured_radios["axis"] > 0) && (self.team != "none") )
@@ -380,13 +380,13 @@ hq_radio_think()
             
             if ( (self.allies > 0) && (self.team == "axis") ) //if allies are in an axis owned radio radius
             {
-                self.holdtime_allies += 0.05; //add to hold timer
+                self.holdtime_allies += level.frametime; //add to hold timer
                 if (self.holdtime_allies >= [[level.getVars]]("scr_radiodestroytime")) //destroy radio if held above destroy time threshold
                     level hq_radio_capture(self, "none");
             }
             else if ( (self.axis > 0) && (self.team == "allies") ) //if axis are in an allied owned radio radius
             {
-                self.holdtime_axis += 0.05; //add to hold timer
+                self.holdtime_axis += level.frametime; //add to hold timer
                 if (self.holdtime_axis >= [[level.getVars]]("scr_radiodestroytime")) //destroy radio if held above destroy time threshold
                     level hq_radio_capture(self, "none"); 
             }

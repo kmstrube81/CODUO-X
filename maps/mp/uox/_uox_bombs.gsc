@@ -284,7 +284,7 @@ check_bombzone(trigger)
 			::planting, ::plantBomb, ::check_bombzone, true, true, true, trigger, "MP_bomb_plant");
 
 		while(self canPlant(trigger))
-			wait 0.05;
+			wait level.frametime;
 	}
 
     maps\mp\uox\_uox_debug::debugLog("info", self.name + " delete plant icon");
@@ -511,7 +511,7 @@ check_bomb(trigger)
 			::defusing, ::defuseBomb, ::check_bomb, true, true, true, trigger, "MP_bomb_defuse");
 
 		while(self canDefuse(trigger))
-			wait 0.05;
+			wait level.frametime;
 	}
 
     self.checking = undefined;

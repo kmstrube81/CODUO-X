@@ -13,24 +13,29 @@ initServerLoop()
 	level.mediumLoop = maps\mp\uox\_uox_arrays::superArray();
 	level.slowLoop = maps\mp\uox\_uox_arrays::superArray();
 	level.waitTills = maps\mp\uox\_uox_arrays::superArray();
+    level.framerate = getcvar("sv_fps");
+
+    frames = level.framerate;
+    level.frametime = 1.0/frames;
 	
 	//start Loop
 	for(frame = 0; true; frame++)
 	{
-		if(frame == 20)
+		if(frame == frames)
 			frame = 0;
+        
 		if(frame == 0)
 		{
 			level maps\mp\uox\_uox_arrays::arrayReadEach(level.slowLoop, ::doLoop );
 		}
-		if(frame % 5 == 0)
+		if(frame % (frames/4) == 0)
 		{
 			level maps\mp\uox\_uox_arrays::arrayReadEach(level.mediumLoop, ::doLoop );
 		}
 		level maps\mp\uox\_uox_arrays::arrayReadEach(level.fastLoop, ::doLoop );
 		
 		level maps\mp\uox\_uox_arrays::arrayReadEach(level.waitTills, ::startLevelWait);
-		wait 0.05;
+		wait level.frametime;
 	}
 }
 
@@ -49,24 +54,26 @@ initPlayerLoop()
 	self.mediumLoop = maps\mp\uox\_uox_arrays::superArray();
 	self.slowLoop = maps\mp\uox\_uox_arrays::superArray();
 	self.waitTills = maps\mp\uox\_uox_arrays::superArray();
+
+    frames = level.framerate;
 	
 	//start Loop
 	for(frame = 0; true; frame++)
 	{
-		if(frame == 20)
+		if(frame == frames)
 			frame = 0;
 		if(frame == 0)
 		{
 			self maps\mp\uox\_uox_arrays::arrayReadEach(self.slowLoop, ::doLoop );
 		}
-		if(frame % 5 == 0)
+		if(frame % (frames/4) == 0)
 		{
 			self maps\mp\uox\_uox_arrays::arrayReadEach(self.mediumLoop, ::doLoop );
 		}
 		self maps\mp\uox\_uox_arrays::arrayReadEach(self.fastLoop, ::doLoop );
 		
 		self maps\mp\uox\_uox_arrays::arrayReadEach(self.waitTills, ::startWait);
-		wait 0.05;
+		wait level.frametime;
 	}
 }
 
@@ -86,23 +93,25 @@ initEntityLoop()
 	self.slowLoop = maps\mp\uox\_uox_arrays::superArray();
 	self.waitTills = maps\mp\uox\_uox_arrays::superArray();
 	
+    frames = level.framerate;
+
 	//start Loop
 	for(frame = 0; true; frame++)
 	{
-		if(frame == 20)
+		if(frame == frames)
 			frame = 0;
 		if(frame == 0)
 		{
 			maps\mp\uox\_uox_arrays::arrayReadEach(self.slowLoop, ::doLoop );
 		}
-		if(frame % 5 == 0)
+		if(frame % (frames/4) == 0)
 		{
 			maps\mp\uox\_uox_arrays::arrayReadEach(self.mediumLoop, ::doLoop );
 		}
 		self maps\mp\uox\_uox_arrays::arrayReadEach(self.fastLoop, ::doLoop );
 		
 		self maps\mp\uox\_uox_arrays::arrayReadEach(self.waitTills, ::startWait);
-		wait 0.05;
+		wait level.frametime;
 		
 		if(!isDefined(self))
 			return;
@@ -246,7 +255,7 @@ doWait(waiter)
 		name = self.name + name;
 	else
 		name = "";
-	wait 0.05; //allow notifies to kill hanging threads
+	wait level.frametime; //allow notifies to kill hanging threads
 
     if(waiter["entFlag"] && waiter["responseFlag"])
     {
@@ -326,7 +335,7 @@ doLevelWait(waiter)
 	level endon("destroyed");
 
 	level notify("kill_" + waiter["msg"]);
-	wait 0.05; //allow notifies to kill hanging threads
+	wait level.frametime; //allow notifies to kill hanging threads
 
     if(waiter["entFlag"] && waiter["responseFlag"])
     {
