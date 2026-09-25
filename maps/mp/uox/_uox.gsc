@@ -984,6 +984,7 @@ endRound(roundwinner, numRoundWins)
     }	
 
 	maps\mp\uox\_uox_hud::updateServerScoreboard();
+	maps\mp\uox\_uox_hud::updatePlayersLeft();
 	if(postroundtime < 5) postroundtime = 5;
 	wait postroundtime; //wait at least five seconds before ending round
 
