@@ -23,10 +23,25 @@ Callback_StartGameType()
     }
 }
 
+debugTiming()
+{
+    if(!isDefined(level.debugTime)) {
+        level.debugTime = getTime();
+    }
+
+    newTime = getTime();
+
+    maps\mp\uox\_uox_debug::debugLog("info", "Loop Time =" + (newTime - level.debugTime)/1000);
+
+    level.debugTime = newTime;
+}
+
 Default_StartGameType()
 {   
     //init loops
 	level thread maps\mp\uox\_uox_loops::initServerLoop();
+
+    level maps\mp\uox\_uox_loops::addToLoop(level,"slow", ::debugTiming, "debugTiming");
 	
     //init gametype teamplay and map vars
 	level.gametype = getCvar("g_gametype");
