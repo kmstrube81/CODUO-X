@@ -363,7 +363,7 @@ updateFlagIcons(showicons, reason)
                     options["alpha"] = 1;
                     options["width"] = 24;
                     options["height"] = 24;
-                    allies_icon2 = game["hud_flagicon_away"];
+                    axis_icon2 = game["hud_flagicon_away"];
                     break;
                 case "axis_flag_dropped":
                     options["alpha"] = 1;
