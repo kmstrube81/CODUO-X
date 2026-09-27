@@ -2397,9 +2397,9 @@ popText(element, target, alpha)
 
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target, target * 3.0, 0.2, "out", token))
+    if(!tweenFontScale(element, target, target * 2.0, 0.2, "out", token))
     		return;
-	tweenFontScale(element, target * 3.0, target, 0.4, "linear", token);
+	tweenFontScale(element, target * 2.0, target, 0.4, "linear", token);
 
             
 }
