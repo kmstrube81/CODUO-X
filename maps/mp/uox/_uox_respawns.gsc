@@ -563,7 +563,7 @@ waitRespawnButton(forcespawn)
 		thread waitRemoveRespawnText("respawn");
 
 		while(self useButtonPressed() != true)
-			wait .05;
+			wait level.frametime;
 	}
 	self notify("remove_respawntext");	
 	

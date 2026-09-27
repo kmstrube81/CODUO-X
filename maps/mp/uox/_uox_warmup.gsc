@@ -271,7 +271,7 @@ readyup(entity, switchingSides)
 				wait 1;
 			}
 			while (self useButtonPressed() == true)
-				wait .05;
+				wait level.frametime;
 		}
 		else
 			wait .1;

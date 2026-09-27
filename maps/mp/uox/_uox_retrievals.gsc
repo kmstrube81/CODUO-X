@@ -357,7 +357,7 @@ objective_carrier_atgoal_wait(other)
         }
         else
         {
-            wait .05;
+            wait level.frametime;
         }
     }   
 }

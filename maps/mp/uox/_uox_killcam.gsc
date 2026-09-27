@@ -117,10 +117,10 @@ waitSkipKillcamButton()
 	self endon("end_killcam");
 
 	while(self useButtonPressed())
-		wait .05;
+		wait level.frametime;
 
 	while(!(self useButtonPressed()))
-		wait .05;
+		wait level.frametime;
 
 	self notify("end_killcam");
 }

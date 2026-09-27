@@ -107,8 +107,8 @@ watchUse()
 		usetime = 0;
 		while(isAlive(self) && self useButtonPressed() && (usetime < delaytime))
 		{
-			wait .05;
-			usetime = (usetime + .05);
+			wait level.frametime;
+			usetime = (usetime + level.frametime);
 		}
 		
 		if(!(self isOnGround()))
@@ -141,7 +141,7 @@ watchUse()
 			
 			while(isAlive(self) && self useButtonPressed() && (progresstime < waittime))
 			{
-				progresstime += 0.05;
+				progresstime += level.frametime;
 				wait level.frametime;
 			}
 
