@@ -2395,9 +2395,11 @@ popText(element, target, alpha)
     element.uox_animToken++;
     token = element.uox_animToken;
 
+    element.alpha = 0;
+    element fadeOverTime(0.15);
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target * 0.8, target * 1.2, 0.15, "out", token))
+    if(!tweenFontScale(element, target * 0.8, target * 1.2, 0.85, "out", token))
         return;
     tweenFontScale(element, target * 1.2, target, 0.15, "inout", token);
             
