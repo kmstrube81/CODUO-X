@@ -120,6 +120,9 @@ bombzone_think(other)
 
 canPlant(trigger)
 {
+	if ( !game["matchstarted"] )
+		return false;
+		
 	if(!isDefined(trigger) || isDefined(trigger.doing))
 		return false;
 	if(level.bombmode < 1 && isDefined(trigger.bombzone_other) && isDefined(trigger.bombzone_other.doing))
