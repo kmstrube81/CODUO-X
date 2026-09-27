@@ -93,4 +93,6 @@ UOX_Main()
 	allowed[0] = "dm";
 	maps\mp\gametypes\_gameobjects::main(allowed);
 	maps\mp\gametypes\_secondary_gmi::Initialize();
+	
+	level.objective = "none";
 }
