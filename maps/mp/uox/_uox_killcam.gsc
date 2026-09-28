@@ -93,7 +93,8 @@ doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 	maps\mp\uox\_uox_hud::updateClientHUDElement("kc_timer", "tenthsTimer", kcTimer, options);
 	
 	self thread spawnedKillcamCleanup();
-	self thread waitSkipKillcamButton();
+    if ( doSkipText )
+        self thread waitSkipKillcamButton();
 	self thread waitKillcamTime(extradelay);
 	self waittill("end_killcam");
 

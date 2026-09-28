@@ -89,6 +89,9 @@ Default_StartGameType()
 			game["alliesRoundsWon"] = 0;
 		if(!isDefined(game["axisRoundsWon"]))
 			game["axisRoundsWon"] = 0;
+        setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
+        setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score());
+     
 		// defaults if not defined in level script
 		if(!isDefined(game["allies"]))
 			game["allies"] = "american";
