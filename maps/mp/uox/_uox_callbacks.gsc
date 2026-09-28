@@ -112,9 +112,6 @@ Default_StartGameType()
 		if(!isDefined(game["layoutimage"]))
 			game["layoutimage"] = "default";
 
-		setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
-        setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score());
-
         if(isDefined(game[level.gametype + "_layoutimage"]))
             layoutname = "levelshots/layouts/hud@layout_" + game[level.gametype + "_layoutimage"];
         else
@@ -174,20 +171,17 @@ Default_StartGameType()
 	level.healthqueuecurrent = 0;
 	level.alliedscore = 0;
 	level.axisscore = 0;
+	setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
+	setTeamScore(game["team2"]), maps\mp\uox\_uox::getTeam2Score();
 	level.defense_points = 0;
 	level.didFinalKillcam = false;
 	
 	if (!isdefined (game["BalanceTeamsNextRound"]))
 		game["BalanceTeamsNextRound"] = false;
 	
-//	if([[level.getVars]]("scr_roundlimit") % 2)
-//		level.halfround = ([[level.getVars]]("scr_roundlimit") / 2) + 1;
-//	else
-		level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
-//	if([[level.getVars]]("scr_scorelimit") % 2)
-//		level.halfscore = ([[level.getVars]]("scr_scorelimit")/2) + 1;
-//	else
-		level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
+
+	level.halfround = [[level.getVars]]("scr_roundlimit") / 2;
+	level.halfscore = [[level.getVars]]("scr_scorelimit") / 2;
 
     //init objectives
 	maps\mp\uox\_uox::initObjectives(level.objective);
