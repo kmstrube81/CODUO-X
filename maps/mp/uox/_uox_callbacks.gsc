@@ -172,7 +172,7 @@ Default_StartGameType()
 	level.alliedscore = 0;
 	level.axisscore = 0;
 	setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
-	setTeamScore(game["team2"]), maps\mp\uox\_uox::getTeam2Score();
+	setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score();
 	level.defense_points = 0;
 	level.didFinalKillcam = false;
 	
