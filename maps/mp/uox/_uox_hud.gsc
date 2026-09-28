@@ -481,12 +481,12 @@ clearBlackedoutClientHUD()
 
 clearClientHUD()
 {
+    self notify("hud_clear");
+
 	maps\mp\uox\_uox_debug::debugLog("info", "Clearing " + self.name + " HUD", "self.uox_hud", self.uox_hud);
 	maps\mp\uox\_uox_arrays::arrayReadEach(self.uox_hud, ::destroyClientHUDElement);
 
-    self notify("hud_clear");
-	
-	initClientHUD();
+    initClientHUD();
 }
 
 destroyClientHUDElement( element )
