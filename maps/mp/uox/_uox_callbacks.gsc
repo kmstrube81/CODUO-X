@@ -113,7 +113,7 @@ Default_StartGameType()
 			game["layoutimage"] = "default";
 
 		setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
-        	setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score());
+        setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score());
 
         if(isDefined(game[level.gametype + "_layoutimage"]))
             layoutname = "levelshots/layouts/hud@layout_" + game[level.gametype + "_layoutimage"];
@@ -147,10 +147,11 @@ Default_StartGameType()
     level.alive["allies"] = 0;
     level.alive["axis"] = 0;
 
+
+    level.exist["teams"] = false;
     if(level.uox_teamplay) {
         level.exist["allies"] = 0;
         level.exist["axis"] = 0;
-        level.exist["teams"] = false;
         level.didexist["allies"] = false;
         level.didexist["axis"] = false;
     }
@@ -348,6 +349,16 @@ Default_PlayerDisconnect()
 	
 	if(game["matchstarted"])
 		level thread maps\mp\uox\_uox::updateTeamStatus();
+
+	if(isDefined(level.finalKillcamSpectatorClient) && level.finalKillcamSpectatorClient == lpselfnum)
+	{
+		level.finalKillcamTime = undefined;
+		level.finalKillcamSpectatorClient = undefined;
+		level.finalKillcamAttacker = undefined;
+		level.finalKillcamAttackerGUID = undefined;
+		level.finalKillcamAttackerTeam = undefined;
+		level.finalKillcamDelay = undefined;
+	}
 }
 
 Callback_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc)
