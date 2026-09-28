@@ -89,8 +89,6 @@ Default_StartGameType()
 			game["alliesRoundsWon"] = 0;
 		if(!isDefined(game["axisRoundsWon"]))
 			game["axisRoundsWon"] = 0;
-        setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
-        setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score());
      
 		// defaults if not defined in level script
 		if(!isDefined(game["allies"]))
@@ -113,6 +111,9 @@ Default_StartGameType()
 			game["team2"] = game["defenders"];
 		if(!isDefined(game["layoutimage"]))
 			game["layoutimage"] = "default";
+
+		setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
+        	setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score());
 
         if(isDefined(game[level.gametype + "_layoutimage"]))
             layoutname = "levelshots/layouts/hud@layout_" + game[level.gametype + "_layoutimage"];

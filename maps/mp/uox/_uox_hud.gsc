@@ -210,9 +210,23 @@ precache()
 
     //victory assets
     if ( !isDefined( game["hud_allies_victory_image"] ) )
-        game["hud_allies_victory_image"] = "gfx/hud/allies_win";
+    {
+	switch( game["allies"])
+        {
+            case "british":
+                game["hud_allies_victory_image"] = "gfx/hud/ctf_flag_b_1.dds";
+	        break;
+            case "russian":
+                game["hud_allies_victory_image"] = "gfx/hud/ctf_flag_r_1.dds";
+	        break;
+            default:
+                game["hud_allies_victory_image"] = "gfx/hud/ctf_flag_us_1.dds";
+	}
+    }
     if ( !isDefined( game["hud_axis_victory_image"] ) )
-        game["hud_axis_victory_image"] = "gfx/hud/axis_win";
+    {
+        game["hud_axis_victory_image"] = "gfx/hud/ctf_flag_g_1.dds";
+    }
     precacheShader(game["hud_allies_victory_image"]);
     precacheShader(game["hud_axis_victory_image"]);
 
