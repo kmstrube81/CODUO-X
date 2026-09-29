@@ -609,7 +609,7 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	if(level.mapended)
 	{
 		self thread maps\mp\uox\_uox_killcam::killcam(false, attackerNum, lpattackguid, lpattackerteam,
-			lpattackname, delay);
+			lpattackname, 2);
 		return;
 	}
 

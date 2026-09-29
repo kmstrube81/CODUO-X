@@ -412,7 +412,7 @@ endMap(make_announcement)
         iprintlnbold(winner + " ^7wins");		
 	}
 
-    wait 1;
+    wait 2;
 
 	if(!level.didFinalKillcam)
 	{
