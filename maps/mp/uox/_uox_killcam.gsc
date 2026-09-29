@@ -185,7 +185,7 @@ finalKillcamListener()
 		
 		player thread doFinalKillcam();	
 	}
-	wait 9;
+	wait level.finalKillcamDelay + 9;
 	level notify("end_finalkillcam");
 }
 
