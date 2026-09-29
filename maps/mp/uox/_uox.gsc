@@ -334,13 +334,6 @@ checkOTScoreLimit()
 ************************************************************************************************* */
 endMap(make_announcement)
 {
-
-	if(!level.didFinalKillcam)
-	{
-		level notify("postround");
-		level waittill("end_finalkillcam");
-	}
-
     //clamp rounds played to at least one (have to play a round to end the match)
 	if(game["roundsplayed"] < 1)
         game["roundsplayed"] = 1;
@@ -396,9 +389,7 @@ endMap(make_announcement)
 		}
         if(!isDefined(make_announcement))
             make_announcement = false;
-        level thread maps\mp\uox\_uox_hud::makeVictoryAnnouncement(winner, make_announcement);
-		
-        maps\mp\uox\_uox_hud::createHUDEndRoundScore(5, true, false); //create game over scoreboard
+        level thread maps\mp\uox\_uox_hud::makeVictoryAnnouncement(winner, make_announcement);	
 	}
 	else //if free for all game
 	{
@@ -417,8 +408,19 @@ endMap(make_announcement)
 				player = players[i]; //current player
 				player.score = player.pers["roundswon"]; //set score to rounds won
 			}
-		}		
+		}
+        iprintlnbold(winner + " ^7wins");		
 	}
+
+    wait 1;
+
+	if(!level.didFinalKillcam)
+	{
+		level notify("postround");
+		level waittill("end_finalkillcam");
+	}
+
+    maps\mp\uox\_uox_hud::createHUDEndRoundScore(5, true, false); //create game over scoreboard
 	
     game["state"] = "intermission"; //sets game to intermission
 	level notify("intermission"); //send intermission notify

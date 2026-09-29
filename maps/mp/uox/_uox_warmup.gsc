@@ -260,7 +260,7 @@ readyup(entity, switchingSides)
 			}
 			else
 			{
-				self.readyState = "ready";
+				self.readyState = "notready";
 				self.statusicon = game["br_hudicons_allies_0"];
 				iprintln(playername + "^1 is Not Ready");
 				logPrint(playername + ";" + " is Not Ready Logfile;" + "\n");
