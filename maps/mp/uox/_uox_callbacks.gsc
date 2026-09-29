@@ -597,12 +597,6 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	if(!level.warmup)
 		logPrint("K;" + lpselfguid + ";" + lpselfnum + ";" + lpselfteam + ";" + lpselfname + ";" + lpattackguid + ";" + lpattacknum + ";" + lpattackerteam + ";" + lpattackname + ";" + sWeapon + ";" + iDamage + ";" + sMeansOfDeath + ";" + sHitLoc + "\n");
 
-	// Stop thread if map ended on this death
-	if(level.mapended)
-		return;
-		
-//	self updateDeathArray();
-
 	// Make the player drop his weapon
 	self dropItem(self getcurrentweapon());
 
@@ -610,6 +604,14 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	self dropHealth();
 
 	body = self cloneplayer();
+
+	// Stop thread if map ended on this death
+	if(level.mapended)
+	{
+		self thread maps\mp\uox\_uox_killcam::killcam(false, attackerNum, lpattackguid, lpattackerteam,
+			lpattackname, delay);
+		return;
+	}
 
 	//immediately deduct life when its your last one
 	if(isDefined(self.lives) && self.lives == 0)
