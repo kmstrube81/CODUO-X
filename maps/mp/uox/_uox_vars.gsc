@@ -317,6 +317,7 @@ initGameTypeVars()
 	varDef("scr", "postroundtime", "int", true, 5, 0, 15, "Post Round Time");
 	
 	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset"); //clear scores in between rounds
+	varDef("scr", "roundreset_teams", "bool", false, false, undefined, undefined, "Reset Teams Between Rounds"); //clear scores in between rounds
 	varDef("scr", "score_rounds", "bool", true, false, undefined, undefined, "Score Round Wins"); //game score is round wins, not objective points
 	varDef("scr", "countdraws", "bool", true, true, undefined, undefined, "Count Draws");
 
