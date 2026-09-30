@@ -169,8 +169,16 @@ Default_StartGameType()
 	level.lockteams = false;
 	level.healthqueue = [];
 	level.healthqueuecurrent = 0;
-	level.alliedscore = 0;
-	level.axisscore = 0;
+	if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") != 1)
+	{
+		level.alliedscore = 0;
+		level.axisscore = 0;
+	}
+	else
+	{
+		level.alliedscore = game["alliedscore"];
+		level.axisscore = game["axisscore"];
+	}
 	setTeamScore(game["team1"], maps\mp\uox\_uox::getTeam1Score());
 	setTeamScore(game["team2"], maps\mp\uox\_uox::getTeam2Score());
 	level.defense_points = 0;
