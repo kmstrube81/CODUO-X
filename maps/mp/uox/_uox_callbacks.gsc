@@ -41,7 +41,7 @@ Default_StartGameType()
     //init loops
 	level thread maps\mp\uox\_uox_loops::initServerLoop();
 
-    level maps\mp\uox\_uox_loops::addToLoop(level,"slow", ::debugTiming, "debugTiming");
+    //level maps\mp\uox\_uox_loops::addToLoop(level,"slow", ::debugTiming, "debugTiming");
 	
     //init gametype teamplay and map vars
 	level.gametype = getCvar("g_gametype");
@@ -396,47 +396,72 @@ Default_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWe
 	{
 		if(isPlayer(eAttacker) && (self != eAttacker) && (self.pers["team"] == eAttacker.pers["team"]))
 		{
-			if([[level.getVars]]("scr_friendlyfire") == "1")
+			if(level.friendlyfire == "1")
 			{
 				// Make sure at least one point of damage is done
 				if(iDamage < 1)
 					iDamage = 1;
 				self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
 			}
-			else if([[level.getVars]]("scr_friendlyfire") == "0" )
+			else if(level.friendlyfire == "0" )
 			{
-				return;
+				if(level.warmup)
+				{
+					if(iDamage < 1)
+						iDamage = 1;
+					self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+				}
+				else
+					return;
 			}
-			else if([[level.getVars]]("scr_friendlyfire") == "2")
+			else if(level.friendlyfire == "2")
 			{
-				eAttacker.friendlydamage = true;
-		
-				iDamage = iDamage * .5;
-
-				// Make sure at least one point of damage is done
-				if(iDamage < 1)
-					iDamage = 1;
-				
-				eAttacker finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
-				eAttacker.friendlydamage = undefined;
-				
-				friendly = true;
+				if(level.warmup)
+				{
+					if(iDamage < 1)
+						iDamage = 1;
+					self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+				}
+				else
+				{
+					eAttacker.friendlydamage = true;
+			
+					iDamage = iDamage * .5;
+	
+					// Make sure at least one point of damage is done
+					if(iDamage < 1)
+						iDamage = 1;
+					
+					eAttacker finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+					eAttacker.friendlydamage = undefined;
+					
+					friendly = true;
+				}
 			}
-			else if([[level.getVars]]("scr_friendlyfire") == "3")
+			else if(level.friendlyfire == "3")
 			{
-				eAttacker.friendlydamage = true;
-
-				iDamage = iDamage * .5;
-
-				// Make sure at least one point of damage is done
-				if(iDamage < 1)
-					iDamage = 1;
-				
-				self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
-				eAttacker finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
-				eAttacker.friendlydamage = undefined;
-				
-				friendly = true;
+				if(level.warmup)
+				{
+					if(iDamage < 1)
+						iDamage = 1;
+					self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+				}
+				else
+				{
+					eAttacker.friendlydamage = true;
+	
+					iDamage = iDamage * .5;
+	
+					// Make sure at least one point of damage is done
+					if(iDamage < 1)
+						iDamage = 1;
+					
+					self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+					eAttacker finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
+					eAttacker.friendlydamage = undefined;
+					
+					friendly = true;
+				}
 			}
 		}
 		else
@@ -456,9 +481,6 @@ Default_PlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWe
 		println("client:" + self getEntityNumber() + " health:" + self.health +
 			" damage:" + iDamage + " hitLoc:" + sHitLoc);
 	}
-
-	// Apply the damage to the player
-	self finishPlayerDamage(eInflictor, eAttacker, iDamage, iDFlags, sMeansOfDeath, sWeapon, vPoint, vDir, sHitLoc);
 
 	if(self.sessionstate != "dead")
 	{
