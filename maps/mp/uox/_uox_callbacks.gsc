@@ -297,11 +297,11 @@ Default_PlayerConnect()
 		else
 			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
 
-		if(isDefined(self.pers["weapon"]) && ![[level.getVars]]("scr_round_reset_teams"))
+		if(isDefined(self.pers["weapon"]) && ![[level.getVars]]("scr_roundreset_teams"))
 			maps\mp\uox\_uox_respawns::spawnPlayer();
 		else
 		{
-			if([[level.getVars]]("scr_round_reset_teams"))
+			if([[level.getVars]]("scr_roundreset_teams"))
 			{
 				self.pers["team"] = "spectator";
 				self.pers["weapon"] = undefined;
