@@ -1577,7 +1577,7 @@ checkGameWon(checkRounds, roundScore, roundScoreLimit)
 			//get majority score number
 			
 			//if both teams have less than a majority then neither have won.
-			if(game["alliedscore"] < fiftyplus1 && game["axisscore"] < fiftyplus1)
+			if(game["alliesRoundsWon"] < fiftyplus1 && game["axisRoundsWon"] < fiftyplus1)
 				return false; //no winner yet
 		}
 		else //if checking score
@@ -2046,10 +2046,20 @@ resetPlayerScores()
 ************************************************************************************************* */
 getTeam1Score()
 {
-	if(game["team1"] == "allies")
-		return game["alliedscore"];
+	if([[level.getVars]]("scr_score_rounds")
+	{
+		if(game["team1"] == "allies")
+			return game["alliesRoundsWon"];
+		else
+			return game["axisRoundsWon"];
+	}
 	else
-		return game["axisscore"];
+	{
+		if(game["team1"] == "allies")
+			return game["alliedscore"];
+		else
+			return game["axisscore"];
+	}
 }
 
 /* *************************************************************************************************
@@ -2061,10 +2071,20 @@ getTeam1Score()
 ************************************************************************************************* */
 getTeam2Score()
 {
-	if(game["team2"] == "allies")
-		return game["alliedscore"];
+	if([[level.getVars]]("scr_score_rounds")
+	{
+		if(game["team2"] == "allies")
+			return game["alliesRoundsWon"];
+		else
+			return game["axisRoundsWon"];
+	}
 	else
-		return game["axisscore"];
+	{
+		if(game["team2"] == "allies")
+			return game["alliedscore"];
+		else
+			return game["axisscore"];
+	}
 }
 
 getAlliesTeamScore()
