@@ -299,16 +299,21 @@ Default_PlayerConnect()
 
 		if(isDefined(self.pers["weapon"]) && ![[level.getVars]]("scr_roundreset_teams"))
 			maps\mp\uox\_uox_respawns::spawnPlayer();
-		else if([[level.getVars]]("scr_roundreset_teams") && game["roundsplayed"] > 0)
+		else if([[level.getVars]]("scr_roundreset_teams") )
 		{
-			self.pers["team"] = "spectator";
-			self.pers["weapon"] = undefined;
-			self.pers["weapon1"] = undefined;
-			self.pers["weapon2"] = undefined;
-			self.pers["spawnweapon"] = undefined;
-			self.pers["savedmodel"] = undefined;
-			self.pers["teamTime"] = (getTime() / 1000);
-			maps\mp\uox\_uox_respawns::spawnSpectator();
+			if(game["roundsplayed"] > 0)
+			{
+
+				self.pers["team"] = "spectator";
+				self.pers["weapon"] = undefined;
+				self.pers["weapon1"] = undefined;
+				self.pers["weapon2"] = undefined;
+				self.pers["spawnweapon"] = undefined;
+				self.pers["savedmodel"] = undefined;
+				self.pers["teamTime"] = (getTime() / 1000);
+				maps\mp\uox\_uox_respawns::spawnSpectator();
+			}
+			maps\mp\uox\_uox_respawns::spawnPlayer();
 		}
 		else
 		{
