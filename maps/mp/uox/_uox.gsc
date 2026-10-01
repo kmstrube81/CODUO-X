@@ -1459,22 +1459,13 @@ checkRoundLimit()
 			return; //nobody won so don't end the game
 		}
 	}
-	else if( [[level.getVars]]("scr_scorelimit") <= 0 )
-	{
-		if(!checkGameWon( true, round, roundlimit ))
-		{ //if no one has won the game, check if it is halftime
-			if(checkHalfTime( true, round, halfround, roundlimit ))
-			{		
-				doHalftime(); //switch sides if necessary, take a half time break if necessary
-			}
-			return; //nobody won so don't end the game
-		}
-	}
 	else if(round < roundlimit || (checkTie(false) && [[level.getVars]]("scr_overtime")))
-	{ //just check roundlimit hasn't been reached (or that its not tied if it has) if not scoring rounds
-		return;
-	}
-	//if map already ended
+	{
+	    if([[level.getVars]]("scr_scorelimit") <= 0
+	        && checkHalfTime(false, round, halfround, roundlimit))
+	        doHalftime();
+	    return;
+	}	//if map already ended
 	if(level.mapended)
 		return; //then nothing left to do
 	level.mapended = true; //set round ended flag to true
