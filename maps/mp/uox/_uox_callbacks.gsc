@@ -650,6 +650,7 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	{
 		self thread maps\mp\uox\_uox_killcam::killcam(false, attackerNum, lpattackguid, lpattackerteam,
 			lpattackname, 2);
+		wait level.frametime; //wait a frame to make sure final killcam registers
 		return;
 	}
 
