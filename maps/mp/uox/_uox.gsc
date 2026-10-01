@@ -2037,7 +2037,7 @@ resetPlayerScores()
 ************************************************************************************************* */
 getTeam1Score()
 {
-	if([[level.getVars]]("scr_score_rounds")
+	if([[level.getVars]]("scr_score_rounds"))
 	{
 		if(game["team1"] == "allies")
 			return game["alliesRoundsWon"];
@@ -2062,7 +2062,7 @@ getTeam1Score()
 ************************************************************************************************* */
 getTeam2Score()
 {
-	if([[level.getVars]]("scr_score_rounds")
+	if([[level.getVars]]("scr_score_rounds"))
 	{
 		if(game["team2"] == "allies")
 			return game["alliesRoundsWon"];
