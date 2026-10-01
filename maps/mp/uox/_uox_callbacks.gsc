@@ -313,6 +313,7 @@ Default_PlayerConnect()
 				self.pers["teamTime"] = (getTime() / 1000);
 				maps\mp\uox\_uox_respawns::spawnSpectator();
 				self setClientCvar("g_scriptMainMenu", game["menu_team"]);
+				self openMenu(game["menu_team"]);
 			}
 			else
 				maps\mp\uox\_uox_respawns::spawnPlayer();
