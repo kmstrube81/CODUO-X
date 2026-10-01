@@ -654,10 +654,10 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	body = self cloneplayer();
 
 	// Stop thread if map ended on this death
-	if(level.mapended)
+	if(level.mapended || level.roundended)
 	{
 		self thread maps\mp\uox\_uox_killcam::killcam(false, attackerNum, lpattackguid, lpattackerteam,
-			lpattackname, 2);
+			lpattackname, 1); //add 1 second of delay for the post round announcement
 		wait level.frametime; //wait a frame to make sure final killcam registers
 		return;
 	}
