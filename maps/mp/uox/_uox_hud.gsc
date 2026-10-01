@@ -249,7 +249,9 @@ initServerHUD()
 {
 	level.scoreboardKillsRounds = false; //false = kills, true = rounds
 	
-	if( [[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") != 1 )
+    if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") == 0 && [[level.getVars]]("scr_timelimit") == 0)
+        level.scoreboardKillsRounds = false; //there is no possible way that the game could end so just show score instead rounds won
+	else if( [[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundlimit") != 1 )
 		level.scoreboardKillsRounds = true;
 }
 

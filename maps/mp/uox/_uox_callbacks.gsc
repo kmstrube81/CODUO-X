@@ -312,8 +312,10 @@ Default_PlayerConnect()
 				self.pers["savedmodel"] = undefined;
 				self.pers["teamTime"] = (getTime() / 1000);
 				maps\mp\uox\_uox_respawns::spawnSpectator();
+				self setClientCvar("g_scriptMainMenu", game["menu_team"]);
 			}
-			maps\mp\uox\_uox_respawns::spawnPlayer();
+			else
+				maps\mp\uox\_uox_respawns::spawnPlayer();
 		}
 		else
 		{
