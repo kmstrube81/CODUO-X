@@ -657,7 +657,7 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	if(level.mapended || level.roundended)
 	{
 		self thread maps\mp\uox\_uox_killcam::killcam(false, attackerNum, lpattackguid, lpattackerteam,
-			lpattackname, 1); //add 1 second of delay for the post round announcement
+			lpattackname, 0 ); //no delay since this kill ended the game
 		wait level.frametime; //wait a frame to make sure final killcam registers
 		return;
 	}
