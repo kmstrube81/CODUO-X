@@ -1015,7 +1015,7 @@ endRound(roundwinner, numRoundWins)
 				else //if game is in 2nd half
 					game["round2axisscore"] = winner.score; //set half score
 			}
-			iprintlnbold(winner + " ^7wins");
+			iprintlnbold(winner.name + " ^7wins");
 		}
 	}
 	
