@@ -303,8 +303,8 @@ Default_PlayerConnect()
 		{
 			if(game["roundsplayed"] > 0)
 			{
-
 				self.pers["team"] = "spectator";
+				self.sessionteam = "spectator";
 				self.pers["weapon"] = undefined;
 				self.pers["weapon1"] = undefined;
 				self.pers["weapon2"] = undefined;

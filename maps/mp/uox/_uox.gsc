@@ -784,6 +784,8 @@ startRound()
 	}
 	
 	level startRoundTimer(timer, true);
+
+	maps\mp\gametypes\_teams::sayMoveIn();
 }
 
 /* *****************************************************************************************
@@ -1779,73 +1781,73 @@ doHalftime(midRound)
 				 player.pers["savedmodel"] = axissavedmodel;
 			else if ( (isdefined(player.pers["team"])) && (player.pers["team"] == "allies") )
 				player.pers["savedmodel"] = alliedsavedmodel;
+		}
+		//change headicons
+		battlerank = [[level.getVars]]("scr_battlerank");
+		drawfriend = [[level.getVars]]("scr_drawfriend");
+		
+		if( battlerank > 0)
+		{
+			// for all living players, show the appropriate headicon
+			players = getentarray("player", "classname");
+			for(i = 0; i < players.size; i++)
+			{
+				player = players[i];
+				
+				if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+				{
+					// setup the hud rank indicator
+					player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
 
-			//change headicons
-			battlerank = [[level.getVars]]("scr_battlerank");
-			drawfriend = [[level.getVars]]("scr_drawfriend");
-			
-			if( battlerank > 0)
-			{
-				// for all living players, show the appropriate headicon
-				players = getentarray("player", "classname");
-				for(i = 0; i < players.size; i++)
-				{
-					player = players[i];
-					
-					if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+					player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
+					if ( drawfriend )
 					{
-						// setup the hud rank indicator
-						player thread maps\mp\gametypes\_rank_gmi::RankHudInit();
-
-						player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
-						if ( drawfriend )
-						{
-							player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
-							player.headiconteam = player.pers["team"];
-						}
-						else
-						{
-							player.headicon = "";
-						}
+						player.headicon = maps\mp\gametypes\_rank_gmi::GetRankHeadIcon(player);
+						player.headiconteam = player.pers["team"];
 					}
-				}
-			}
-			else if(drawfriend)
-			{
-				// for all living players, show the appropriate headicon
-				players = getentarray("player", "classname");
-				for(i = 0; i < players.size; i++)
-				{
-					player = players[i];
-					
-					if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+					else
 					{
-						if(player.pers["team"] == "allies")
-						{
-							player.headicon = game["headicon_allies"];
-							player.headiconteam = "allies";
-						}
-						else
-						{
-							player.headicon = game["headicon_axis"];
-							player.headiconteam = "axis";
-						}
-					}
-				}
-			}
-			else
-			{
-				players = getentarray("player", "classname");
-				for(i = 0; i < players.size; i++)
-				{
-					player = players[i];
-					
-					if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
 						player.headicon = "";
-						player.statusicon = "";
+					}
 				}
 			}
 		}
+		else if(drawfriend)
+		{
+			// for all living players, show the appropriate headicon
+			players = getentarray("player", "classname");
+			for(i = 0; i < players.size; i++)
+			{
+				player = players[i];
+				
+				if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+				{
+					if(player.pers["team"] == "allies")
+					{
+						player.headicon = game["headicon_allies"];
+						player.headiconteam = "allies";
+					}
+					else
+					{
+						player.headicon = game["headicon_axis"];
+						player.headiconteam = "axis";
+					}
+				}
+			}
+		}
+		else
+		{
+			players = getentarray("player", "classname");
+			for(i = 0; i < players.size; i++)
+			{
+				player = players[i];
+				
+				if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && player.sessionstate == "playing")
+					player.headicon = "";
+					player.statusicon = "";
+			}
+		}
+		
 	}
 	
 	players = getentarray("player", "classname");

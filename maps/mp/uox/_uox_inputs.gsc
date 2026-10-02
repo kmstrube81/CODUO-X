@@ -136,8 +136,8 @@ watchUse()
 			if(disableWeapon)
 				self disableWeapon();
 			
-			if(isDefined(audioCue) && isDefined(trigger))
-				trigger playsound(audioCue);
+			if(isDefined(audioCue))
+				self playsound(audioCue);
 			
 			while(isAlive(self) && self useButtonPressed() && (progresstime < waittime))
 			{
