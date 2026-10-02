@@ -570,7 +570,7 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 
 	// send out an obituary message to all clients about the kill
 	obituary(self, attacker, sWeapon, sMeansOfDeath);
-
+    self notify("killed");
     maps\mp\uox\_uox::playerKilledObjectives(level.objective, self, attacker);
 
 	self.sessionstate = "dead";

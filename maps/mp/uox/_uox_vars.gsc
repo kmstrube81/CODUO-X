@@ -435,6 +435,9 @@ initGameTypeVars()
 	
 	//define enforce client cvars
 	varDef("sv", "enforcedClientCvars", "string", false, "");
+
+    //define input frame window
+	level.inputFrameWindow = varDef("sv", "inputFrameWindow", "int", false, 5, 1, level.framerate);
 	
 }
 

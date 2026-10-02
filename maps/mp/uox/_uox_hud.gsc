@@ -1526,7 +1526,7 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	if(round > 0) //if we started playing
 	{
         headercolor = (.99, .99, .75);
-        switch(game["allies"])
+        switch(game["team1"])
         {
             case "russian":
                 team1color = (0.75, 0.25, 0.25);
@@ -1538,9 +1538,22 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
                 team1color = (0.25, 0.75, 0.25);
                 break;
             default:
-                team1color = (0.25, 0.75, 0.25);
+                team1color = (0.6, 0.6, 0.6);
         }
-        team2color = (0.6, 0.6, 0.6);
+        switch(game["team2"])
+        {
+            case "russian":
+                team2color = (0.75, 0.25, 0.25);
+                break;
+            case "british":
+                team2color = (0.25, 0.25, 0.75);
+                break;
+            case "american":
+                team2color = (0.25, 0.75, 0.25);
+                break;
+            default:
+                team2color = (0.6, 0.6, 0.6);
+        }
 
 		//Scoreboard Text
 		options["y"] = 262; //scoreboard header pos
