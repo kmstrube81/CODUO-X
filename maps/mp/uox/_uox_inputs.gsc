@@ -504,7 +504,7 @@ addInputCombination(combo, callback, callbackName)
         callbackName = combo;
 
     //check if valid combo
-    split = stringSplit(combo, " ");
+    split = maps\mp\uox\_uox_utils::stringSplit(combo, " ");
     for(i = 0; i < split.size; i++)
     {
         input = split[i];
