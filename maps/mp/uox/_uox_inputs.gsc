@@ -510,9 +510,9 @@ addInputCombination(combo, callback, callbackName)
         input = split[i];
         switch(input)
         {
-            case: "use":
-            case: "melee":
-            case: "meleeuse":
+            case "use":
+            case "melee":
+            case "meleeuse":
                 break;
             default:
                 maps\mp\uox\_uox_debug::debugLog("info", "Invalid InputCombo aborting- " + combo + " Callback- " + callbackName + " new size=" + self.inputCombos["length"], "self.inputCombos", self.inputCombos);
