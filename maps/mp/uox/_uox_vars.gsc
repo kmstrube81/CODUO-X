@@ -140,54 +140,62 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 ****
 **** returns value
 ************************************************************************************************** */
+/* *************************************************************************************************
+**** updateCvar(string prefix, string varname, mixedType value, string gt (optional),
+****            string map (optional) )
+****
+**** Enforces a rule value at its own scope and clears any higher-precedence scoped cvars
+**** (for the running gt/map) that would shadow it in getVar. Precedence is
+**** gt+map > map > gt > all.
+****
+****   no gt, no map : global rule    -> writes plain; clears gt+map, map, gt
+****   map only      : map rule       -> writes map; clears gt+map
+****   gt only       : gametype rule  -> writes gt; clears gt+map, map
+****   gt and map    : exact rule     -> writes gt+map
+****
+**** Calls whose gt/map don't match the running gametype/map are skipped.
+****
+**** returns value
+************************************************************************************************** */
 updateCvar(prefix, varname, value, gt, map)
 {
 	curGT = getCvar("g_gametype");
 	curMap = getCvar("mapname");
 
-	setAll = false;
-	setGT = false;
-	setMap = false;
+	gtMapName = prefix + "_" + curGT + "_" + varname + "_" + curMap;
+	mapName = prefix + "_" + varname + "_" + curMap;
+	gtName = prefix + "_" + curGT + "_" + varname;
 
 	if(!isDefined(gt) && !isDefined(map)) //global rule
 	{
-		gt = curGT;
-		map = curMap;
-		setAll = true;
-		setGT = true;
-		setMap = true;
+		setCvar(gtMapName, "");
+		setCvar(mapName, "");
+		setCvar(gtName, "");
+		setCvar(prefix + "_" + varname, value);
 	}
 	else if(!isDefined(gt)) //map-scoped rule
 	{
 		if(map != curMap)
 			return value;
-		gt = curGT;
-		setMap = true;
+		setCvar(gtMapName, "");
+		setCvar(mapName, value);
 	}
 	else if(!isDefined(map)) //gametype-scoped rule
 	{
 		if(gt != curGT)
 			return value;
-		map = curMap;
+		setCvar(gtMapName, "");
+		setCvar(mapName, "");
+		setCvar(gtName, value);
 	}
 	else //exact gt + map rule
 	{
 		if(gt != curGT || map != curMap)
 			return value;
+		setCvar(gtMapName, value);
 	}
-
-	//gt + map specific - highest precedence in getVar, always written
-	setCvar(prefix + "_" + gt + "_" + varname + "_" + map, value);
-
-	if(setMap)
-		setCvar(prefix + "_" + varname + "_" + map, value);
-
-	if(setGT)
-		setCvar(prefix + "_" + gt + "_" + varname, value);
-
-	if(setAll)
-		setCvar(prefix + "_" + varname, value);
-
+	
+	level.vars = maps\mp\uox\_uox_arrays::updateProperty(level.vars, prefix + "_" + varname, "value", value);
 	return value;
 }
 
