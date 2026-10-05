@@ -73,8 +73,6 @@ isPressingUse()
 watchUse()
 {
 	self endon("disconnect");
-    self endon("killed");
-    self endon("Pressed Melee");
 	
 	//array shape n["callback"] - what happens when finished
 	// n["delaytime"] how long before hold starts counting
@@ -107,11 +105,11 @@ watchUse()
 		conditionCallback = ::isPressingUse; //defined that use key must be pressed by default
 	
 	//self.currenttime = 0; //frames held down
-	while(!skipHold && self useButtonPressed() //while the use button is pressed and the condition callback is true
+	while(!skipHold && self useButtonPressed() && !(self meleeButtonPressed) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
 		usetime = 0; //the number of frames held down
-		while(isAlive(self) && self useButtonPressed() && (usetime < delaytime)) //button must be held down for the delay time first
+		while(isAlive(self) && self useButtonPressed() && !(self meleeButtonPressed) && (usetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
 			usetime = (usetime + level.frametime);
@@ -122,7 +120,7 @@ watchUse()
 			continue;
 		}
 
-		if((isAlive(self)) && (self useButtonPressed())) // made it past the delay time
+		if((isAlive(self)) && (self useButtonPressed()) && !(self meleeButtonPressed)) // made it past the delay time
 		{	
 			self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
 
@@ -144,7 +142,7 @@ watchUse()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self useButtonPressed() && (usetime < waittime)) //wait until wait time passed
+			while(isAlive(self) && self useButtonPressed() && !(self meleeButtonPressed) && (usetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 usetime = (usetime + level.frametime);
@@ -279,8 +277,6 @@ isPressingMelee(trigger)
 watchMelee()
 {
 	self endon("disconnect");
-    self endon("Pressed Use");
-    self endon("killed");
 	
 	//array shape n["callback"] - what happens when finished
 	// n["delaytime"] how long before hold starts counting
@@ -313,11 +309,11 @@ watchMelee()
 		conditionCallback = ::isPressingMelee; //defined that use key must be pressed by default
 	
 	//self.currenttime = 0; //frames held down
-	while(!skipHold && self useButtonPressed() //while the use button is pressed and the condition callback is true
+	while(!skipHold && self useButtonPressed() && !(self useButtonPressed) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
 		meleetime = 0; //the number of frames held down
-		while(isAlive(self) && self meleeButtonPressed() && (meleetime < delaytime)) //button must be held down for the delay time first
+		while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed) && (meleetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
 			meleetime = (meleetime + level.frametime);
@@ -328,7 +324,7 @@ watchMelee()
 			continue;
 		}
 
-		if((isAlive(self)) && (self meleeButtonPressed())) // made it past the delay time
+		if((isAlive(self)) && (self meleeButtonPressed()) && !(self useButtonPressed)) // made it past the delay time
 		{	
 			self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
 
@@ -350,7 +346,7 @@ watchMelee()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self meleeButtonPressed() && (meleetime < waittime)) //wait until wait time passed
+			while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed) && (meleetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 meleetime = (meleetime + level.frametime);
@@ -489,6 +485,8 @@ doInputCombination(combo)
             combo_str += " ";
         combo_str += key;
     }
+    
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + " did input combo: " + combo_str);
 
     callback = maps\mp\uox\_uox_arrays::getValue(self.inputCombos, "combo_str");
 
