@@ -79,6 +79,7 @@ watchUse()
 	// n["waittime"] how long it takes
 	// n["progressbar"] whether to draw progress bar
 	use = maps\mp\uox\_uox_arrays::getNextValue(self.holdUse); //load top of stack
+	usetime = 0; //the number of frames held down
 	
 	if(!isDefined(use))
 	{
@@ -108,7 +109,6 @@ watchUse()
 	while(!skipHold && self useButtonPressed() && !(self meleeButtonPressed()) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
-		usetime = 0; //the number of frames held down
 		while(isAlive(self) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
@@ -285,6 +285,7 @@ watchMelee()
 	// n["waittime"] how long it takes
 	// n["progressbar"] whether to draw progress bar
 	melee = maps\mp\uox\_uox_arrays::getNextValue(self.holdMelee); //load top of stack
+	meleetime = 0; //the number of frames held down
 	
 	if(!isDefined(melee))
 	{
@@ -314,7 +315,7 @@ watchMelee()
 	while(!skipHold && self useButtonPressed() && !(self useButtonPressed()) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
-		meleetime = 0; //the number of frames held down
+		
 		while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed()) && (meleetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
