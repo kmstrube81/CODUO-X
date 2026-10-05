@@ -207,7 +207,7 @@ watchUse()
 	self.isUsing = false;
 }
 
-addHoldUse(msg, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
+addHoldUse(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
 		
 	if(!isDefined(drawProgressBar))
@@ -230,8 +230,10 @@ addHoldUse(msg, delayTime, waitTime, conditionCallback, successCallback, failCal
 	hold["trigger"] = trigger;
 	hold["audiocue"] = audioCue;
 	
-	self.holdUse = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdUse, hold, msg);
-	
+	if(dir) //false pushes hold use to top of stack, true to the bottom
+		self.holdUse = maps\mp\uox\_uox_arrays::arrayPush(self.holdUse, hold, msg);
+	else
+		self.holdUse = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdUse, hold, msg);
 	maps\mp\uox\_uox_debug::debugLog("info", "HoldUse register: msg=" + msg + " new size=" + self.holdUse["length"], "self.holdUse", self.holdUse);
 }
 
@@ -411,7 +413,7 @@ watchMelee()
 	self.isMelee = false;
 }
 
-addHoldMelee(msg, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
+addHoldMelee(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
 		
 	if(!isDefined(drawProgressBar))
@@ -434,8 +436,10 @@ addHoldMelee(msg, delayTime, waitTime, conditionCallback, successCallback, failC
 	hold["trigger"] = trigger;
 	hold["audiocue"] = audioCue;
 	
-	self.holdMelee = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdMelee, hold, msg);
-	
+	if(dir) //false pushes hold use to top of stack, true to the bottom
+		self.holdMelee = maps\mp\uox\_uox_arrays::arrayPush(self.holdMelee, hold, msg);
+	else
+		self.holdMelee = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdMelee, hold, msg);
 	maps\mp\uox\_uox_debug::debugLog("info", "HoldMelee register: msg=" + msg + " new size=" + self.holdMelee["length"], "self.holdMelee", self.holdMelee);
 }
 

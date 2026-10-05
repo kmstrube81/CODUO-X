@@ -283,7 +283,7 @@ check_bombzone(trigger)
 
 		self maps\mp\uox\_uox_hud::updateClientHUDElement("plant_icon", "shader",
 			"ui_mp/assets/hud@plantbomb.tga", iconOptions);
-		self maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
+		self maps\mp\uox\_uox_inputs::addHoldUse("plant_bomb", false, 0, [[level.getVars]]("scr_bombplanttime"),
 			::planting, ::plantBomb, ::check_bombzone, true, true, true, trigger, "MP_bomb_plant");
 
 		while(self canPlant(trigger))
@@ -510,7 +510,7 @@ check_bomb(trigger)
 
 		self maps\mp\uox\_uox_hud::updateClientHUDElement("defuse_icon", "shader",
 			"ui_mp/assets/hud@defusebomb.tga", iconOptions);
-		self maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", 0, [[level.getVars]]("scr_bombplanttime"),
+		self maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", false, 0, [[level.getVars]]("scr_bombplanttime"),
 			::defusing, ::defuseBomb, ::check_bomb, true, true, true, trigger, "MP_bomb_defuse");
 
 		while(self canDefuse(trigger))
