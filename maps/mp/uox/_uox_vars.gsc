@@ -223,7 +223,7 @@ monitorVar(prefix, varname, type, hrName)
 ************************************************************************************************* */
 updateVars()
 {
-	level.monitoredVars = maps\mp\uox\_uox_arrays::arrayReadEach(level.monitoredVars, ::updateVarValues);
+	level thread maps\mp\uox\_uox_arrays::arrayReadEach(level.monitoredVars, ::updateVarValues);
 }
 
 updateVarValues(var)
