@@ -122,7 +122,8 @@ watchUse()
 
 		if((isAlive(self)) && (self useButtonPressed()) && !(self meleeButtonPressed())) // made it past the delay time
 		{	
-			self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
+			if(drawProgressBar)
+				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
 
 			self notify("kill_check_" + msg); //send a kill notify to end any endon threads
 			
@@ -329,7 +330,8 @@ watchMelee()
 
 		if((isAlive(self)) && (self meleeButtonPressed()) && !(self useButtonPressed())) // made it past the delay time
 		{	
-			self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
+			if(drawProgressBar)
+				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
 
 			self notify("kill_check_" + msg); //send a kill notify to end any endon threads
 			
