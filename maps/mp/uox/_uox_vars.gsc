@@ -186,8 +186,8 @@ updateVar(cvar, value)
 {
 	_var = maps\mp\uox\_uox_arrays::getValue(level.vars, cvar);
 
-	if(value == _var["value"])
-		return;
+	if(!isDefined(_var) || value == _var["value"]) //if var hasn't been defined or update doesn't actually change the value
+		return; //then nothing to update
 
 	level.vars = maps\mp\uox\_uox_arrays::updateProperty(level.vars, cvar, "value", value);
 
