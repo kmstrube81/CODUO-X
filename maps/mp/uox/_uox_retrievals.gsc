@@ -274,6 +274,7 @@ hold_objective(player) //the objective model runs this to be held by 'player'
 	lpselfnum = player getEntityNumber();
 	lpselfguid = player getGuid();
 	logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + game["re_attackers"] + ";" + player.name + ";" + "re_pickup" + "\n");
+    player.notification = "re_pickup";
 	
 	if(player.pers["team"] == game["re_attackers"])
 
@@ -587,6 +588,7 @@ drop_objective_at_goal(trigger)
 	lpselfnum = self getEntityNumber();
 	lpselfguid = self getGuid();
 	logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + game["re_attackers"] + ";" + self.name + ";" + "re_capture" + "\n");
+    self.notification = "re_captured";
 	
 	
 	if((isdefined(trigger.script_objective_name)) && (isdefined(level.obj[trigger.script_objective_name])))

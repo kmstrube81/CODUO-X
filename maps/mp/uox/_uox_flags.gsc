@@ -689,6 +689,7 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         lpselfnum = other getEntityNumber();
         lpselfguid = other getGuid();
         logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + other.pers["team"] + ";" + other.name + ";" + "ctf_take" + "\n");
+        other.notification = "flag_take";
 
         self.flag.returned_by = undefined;
         
@@ -722,6 +723,7 @@ ctf_think(other) //each flag model runs this to find it's trigger and goal
         lpselfnum = other getEntityNumber();
         lpselfguid = other getGuid();
         logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + other.pers["team"] + ";" + other.name + ";" + "ctf_returned" + "\n");
+        other.notification = "flag_returned";
 
         // play the flag has been returned sound
         players = getentarray("player", "classname");
@@ -763,6 +765,7 @@ hold_flag(player) //the objective model runs this to be held by 'player'
 	lpselfnum = player getEntityNumber();
 	lpselfguid = player getGuid();
 	logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + self.team + ";" + player.name + ";" + "ctf_pickup" + "\n");
+    player.notification = "flag_take";
 	
 	self notify("picked up");
 
@@ -906,6 +909,7 @@ flag_carrier_atgoal(other)
         lpselfnum = player getEntityNumber();
         lpselfguid = player getGuid();
         logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + player.pers["team"] + ";" + player.name + ";" + "ctf_captured" + "\n");
+        player.notification = "flag_captured";
 
         // give assist points
         if (isDefined(other_flag.returned_by) && isValidPlayer(other_flag.returned_by) && other_flag.returned_by != player)
@@ -1072,6 +1076,7 @@ onPlayerKill(victim, attacker)
         lpattacknum = attacker getEntityNumber();
         lpattackguid = attacker getGuid();
         logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + attacker.pers["team"] + ";" + attacker.name + ";" + "ctf_defended" + "\n");
+        attacker.notification = "flag_defense";
     }
     if ( victim is_near_carrier(attacker) )
     {
@@ -1085,6 +1090,7 @@ onPlayerKill(victim, attacker)
         lpattacknum = attacker getEntityNumber();
         lpattackguid = attacker getGuid();
         logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + attacker.pers["team"] + ";" + attacker.name + ";" + "ctf_assist" + "\n");
+        attacker.notification = "flag_assist";
     }
 }
 
