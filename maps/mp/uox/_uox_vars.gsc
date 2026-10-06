@@ -127,23 +127,6 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 **** updateCvar(string prefix, string varname, mixedType value, string gt (optional),
 ****            string map (optional) )
 ****
-**** Enforces a rule value at the correct scope. getVar precedence is gt+map > map > gt > all,
-**** so the gt+map cvar is always written and wins for the current match.
-****
-****   no gt, no map : global rule    -> writes gt+map, map, gt, and plain cvar
-****   map only      : map rule       -> writes gt+map and map (never gt-wide)
-****   gt only       : gametype rule  -> writes gt+map only (never map-wide)
-****   gt and map    : exact rule     -> writes gt+map only
-****
-**** Calls whose gt/map don't match the running gametype/map are skipped, since getVar
-**** never reads them and writing them only adds permanent cvars to the table.
-****
-**** returns value
-************************************************************************************************** */
-/* *************************************************************************************************
-**** updateCvar(string prefix, string varname, mixedType value, string gt (optional),
-****            string map (optional) )
-****
 **** Enforces a rule value at its own scope and clears any higher-precedence scoped cvars
 **** (for the running gt/map) that would shadow it in getVar. Precedence is
 **** gt+map > map > gt > all.
@@ -195,8 +178,24 @@ updateCvar(prefix, varname, value, gt, map)
 		setCvar(gtMapName, value);
 	}
 	
-	level.vars = maps\mp\uox\_uox_arrays::updateProperty(level.vars, prefix + "_" + varname, "value", value);
+	updateVar(prefix + "_" + varname, value);
 	return value;
+}
+
+updateVar(cvar, value)
+{
+	_var = maps\mp\uox\_uox_arrays::getValue(level.vars, cvar);
+
+	if(value == _var["value"])
+		return;
+
+	level.vars = maps\mp\uox\_uox_arrays::updateProperty(level.vars, cvar, "value", value);
+
+	//run callback, the var value is the first parameter
+	if(isDefined(_var["callback"]))
+	{
+		[[_var["callback"]]](value);
+	}
 }
 
 /* *************************************************************************************************
