@@ -452,7 +452,7 @@ animateHUDElement(element, type, options, time)
             popText(element, time);
             break;
         case "slamText":
-            scaleText(element, time);
+            slamText(element, time);
             break;
 	}
 }
