@@ -399,21 +399,41 @@ animateHUDElement(element, type, options, time)
 	if(isDefined(options))
 	{
 		if(isDefined(options["x"]))
-			x = options["x"];
+			element.x = options["x"];
 		if(isDefined(options["y"]))
-			y = options["y"];
+			element.y = options["y"];
+		if(isDefined(options["alignX"]))
+			element.alignX = options["alignX"];
+		if(isDefined(options["alignY"]))
+			element.alignY = options["alignY"];
+		if(isDefined(options["font"]))
+			element.font = options["font"];
 		if(isDefined(options["color"]))
-			color = options["color"];
+			element.color = options["color"];
 		if(isDefined(options["fontscale"]))
-			fontscale = options["fontscale"];
+			element.fontscale = options["fontscale"];
 		if(isDefined(options["alpha"]))
-			alpha = options["alpha"];
+			element.alpha = options["alpha"];
 		if(isDefined(options["width"]))
 			width = options["width"];
-		else width = 16;
+		else
+			width = 16;
 		if(isDefined(options["height"]))
 			height = options["height"];
-		else height = 16;
+		else
+			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
+        if(isDefined(options["sort"]))
+			element.sort = options["sort"];
+        if(isDefined(options["label"]))
+            element.label = options["label"];
 	}
 	
 	if(time <= 0) //if no timer, nothing to animate
@@ -427,6 +447,13 @@ animateHUDElement(element, type, options, time)
 			break;
         case "fade":
             element fadeOverTime(time);
+            break;
+        case "popText":
+            popText(element, time);
+            break;
+        case "slamText":
+            scaleText(element, time);
+            break;
 	}
 }
 
