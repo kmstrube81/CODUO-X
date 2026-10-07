@@ -988,7 +988,7 @@ endRound(roundwinner, numRoundWins)
 	else if(roundwinner == "deathmatch")
 	{
 		winner = getHighScore(); //get highest scoring player
-		isDefined(winner){
+		isDefined(winner)){
 		tied = winner.tied	;		 //store tied flag to var
 			guid = winner.guid;		 //winner guid
 			name = winner.name;		 //winner name
