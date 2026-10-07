@@ -713,6 +713,30 @@ getNextKey(arr, startIndex)
 	}
 }
 
+getPreviousKey(arr, startIndex)
+{
+	if(!isSuperArray(arr))
+	{
+		if(!isDefined(startIndex) || startIndex < arr.size)
+			startIndex = arr.size;
+		
+		if(isDefined(arr[startIndex - 1]))
+			return startIndex - 1;
+		else
+			return undefined;
+		
+	}
+	else
+	{
+		if(!isDefined(startIndex) || startIndex < arr["length"])
+			startIndex = arr["length"];
+			
+		if(isDefined(arr["keys"][startIndex + 1]))
+			return arr["keys"][startIndex + 1];
+		else
+			return undefined;
+	}
+}
 /* *************************************************************************************************
 **** randomizeArray(array arr)
 ****
