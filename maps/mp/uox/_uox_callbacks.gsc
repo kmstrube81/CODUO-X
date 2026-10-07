@@ -619,9 +619,10 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
                 attacker.god = true;
                 iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
                 attacker thread maps\mp\uox\_uox::moveTeams(true, &"BEL_BLACKSCREEN_KILLEDALLIED");
-                
+                attacker.notification = "bel_kill_allied";
                 if (attacker.pers["team"] == "axis") // only move victim teams if killer is axis
                 {
+                    logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + attacker.pers["team"] + ";" + attacker.name + ";bel_kill_allied\n");
                     self thread maps\mp\uox\_uox::moveTeams();
                 }
             }

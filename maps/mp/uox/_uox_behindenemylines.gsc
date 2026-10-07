@@ -141,6 +141,7 @@ give_allied_points()
 		self.hudpoints++;
 		self.god = false; //failsafe to fix a very rare bug
 		logPrint("A;" + lpselfnum + ";allies;" + self.name + ";bel_alive_tick\n");
+        self.notification = "bel_survived";
 		self maps\mp\uox\_uox_hud::updateClientHUDElement("hudPoints", "number", self.hudpoints);
 		self maps\mp\uox\_uox::checkScoreLimit();
 }
