@@ -697,7 +697,7 @@ getPreviousKey(arr, startIndex)
 {
 	if(!isSuperArray(arr))
 	{
-		if(!isDefined(startIndex) || startIndex < arr.size)
+		if(!isDefined(startIndex) || startIndex > arr.size)
 			startIndex = arr.size;
 		
 		if(startIndex < 1)
@@ -711,7 +711,7 @@ getPreviousKey(arr, startIndex)
 	}
 	else
 	{
-		if(!isDefined(startIndex) || startIndex < arr["length"])
+		if(!isDefined(startIndex) || startIndex > arr["length"])
 			startIndex = arr["length"];
 		
 		if(startIndex < 1)
@@ -730,8 +730,8 @@ getNextValue(arr, startIndex)
 		startIndex = -1;
 	if(isSuperArray(arr))
 	{
-		if(isDefined(arr["values"][startIndex + 1]))
-			return arr["values"][startIndex + 1];
+		if(isDefined(arr["values"][arr["keys"][startIndex + 1]]))
+			return arr["values"][arr["keys"][startIndex + 1]];
 		else
 			return undefined;
 	}
@@ -748,7 +748,7 @@ getPreviousValue(arr, startIndex)
 {
 	if(!isSuperArray(arr))
 	{
-		if(!isDefined(startIndex) || startIndex < arr.size)
+		if(!isDefined(startIndex) || startIndex > arr.size)
 			startIndex = arr.size;
 			
 		if(startIndex < 1)
@@ -762,14 +762,14 @@ getPreviousValue(arr, startIndex)
 	}
 	else
 	{
-		if(!isDefined(startIndex) || startIndex < arr["length"])
+		if(!isDefined(startIndex) || startIndex > arr["length"])
 			startIndex = arr["length"];
 			
 		if(startIndex < 1)
 			return undefined;	
 			
-		if(isDefined(arr["values"][startIndex - 1]))
-			return arr["values"][startIndex - 1];
+		if(isDefined(arr["values"][arr["keys"][startIndex + 1]]))
+			return arr["values"][arr["keys"][startIndex + 1]];
 		else
 			return undefined;
 	}
