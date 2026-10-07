@@ -2425,8 +2425,8 @@ getHighScore(checkRounds)
 	winner.tied = tied; //set whether winner was tied by another player to tied flag
 	winner.roundsWon = winner.pers["roundswon"]; //set winner roundsWon to roundswon
 	
-	if(winner.pers["team"] == "spectator") //move winner to playing if they were spectating
-		winner.sessionstate = "playing";
+	if(level.roundended && winner.pers["team"] == "spectator") //move winner to playing if they were spectating
+		winner.sessionteam = "allies";
 	
 	
 	return winner; //return high scoring player
