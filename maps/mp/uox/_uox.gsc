@@ -611,8 +611,10 @@ startGame()
 **** overtime is enabled, then run overtime in case of a tie 
 ****
 ************************************************************************************************* */
-checkTimeLimit()
+checkTimeLimit(endMap)
 {
+	if(!isDefined(endMap))
+		endMap = false;
 	if([[level.getVars]]("scr_timelimit") <= 0) //if no timelimit
 		return; //nothing to check
 	if(game["suddendeath"]) //in sudden death overtime
@@ -640,7 +642,7 @@ checkTimeLimit()
 		level.mapended = true; //set map ended flag
 		level thread endMap(); //end map
 	}
-	else //if round based game, end round.
+	else if(!endMap)//if round based game, end round.
 	{
 		iprintln(&"MPSCRIPT_TIME_LIMIT_REACHED"); //announce time is over
 		if([[level.getVars]]("scr_overtime")) //if overtime is enabled
@@ -674,6 +676,11 @@ checkTimeLimit()
 		}
 		else //free for all game
 			endRound("deathmatch");
+	}
+	else
+	{
+		level.mapended = true; //set map ended flag
+		level thread endMap(); //end map
 	}
 }
 
@@ -1209,7 +1216,7 @@ endRound(roundwinner, numRoundWins)
 		game["roundsplayed"] = 0; //set rounds played to 0
 	}
 
-	checkTimeLimit(); //check that time limit wasn't reached during round end
+	checkTimeLimit(true); //check that time limit wasn't reached during round end
 
 	if(level.mapended) //if map has already ended
 		return;	//nothing to do
