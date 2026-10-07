@@ -992,7 +992,7 @@ endRound(roundwinner, numRoundWins)
 		guid = winner.guid;		 //winner guid
 		name = winner.name;		 //winner name
 		
-		if(!tied) //if game tied flag was not set
+		if(!tied && isDefined(winner)) //if game tied flag was not set
 		{
 			winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
 			winner.pers["roundswon"] += numRoundWins; //increment rounds won
@@ -2424,6 +2424,10 @@ getHighScore(checkRounds)
 	winner.guid = guid; //set winner's guid to stored guid
 	winner.tied = tied; //set whether winner was tied by another player to tied flag
 	winner.roundsWon = winner.pers["roundswon"]; //set winner roundsWon to roundswon
+	
+	if(winner.pers["team"] == "spectator") //move winner to playing if they were spectating
+		winner.sessionstate = "playing";
+	
 	
 	return winner; //return high scoring player
 }
