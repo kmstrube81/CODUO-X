@@ -607,26 +607,6 @@ updateProperty(arr, key, property, value)
 	}
 }
 
-getNextValue(arr, startIndex)
-{
-	if(!isDefined(startIndex) || startIndex < -1)
-		startIndex = -1;
-	if(isSuperArray(arr))
-	{
-		if(isDefined(arr["keys"][startIndex + 1]))
-			return arr["values"][arr["keys"][startIndex + 1]];
-		else
-			return undefined;
-	}
-	else
-	{
-		if(isDefined(arr[startIndex + 1]))
-			return arr[startIndex + 1];
-		else
-			return undefined;
-	}
-}
-
 getArrayKeys(arr)
 {
 	if(isSuperArray(arr))
@@ -720,6 +700,9 @@ getPreviousKey(arr, startIndex)
 		if(!isDefined(startIndex) || startIndex < arr.size)
 			startIndex = arr.size;
 		
+		if(startIndex < 1)
+			return undefined;
+		
 		if(isDefined(arr[startIndex - 1]))
 			return startIndex - 1;
 		else
@@ -730,9 +713,63 @@ getPreviousKey(arr, startIndex)
 	{
 		if(!isDefined(startIndex) || startIndex < arr["length"])
 			startIndex = arr["length"];
+		
+		if(startIndex < 1)
+			return undefined;	
 			
-		if(isDefined(arr["keys"][startIndex + 1]))
-			return arr["keys"][startIndex + 1];
+		if(isDefined(arr["keys"][startIndex - 1]))
+			return arr["keys"][startIndex - 1];
+		else
+			return undefined;
+	}
+}
+
+getNextValue(arr, startIndex)
+{
+	if(!isDefined(startIndex) || startIndex < -1)
+		startIndex = -1;
+	if(isSuperArray(arr))
+	{
+		if(isDefined(arr["values"][startIndex + 1]))
+			return arr["values"][startIndex + 1];
+		else
+			return undefined;
+	}
+	else
+	{
+		if(isDefined(arr[startIndex + 1]))
+			return arr[startIndex + 1];
+		else
+			return undefined;
+	}
+}
+
+getPreviousValue(arr, startIndex)
+{
+	if(!isSuperArray(arr))
+	{
+		if(!isDefined(startIndex) || startIndex < arr.size)
+			startIndex = arr.size;
+			
+		if(startIndex < 1)
+			return undefined;	
+		
+		if(isDefined(arr[startIndex - 1]))
+			return arr[startIndex - 1];
+		else
+			return undefined;
+		
+	}
+	else
+	{
+		if(!isDefined(startIndex) || startIndex < arr["length"])
+			startIndex = arr["length"];
+			
+		if(startIndex < 1)
+			return undefined;	
+			
+		if(isDefined(arr["values"][startIndex - 1]))
+			return arr["values"][startIndex - 1];
 		else
 			return undefined;
 	}
