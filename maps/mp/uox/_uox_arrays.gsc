@@ -768,8 +768,8 @@ getPreviousValue(arr, startIndex)
 		if(startIndex < 1)
 			return undefined;	
 			
-		if(isDefined(arr["values"][arr["keys"][startIndex + 1]]))
-			return arr["values"][arr["keys"][startIndex + 1]];
+		if(isDefined(arr["values"][arr["keys"][startIndex - 1]]))
+			return arr["values"][arr["keys"][startIndex - 1]];
 		else
 			return undefined;
 	}
