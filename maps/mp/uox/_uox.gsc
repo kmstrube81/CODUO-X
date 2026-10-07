@@ -988,36 +988,38 @@ endRound(roundwinner, numRoundWins)
 	else if(roundwinner == "deathmatch")
 	{
 		winner = getHighScore(); //get highest scoring player
-		tied = winner.tied;		 //store tied flag to var
-		guid = winner.guid;		 //winner guid
-		name = winner.name;		 //winner name
-		
-		if(!tied && isDefined(winner)) //if game tied flag was not set
-		{
-			winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
-			winner.pers["roundswon"] += numRoundWins; //increment rounds won
+		isDefined(winner){
+		tied = winner.tied	;		 //store tied flag to var
+			guid = winner.guid;		 //winner guid
+			name = winner.name;		 //winner name
 			
-			if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
+			if(!tied) //if game tied flag was not set
 			{
-				if(game["half"] % 2) //if game is in 1st Half
-					winner.pers["1HScore"] += numRoundWins; //increment 1st half score rounds won
-				else //if game is in second half
-					winner.pers["2HScore"] += numRoundWins; //increment 2nd half score rounds won
-				//get rounds won leader
-				leader = getHighScore(true);
-				if(game["half"] % 2) //if game is in 1st half
-					game["round1axisscore"] = leader.pers["1HScore"]; //set leader round 1 score
-				else //if game is in 2nd half
-					game["round2axisscore"] = leader.pers["2HScore"]; //set leader round 2 score
+				winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
+				winner.pers["roundswon"] += numRoundWins; //increment rounds won
+				
+				if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
+				{
+					if(game["half"] % 2) //if game is in 1st Half
+						winner.pers["1HScore"] += numRoundWins; //increment 1st half score rounds won
+					else //if game is in second half
+						winner.pers["2HScore"] += numRoundWins; //increment 2nd half score rounds won
+					//get rounds won leader
+					leader = getHighScore(true);
+					if(game["half"] % 2) //if game is in 1st half
+						game["round1axisscore"] = leader.pers["1HScore"]; //set leader round 1 score
+					else //if game is in 2nd half
+						game["round2axisscore"] = leader.pers["2HScore"]; //set leader round 2 score
+				}
+				else //if score method is total score
+				{
+					if(game["half"] % 2) //if game is in 1st half
+						game["round1axisscore"] = winner.score; //set half score
+					else //if game is in 2nd half
+						game["round2axisscore"] = winner.score; //set half score
+				}
+				iprintlnbold(winner.name + " ^7wins");
 			}
-			else //if score method is total score
-			{
-				if(game["half"] % 2) //if game is in 1st half
-					game["round1axisscore"] = winner.score; //set half score
-				else //if game is in 2nd half
-					game["round2axisscore"] = winner.score; //set half score
-			}
-			iprintlnbold(winner.name + " ^7wins");
 		}
 	}
 	
