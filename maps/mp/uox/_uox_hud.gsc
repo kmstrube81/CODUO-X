@@ -2490,8 +2490,8 @@ slamText(element, target, alpha)
     element fadeOverTime(0.15);
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target * 2.0, target * 0.9, 0.2, "in", token))
+    if(!tweenFontScale(element, target * 2.0, target * 0.9, 0.4, "in", token))
         return;
-    tweenFontScale(element, target * 0.9, target, 0.1, "out", token);
+    tweenFontScale(element, target * 0.9, target, 0.2, "out", token);
    
 }
