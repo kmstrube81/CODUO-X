@@ -393,10 +393,12 @@ endMap(make_announcement)
 	}
 	else //if free for all game
 	{
-		winningPlayer = getHighScore(); //get high scoring player
+		winningPlayer = getHighScore([[level.getVars]]("scr_score_rounds")); //get high scoring player
 		
-		if(!winningPlayer.tied)
+		if(isDefined(winningPlayer) && !winningPlayer.tied)
 			winner = winningPlayer.name;
+		else
+			winner = "Nobody";	
 		
 		if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundreset"))
 		{	//if scoring rounds over kills
@@ -437,7 +439,7 @@ endMap(make_announcement)
 			player setClientCvar("cg_objectiveText", text); //change scoreboard text
 		else //if free for all game
 		{
-			if(winner == "draw") //if tie, change scoreboard text to tie text
+			if(winner == "Nobody") //if tie, change scoreboard text to tie text
 				player setClientCvar("cg_objectiveText", &"MPSCRIPT_THE_GAME_IS_A_TIE");
 			else //else if there is a winner, set scoreboard to announce winner
 				player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", winner);
@@ -2429,7 +2431,7 @@ getHighScore(checkRounds)
 	winner.roundsWon = winner.pers["roundswon"]; //set winner roundsWon to roundswon
 	
 	if(level.roundended && winner.pers["team"] == "spectator") //move winner to playing if they were spectating
-		winner.sessionteam = "allies";
+		winner.sessionteam = "none";
 	
 	
 	return winner; //return high scoring player
