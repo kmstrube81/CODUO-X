@@ -619,8 +619,8 @@ checkTimeLimit(endMap)
 		return; //nothing to check
 	if(game["suddendeath"]) //in sudden death overtime
 		return; //ignore timelimit
-	//if(level.roundended) //wait til next round to call time up
-	//	return;
+	if(level.roundended && !endMap) //wait til next round to call time up
+		return;
 	if(level.mapended) //if map is already over 
 		return; //no point in checking time limit
 	//determine time passed since start of round
