@@ -2374,8 +2374,8 @@ getHighScore(checkRounds)
 	for(i = 0; i < players.size; i++) //loop players
 	{
 		player = players[i]; //current player
-		//if player is a spectator
-		if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator")
+		//if player is a spectator and we aren't checking rounds won
+		if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator" && !checkRounds)
 			continue; //don't check
 
 		if(!isDefined(highscore)) //if a highscore player isn't defined yet
