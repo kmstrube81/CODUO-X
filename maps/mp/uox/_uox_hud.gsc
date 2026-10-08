@@ -2439,7 +2439,7 @@ tweenFontScale(element, from, to, duration, ease, token)
 ****
 **** call threaded; returns nothing
 ***************************************************************************************************** */
-popText(element, target, alpha)
+popText(element, time, target, alpha)
 {
     if(!isDefined(element))
         return;
@@ -2453,11 +2453,14 @@ popText(element, target, alpha)
     element.uox_animToken++;
     token = element.uox_animToken;
 
+    time1 = time / 3;
+    time2 = time / 1.5;
+
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target, target * 2.0, 0.2, "out", token))
+    if(!tweenFontScale(element, target, target * 2.0, time1, "out", token))
     		return;
-	tweenFontScale(element, target * 2.0, target, 0.4, "linear", token);
+	tweenFontScale(element, target * 2.0, target, time2, "linear", token);
 
             
 }
@@ -2472,7 +2475,7 @@ popText(element, target, alpha)
 ****
 **** call threaded; returns nothing
 ***************************************************************************************************** */
-slamText(element, target, alpha)
+slamText(element, time, target, alpha)
 {
     if(!isDefined(element))
         return;
@@ -2486,12 +2489,16 @@ slamText(element, target, alpha)
     element.uox_animToken++;
     token = element.uox_animToken;
 
+    time1 = time / 1.5;
+    time2 = time / 3; 
+
+    element.fontscale = target * 2.0;
     element.alpha = 0;
     element fadeOverTime(0.15);
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target * 2.0, target * 0.9, 0.4, "in", token))
+    if(!tweenFontScale(element, target * 2.0, target * 0.9, time1, "in", token))
         return;
-    tweenFontScale(element, target * 0.9, target, 0.2, "out", token);
+    tweenFontScale(element, target * 0.9, target, time2, "out", token);
    
 }
