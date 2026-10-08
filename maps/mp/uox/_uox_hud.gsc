@@ -2456,6 +2456,8 @@ popText(element, time, target, alpha)
     time1 = time / 3;
     time2 = time / 1.5;
 
+    element.alpha = 0;
+    element fadeOverTime(0.15);
     element.alpha = alpha;
 
     if(!tweenFontScale(element, target, target * 2.0, time1, "out", token))
