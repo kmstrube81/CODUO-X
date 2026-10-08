@@ -304,7 +304,7 @@ doLoop(callback, callbackName)
 **** USAGE: starts waittill
 ****  
 ************************************************************************************************* */
-startWait(waiter)
+startWait(waiter, msg)
 {
 	thread doWait(waiter);
 	return waiter;
