@@ -210,7 +210,7 @@ getServerInfoMenu()
         return "serverinfo_dm";
 }
 
-handleServerInfoMenu(response)
+handleServerInfoMenu(response, optional)
 {
     if(response == "close")
     {
@@ -222,7 +222,7 @@ handleServerInfoMenu(response)
         return;
 }
 
-handleTeamMenu(response)
+handleTeamMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -426,7 +426,7 @@ handleWeaponMenu(response, weapon) //allow to pass in a weapon for custom menu h
     maps\mp\uox\_uox_respawns::menu_spawn(weapon);
 }
 
-handleMapMenu(response)
+handleMapMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -452,7 +452,7 @@ handleMapMenu(response)
     }
 }
 
-handleVoteMenu(response)
+handleVoteMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -478,7 +478,7 @@ handleVoteMenu(response)
     }
 }
 
-handleQuickCommandsMenu(response)
+handleQuickCommandsMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -489,7 +489,7 @@ handleQuickCommandsMenu(response)
         maps\mp\gametypes\_teams::quickcommands(response);
 }
 
-handleQuickStatementsMenu(response)
+handleQuickStatementsMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -500,7 +500,7 @@ handleQuickStatementsMenu(response)
         maps\mp\gametypes\_teams::quickstatements(response);
 }
 
-handleQuickResponsesMenu(response)
+handleQuickResponsesMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -511,7 +511,7 @@ handleQuickResponsesMenu(response)
         maps\mp\gametypes\_teams::quickresponses(response);
 }
 
-handleQuickVehiclesMenu(response)
+handleQuickVehiclesMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -522,7 +522,7 @@ handleQuickVehiclesMenu(response)
         maps\mp\gametypes\_teams::quickvehicles(response);
 }
 
-handleQuickRequestsMenu(response)
+handleQuickRequestsMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
@@ -533,7 +533,7 @@ handleQuickRequestsMenu(response)
         maps\mp\gametypes\_teams::quickrequests(response);
 }
 
-handleUnknownMenu(response)
+handleUnknownMenu(response, optional)
 {
     if(response == "open" || response == "close")
         return;
