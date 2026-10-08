@@ -233,7 +233,7 @@ updateVars()
 	level thread maps\mp\uox\_uox_arrays::arrayReadEach(level.monitoredVars, ::updateVarValues);
 }
 
-updateVarValues(var)
+updateVarValues(var, cvarname)
 {
 	_val = getVar(var["prefix"], var["varname"], var["type"]);
 		
@@ -371,7 +371,7 @@ initGameTypeVars()
             level.wavenumber = 0;
             break;
 	}
-	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
+	varDef("scr", "battlerank", "bool", true, true, "", "", "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
 	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
     varDef("scr", "forcerank", "int", true, 0, 0, 99, "Force Battle Rank Level");
     varDef("scr", "rank_ppr", "int", true, 10, 0, 99, "Points Per Rank");

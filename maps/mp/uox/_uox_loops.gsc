@@ -292,7 +292,7 @@ doWait(waiter)
 **** USAGE: executes callback
 ****  
 ************************************************************************************************* */
-doLoop(callback)
+doLoop(callback, callbackName)
 {
 	thread [[callback]]();
 	return callback;
@@ -328,7 +328,7 @@ startLevelWait(waiter)
 **** USAGE: waits for notification and executes callback and sets it back to waiter mode
 ****  
 ************************************************************************************************* */
-doLevelWait(waiter)
+doLevelWait(waiter, msg)
 {
 	if(waiter["waiting"])
 		return;

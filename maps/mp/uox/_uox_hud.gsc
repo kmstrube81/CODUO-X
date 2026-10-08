@@ -518,9 +518,9 @@ clearClientHUD()
     initClientHUD();
 }
 
-destroyClientHUDElement( element )
+destroyClientHUDElement( element, name )
 {
-	maps\mp\uox\_uox_debug::debugLog("info", "Clearing " + element.elementName + " HUD Element");
+	maps\mp\uox\_uox_debug::debugLog("info", "Clearing " + name + " HUD Element");
 	element destroy();
 	element = undefined;
 }
