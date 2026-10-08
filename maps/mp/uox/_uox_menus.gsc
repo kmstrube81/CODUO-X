@@ -342,6 +342,8 @@ handleTeamMenu(response, optional)
             self maps\mp\uox\_uox_respawns::menu_spawn("none");
         }
 
+        if(!isDefined(menu))
+            menu = game["menu_team"];
         self setClientCvar("g_scriptMainMenu", menu);
         break;
 
@@ -414,6 +416,13 @@ handleWeaponMenu(response, weapon) //allow to pass in a weapon for custom menu h
 
     if(weapon == "restricted")
     {
+        if(level.objective == "bel")
+            menu = game["menu_weapon_all"];
+        else if(self.pers["team"] == "allies")
+            menu = game["menu_weapon_allies"];
+        else if(self.pers["team"] == "axis")
+            menu = game["menu_weapon_axis"];
+
         self openMenu(menu);
         return;
     }
