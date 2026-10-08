@@ -449,10 +449,10 @@ animateHUDElement(element, type, options, time)
             element fadeOverTime(time);
             break;
         case "popText":
-            popText(element, time);
+            popText(element, time, options["fontscale"], options["alpha"]);
             break;
         case "slamText":
-            slamText(element, time);
+            slamText(element, time, options["fontscale"], options["alpha"]);
             break;
 	}
 }
@@ -2489,16 +2489,16 @@ slamText(element, time, target, alpha)
     element.uox_animToken++;
     token = element.uox_animToken;
 
-    time1 = time / 1.5;
-    time2 = time / 3; 
+    time1 = time / 3;
+    time2 = time / 1.5; 
 
     element.fontscale = target * 2.0;
     element.alpha = 0;
     element fadeOverTime(0.15);
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target * 2.0, target * 0.9, time1, "in", token))
+    if(!tweenFontScale(element, target * 1.5, target * 0.9, time1, "in", token))
         return;
-    tweenFontScale(element, target * 0.9, target, time2, "out", token);
+    tweenFontScale(element, target * 0.9, target, time2, "linear", token);
    
 }
