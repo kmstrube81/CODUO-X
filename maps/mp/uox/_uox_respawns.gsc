@@ -970,7 +970,7 @@ getSpawnPoints()
 			spawnpoints_type = spawnpoints_override;
 			break;
 		default:
-			spawnpoints_type = getDefaultSpawnPoints(level.gametype);
+			spawnpoints_type = getDefaultSpawnPoints(getCvar("g_gametype"));
 	}
 	
 	return spawnpoints_type;
