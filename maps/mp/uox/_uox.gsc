@@ -1273,7 +1273,7 @@ updateTeamStatus()
 		//if player is on a team and team isn't spectator and round isn't started or player lives aren't 
 		//defined or player has lives left or player doesn't have lives left but it doesn't matter 
 		//because reinforcements are set to unlimited
-		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && ( (!level.roundstarted || !game["matchstarted"] || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && [[level.getVars]]("scr_reinforcements") == -1)) && ( player.sessionstate == "playing" || level.graceperiod ) ) )
+		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && ( (!level.roundstarted || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && [[level.getVars]]("scr_reinforcements") == -1)) && ( player.sessionspawned || level.graceperiod ) ) )
 		{
             level.exist[player.pers["team"]]++; //increment number of alive players on team
             level.exist["2players"]++; //increment number of alive players in general
