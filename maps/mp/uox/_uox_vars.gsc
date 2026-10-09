@@ -63,16 +63,16 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 	setFlag = false; //flag if cvar needs to be set because it used the default value
 	
 	if(getCvar(prefix + "_" + gt + "_" + varname + "_" + map) != "") //if gt + map specific var is set
-		varname = prefix + "_" + gt + "_" + varname + "_" + map; //hasValue type is 4
+		cvarname = prefix + "_" + gt + "_" + varname + "_" + map; //hasValue type is 4
 	else if(getCvar(prefix + "_" + varname + "_" + map) != "") //if map specific var is set
-		varname = prefix + "_" + varname + "_" + map; //hasValue type is 3
+		cvarname = prefix + "_" + varname + "_" + map; //hasValue type is 3
 	else if(getCvar(prefix + "_" + gt + "_" + varname) != "") //if gt specific var is set
-		varname = prefix + "_" + gt + "_" + varname; //hasValue type is 2
+		cvarname = prefix + "_" + gt + "_" + varname; //hasValue type is 2
 	else if(getCvar(prefix + "_" + varname) != "") //if var is set
-		varname = prefix + "_" + varname; //hasValue type is 1
+		cvarname = prefix + "_" + varname; //hasValue type is 1
 	else //var has no value
 	{
-		varname = prefix + "_" + varname;
+		cvarname = prefix + "_" + varname;
 		value = defValue;
 		//if no default value then return undefined
 		if(!isDefined(defValue))
@@ -84,11 +84,11 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 	if(!isDefined(value))
 	{
 		if(type == "int")
-			value = getCvarInt(varname);
+			value = getCvarInt(cvarname);
 		else if(type == "float")
-			value = getCvarFloat(varname);
+			value = getCvarFloat(cvarname);
 		else
-			value = getCvar(varname);
+			value = getCvar(cvarname);
 	}
 		
 	//valid types - bool, int, float, string
@@ -121,7 +121,7 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 			_val = value;
 	}
 	if(setFlag)
-		updateCvar(varname,_val, setGt, setMap, true);
+		updateCvar(prefix, varname ,_val, setGt, setMap, true);
 	return _val;
 }
 
