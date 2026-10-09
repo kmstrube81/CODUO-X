@@ -394,7 +394,7 @@ handleWeaponMenu(response, weapon) //allow to pass in a weapon for custom menu h
     } else {
         bug = weapon;
     }
-    maps\mp\uox\_uox_debug::debugLog("info", self.name + "desperate debug logging response " + response + " weapon " + weapon);
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + "desperate debug logging response " + response + " weapon " + bug);
 
     if(response == "open" || response == "close")
         return;
