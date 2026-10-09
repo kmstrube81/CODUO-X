@@ -1084,9 +1084,9 @@ initSpawns(gt)
 
 			for(i = 0; i < spawnpoints.size; i++)
             {
-                maps\mp\uox\_uox_debug::debugLog("info", "sd allied ["+i+"] pre=" + spawnpoints[i].origin);
+                maps\mp\uox\_uox_debug::debugLog("info", "sd allied [" + i + "] pre=" + spawnpoints[i].origin);
                 spawnpoints[i] placeSpawnpoint();
-                maps\mp\uox\_uox_debug::debugLog("info", "sd allied ["+i+"] post=" + spawnpoints[i].origin);
+                maps\mp\uox\_uox_debug::debugLog("info", "sd allied [" + i + "] post=" + spawnpoints[i].origin);
             }
 
 			spawnpointname = "mp_searchanddestroy_spawn_axis";
