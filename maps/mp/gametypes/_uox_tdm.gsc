@@ -68,11 +68,11 @@ UOX_Main()
 {
 	level.getVars = maps\mp\uox\_uox_vars::getVars;
 	
-	level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "dm", "", "", "Respawn Mode");
+	level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "dm", "", "", "Respawn Mode", "tdm");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false,
-											"near_team", "", "", "Respawn Type");
-	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "tdm", "", "", "Spawnpoints");
-	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, -1, -1, 999, "Reinforcements");
+											"near_team", "", "", "Respawn Type", "tdm");
+	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "tdm", "", "", "Spawnpoints", "tdm");
+	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, -1, -1, 999, "Reinforcements", "tdm");
 
 	/* init spawns */
 	if(!maps\mp\uox\_uox_respawns::initSpawns("tdm"))
