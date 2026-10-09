@@ -389,6 +389,13 @@ handleTeamMenu(response, optional)
 
 handleWeaponMenu(response, weapon) //allow to pass in a weapon for custom menu handling
 {
+    if(!isdefined(weapon)) {
+        bug = "not defined";
+    } else {
+        bug = weapon;
+    }
+    maps\mp\uox\_uox_debug::debugLog("info", self.name + "desperate debug logging response " + response + " weapon " + weapon);
+
     if(response == "open" || response == "close")
         return;
 
