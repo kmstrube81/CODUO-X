@@ -60,6 +60,7 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 	if(!isDefined(map)) map = getCvar("mapname");
     else setMap = map;
 	
+    defaultFlag = false;
 	setFlag = false; //flag if cvar needs to be set because it used the default value
 	
 	if(getCvar(prefix + "_" + gt + "_" + varname + "_" + map) != "") //if gt + map specific var is set
@@ -77,7 +78,7 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 		//if no default value then return undefined
 		if(!isDefined(defValue))
 			return undefined;
-		setFlag = true;
+		defaultFlag = true;
 	}
 		
 	//get value
@@ -95,8 +96,8 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 	switch(type)
 	{
 		case "bool": //for boolean vars
-			if(!isDefined(value) || value == 0 || value == false
-			  || value == "false" || value == "0") //valid false values
+			if(!isDefined(value) || value == "false" || value == "0"
+               || value == 0 || value == false ) //valid false values
 				_val = false;
 			else //all other values are true
 				_val = true;
@@ -120,25 +121,27 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 		default:
 			_val = value;
 	}
-	if(setFlag)
+	if(defaultFlag)
     {
         if(isDefined(setGt) && isDefined(setMap)) //exact gt + map rule 
-    	{
+        {
             setCvar(prefix + "_" + setGt + "_" + varname + "_" + setMap, _val);
-    	}
-    	else if(isDefined(setGt)) //gametype-scoped rule
-    	{
-    		setCvar(prefix + "_" + setGt + "_" + varname, _val);
-    	}
-    	else if(!isDefined(setMap)) //map-scoped rule
-    	{
-    		setCvar(prefix + "_" + varname + "_" + setMap, _val);
-    	}
-    	else //global rule
-    	{
-            setCvar(prefix + "_" + varname, value);
-    	}
+        }
+        else if(isDefined(setGt)) //gametype-scoped rule
+        {
+            setCvar(prefix + "_" + setGt + "_" + varname, _val);
+        }
+        else if(isDefined(setMap)) //map-scoped rule
+        {
+            setCvar(prefix + "_" + varname + "_" + setMap, _val);
+        }
+        else //global rule
+        {
+            setCvar(prefix + "_" + varname, _val);
+        }
     }
+    else if(setFlag)
+        setCvar(cvarname, _val);
 	return _val;
 }
 
