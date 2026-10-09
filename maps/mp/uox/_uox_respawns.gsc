@@ -903,6 +903,7 @@ getSpawn(gt, farthest)
 		default:
 			spawnpoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_DM(spawnpoints);
 	}
+    maps\mp\uox\_uox_debug::debugLog("info", "getSpawn type=" + spawnpoints_type + " cls=" + spawnpoint.classname + " org=" + spawnpoint.origin);
 	return spawnpoint;
 }
 
@@ -995,7 +996,8 @@ getSpawnPointsIntermission(gt)
 initSpawns(gt)
 {
 	spawnpoints_type = getSpawnPoints();
-	
+	maps\mp\uox\_uox_debug::debugLog("info", "initSpawns gt=" + gt + " g_gametype=" + getCvar("g_gametype") + " type=" + spawnpoints_type);
+
 	switch(spawnpoints_type)
 	{
 		case "uo":
@@ -1022,7 +1024,7 @@ initSpawns(gt)
 			}
 			// set up secondary spawn points but don't abort if they are not there
 			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_allies_secondary");
-			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_axis");
+			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_axis_secondary"");
 			break;
 		case "bas":
 			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_gmi_bas_allies_spawn", 1) )
@@ -1081,7 +1083,11 @@ initSpawns(gt)
 			}
 
 			for(i = 0; i < spawnpoints.size; i++)
-				spawnpoints[i] placeSpawnpoint();
+            {
+                maps\mp\uox\_uox_debug::debugLog("info", "sd allied ["+i+"] pre=" + spawnpoints[i].origin);
+                spawnpoints[i] placeSpawnpoint();
+                maps\mp\uox\_uox_debug::debugLog("info", "sd allied ["+i+"] post=" + spawnpoints[i].origin);
+            }
 
 			spawnpointname = "mp_searchanddestroy_spawn_axis";
 			spawnpoints = getentarray(spawnpointname, "classname");
