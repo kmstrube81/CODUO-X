@@ -16,153 +16,6 @@ defineMenus()
     game["menu_quickvehicles"] = "quickvehicles";
     game["menu_quickrequests"] = "quickrequests";
 
-    //set up menu handlers
-    if(!isDefined(game["menuHandlers"]))
-        game["menuHandlers"] = maps\mp\uox\_uox_arrays::superArray();
-    //handle server info
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_serverinfo"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleServerInfoMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleServerInfoMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_serverinfo"]);
-    //handle teams
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_team"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleTeamMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleTeamMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_team"]);
-    //handle weapons - all
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_weapon_all"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleWeaponMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleWeaponMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_weapon_all"]);
-    //handle weapons - allies
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_weapon_allies"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleWeaponMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleWeaponMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_weapon_allies"]);
-    //hande weapons - axis
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_weapon_axis"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleWeaponMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleWeaponMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_weapon_axis"]);
-    //handle Map
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_viewmap"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleMapMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleMapMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_viewmap"]);
-    //handle call vote
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_callvote"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleVoteMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleVoteMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_callvote"]);
-    //handle quick commands
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_quickcommands"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleQuickCommandsMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickCommandsMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_quickcommands"]);
-    //handel quick statements
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_quickstatements"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleQuickStatementsMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickStatementsMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_quickstatements"]);
-    //handle quick responses
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_quickresponses"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleQuickResponsesMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickResponsesMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_quickresponses"]);
-    //handle quick Vehicles
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_quickvehicles"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleQuickVehiclesMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickVehiclesMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_quickvehicles"]);
-    //handle quick requests
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], game["menu_quickrequests"]);
-    if(!isDefined(handlers))
-    {
-        handlers = [];
-        handlers[0] = ::handleQuickRequestsMenu;
-    }
-    else
-    {
-        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickRequestsMenu);
-    }
-    game["menuHandlers"] = maps\mp\uox\_uox_arrays::arrayPush(game["menuHandlers"], handlers, game["menu_quickrequests"]);
 }
 
 precache()
@@ -179,6 +32,157 @@ precache()
     precacheMenu(game["menu_quickresponses"]);
     precacheMenu(game["menu_quickvehicles"]);
     precacheMenu(game["menu_quickrequests"]);
+}
+
+setupMenuHandlers()
+{
+    //set up menu handlers
+    if(!isDefined(level.menuHandlers))
+        level.menuHandlers = maps\mp\uox\_uox_arrays::superArray();
+    //handle server info
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_serverinfo"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleServerInfoMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleServerInfoMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_serverinfo"]);
+    //handle teams
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_team"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleTeamMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleTeamMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_team"]);
+    //handle weapons - all
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_weapon_all"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleWeaponMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleWeaponMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_weapon_all"]);
+    //handle weapons - allies
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_weapon_allies"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleWeaponMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleWeaponMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_weapon_allies"]);
+    //hande weapons - axis
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_weapon_axis"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleWeaponMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleWeaponMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_weapon_axis"]);
+    //handle Map
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_viewmap"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleMapMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleMapMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_viewmap"]);
+    //handle call vote
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_callvote"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleVoteMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleVoteMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_callvote"]);
+    //handle quick commands
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_quickcommands"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleQuickCommandsMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickCommandsMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_quickcommands"]);
+    //handel quick statements
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_quickstatements"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleQuickStatementsMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickStatementsMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_quickstatements"]);
+    //handle quick responses
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_quickresponses"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleQuickResponsesMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickResponsesMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_quickresponses"]);
+    //handle quick Vehicles
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_quickvehicles"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleQuickVehiclesMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickVehiclesMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_quickvehicles"]);
+    //handle quick requests
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, game["menu_quickrequests"]);
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = ::handleQuickRequestsMenu;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, ::handleQuickRequestsMenu);
+    }
+    level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, game["menu_quickrequests"]);
 }
 
 getServerInfoMenu()
@@ -560,7 +564,7 @@ handleUnknownMenu(response, optional)
 
 handleMenuResponse(menu, response)
 {
-    handlers = maps\mp\uox\_uox_arrays::getValue(game["menuHandlers"], menu);
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, menu);
 
     if(!isDefined(handlers))
     {

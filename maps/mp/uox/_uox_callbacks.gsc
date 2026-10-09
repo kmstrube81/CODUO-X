@@ -129,7 +129,8 @@ Default_StartGameType()
 		maps\mp\gametypes\_teams::precache();
 		maps\mp\gametypes\_teams::scoreboard();
 	}
-
+    //init menu handlers
+    maps\mp\uox\_uox_menu::setupMenuHandlers();
     //define player models
     maps\mp\gametypes\_teams::modeltype();
 
