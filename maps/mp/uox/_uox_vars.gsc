@@ -121,7 +121,24 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 			_val = value;
 	}
 	if(setFlag)
-		updateCvar(prefix, varname ,_val, setGt, setMap, true);
+    {
+        if(isDefined(setGt) && isDefined(setMap)) //exact gt + map rule 
+    	{
+            setCvar(prefix + "_" + setGt + "_" + varname + "_" + setMap, _val);
+    	}
+    	else if(isDefined(setGt)) //gametype-scoped rule
+    	{
+    		setCvar(prefix + "_" + setGt + "_" + varname, _val);
+    	}
+    	else if(!isDefined(setMap)) //map-scoped rule
+    	{
+    		setCvar(prefix + "_" + varname + "_" + setMap, _val);
+    	}
+    	else //global rule
+    	{
+            setCvar(prefix + "_" + varname, value);
+    	}
+    }
 	return _val;
 }
 
@@ -142,7 +159,7 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 ****
 **** returns value
 ************************************************************************************************** */
-updateCvar(prefix, varname, value, gt, map, dontUpdate)
+updateCvar(prefix, varname, value, gt, map)
 {
 	curGT = getCvar("g_gametype");
 	curMap = getCvar("mapname");
@@ -179,8 +196,7 @@ updateCvar(prefix, varname, value, gt, map, dontUpdate)
 			return value;
 		setCvar(gtMapName, value);
 	}
-	if(!isDefined(dontUpdate))
-       updateVar(prefix + "_" + varname, value);
+    updateVar(prefix + "_" + varname, value);
 	return value;
 }
 
