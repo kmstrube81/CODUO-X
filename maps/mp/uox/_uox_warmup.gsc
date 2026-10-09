@@ -215,6 +215,7 @@ waitUntilWarmup()
 
 readyup(entity, switchingSides)
 {
+    level endon("abort ready");
 	wait 0; // required to let any notify happen before this happens
 	
 	if(!isDefined(switchingSides))
@@ -328,6 +329,7 @@ abortReadyUp()
     level notify("abort ready");
 
     level.doingReadyUp = false;
+    level.playersReady = false;
 
     //ready up finished
 	maps\mp\uox\_uox_hud::deleteReadyUpHUD();

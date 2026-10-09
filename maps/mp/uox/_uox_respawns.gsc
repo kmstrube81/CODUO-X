@@ -629,7 +629,7 @@ spawnPlayer(farthest)
 	self.maxhealth = 100;
 	self.health = self.maxhealth;
 		
-	if(level.respawn_mode == "obj")
+	if(level.respawn_mode == "obj" && game["matchstarted"])
 	{
 		if(!isDefined(self.lives))
 		{
