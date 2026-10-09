@@ -96,11 +96,21 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 	switch(type)
 	{
 		case "bool": //for boolean vars
-			if(!isDefined(value) || value == "false" || value == "0"
-               || value == 0 || value == false ) //valid false values
-				_val = false;
-			else //all other values are true
-				_val = true;
+			if(defaultFlag)
+            {
+                if(value == 0 || value == false)
+                    _val = false;
+                else
+                    _val = true;
+            }
+            else
+            {
+                if(value == "false" || value == "0")//valid false values
+    				_val = false;
+    			else //all other values are true
+    				_val = true;
+
+            }
 			if(_val != value) //check if value was valid
 				setFlag = true; //setFlag if value had to be adjusted
 			break;
