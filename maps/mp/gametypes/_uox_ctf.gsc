@@ -2,11 +2,11 @@ UOX_Main() // Starts when map is loaded.
 {
     level.getVars = maps\mp\uox\_uox_vars::getVars;
 
-    level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "spawndelay", "", "", "Respawn Mode", "ctf");
+    level.respawn_mode = maps\mp\uox\_uox_vars::varDef("scr", "respawn_mode", "string", false, "spawndelay", "", "", "Respawn Mode", undefined, "ctf");
 	maps\mp\uox\_uox_vars::varDef("scr", "spawn_type", "string", false,
-											"near_team", "", "", "Respawn Type", "ctf");
-	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "uo", "", "", "Spawnpoints", "ctf");
-	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, -1, -1, 999, "Reinforcements", "ctf");
+											"near_team", "", "", "Respawn Type", undefined, "ctf");
+	maps\mp\uox\_uox_vars::varDef("scr", "spawnpoints", "string", false, "uo", "", "", "Spawnpoints", undefined, "ctf");
+	maps\mp\uox\_uox_vars::varDef("scr", "reinforcements", "int", false, -1, -1, 999, "Reinforcements", undefined, "ctf");
 
     /* init spawns */
 	if(!maps\mp\uox\_uox_respawns::initSpawns("ctf"))
