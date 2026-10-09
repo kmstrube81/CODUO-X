@@ -412,7 +412,7 @@ handleWeaponMenu(response, weapon) //allow to pass in a weapon for custom menu h
         return;
     
     if(isDefined(weapon))
-        maps\mp\uox\_uox_debug::debugLog("info", "handleWeaponMenu passed in weapon is " + weapon);
+        maps\mp\uox\_uox_debug::debugLog("info", self.name + " handleWeaponMenu passed in weapon is " + weapon);
 
     if(!isDefined(weapon) || weapon != "restricted") 
         weapon = self maps\mp\gametypes\_teams::restrict(response);
