@@ -1327,6 +1327,14 @@ updateTeamStatus()
         return;
     }
 
+    // round does not start until the match starts
+	if ( !game["matchstarted"] )
+    {
+        if( (oldvalue["allies"] && !level.exist["allies"]) || (oldvalue["axis"] && !level.exist["axis"]) )
+            level maps\mp\uox\_uox_warmup::abortReadyUp();
+        return;
+    }
+
 	if(level.uox_teamplay) //if  team game
 	{	
         //if allies did exist and now they don't and axis did exist and they don't either
