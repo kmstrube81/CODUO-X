@@ -937,6 +937,7 @@ endRound(roundwinner, numRoundWins)
 	level.playerlock = true;
 	level thread lockPlayersInPlace(postroundtime);
 
+    level.roundwinner = roundwinner; //make roundwinner global for other scripts to access
 	// End bombzone threads and remove related hud elements and objectives
 	level notify("round_ended");
 
