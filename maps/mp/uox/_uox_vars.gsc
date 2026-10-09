@@ -56,7 +56,9 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 	//define type, shouldMonitor, gametype and mapname if not defined
 	if(!isDefined(type)) type = "";
 	if(!isDefined(gt)) gt = getCvar("g_gametype");
+    else setGt = gt;
 	if(!isDefined(map)) map = getCvar("mapname");
+    else setMap = map;
 	
 	setFlag = false; //flag if cvar needs to be set because it used the default value
 	
@@ -119,7 +121,7 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 			_val = value;
 	}
 	if(setFlag)
-		setCvar(varname,_val);
+		updateCvar(varname,_val, setGt, setMap, true);
 	return _val;
 }
 
@@ -140,7 +142,7 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 ****
 **** returns value
 ************************************************************************************************** */
-updateCvar(prefix, varname, value, gt, map)
+updateCvar(prefix, varname, value, gt, map, dontUpdate)
 {
 	curGT = getCvar("g_gametype");
 	curMap = getCvar("mapname");
@@ -177,8 +179,8 @@ updateCvar(prefix, varname, value, gt, map)
 			return value;
 		setCvar(gtMapName, value);
 	}
-	
-	updateVar(prefix + "_" + varname, value);
+	if(!isDefined(dontUpdate))
+       updateVar(prefix + "_" + varname, value);
 	return value;
 }
 
