@@ -1024,7 +1024,7 @@ initSpawns(gt)
 			}
 			// set up secondary spawn points but don't abort if they are not there
 			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_allies_secondary");
-			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_axis_secondary"");
+			maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_uo_spawn_axis_secondary");
 			break;
 		case "bas":
 			if ( !maps\mp\gametypes\_spawnlogic_gmi::InitSpawnPoints("mp_gmi_bas_allies_spawn", 1) )
