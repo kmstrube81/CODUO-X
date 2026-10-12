@@ -507,7 +507,8 @@ endMap(make_announcement)
 		if(logToPrintL != "") // if something to log
 			logPrint(logToPrintL); //print losers to log
 	}
-	
+
+	level notify("map_ended");
 	wait 10; //display scoreboard for 10 seconds
 	exitLevel(false); //load next level
 }
