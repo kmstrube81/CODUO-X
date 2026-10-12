@@ -247,7 +247,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 				tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 				tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 			}
-            tempArr["length"] = tempArr["keys"].size;
+			tempArr["length"] = tempArr["keys"].size;
 			return tempArr;
 		}
 		if(numToRemove > 0) abs = numToRemove; else abs = numToRemove * -1;
@@ -265,7 +265,6 @@ arraySlice(arr, startIndex, numToRemove, keys)
 		if(numToRemove > 0) key = i + cnt; else key = i - cnt;
 		while(cnt < abs && key > -1 && key < arr["length"])
 		{
-			
 			if(isDefined(arr["keys"][key]))
 				keys[keys.size] = arr["keys"][key];
 			cnt++;
@@ -284,6 +283,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 			tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 			tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 		}
+		tempArr["length"] = tempArr["keys"].size; //FIX: was never written, left length at 0 after every removal
 		return tempArr;
 	}
 
@@ -301,7 +301,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 		start = a;
 		end = b;
 	}
-	else if(a > b)
+	else //FIX: was "else if(a > b)", left start/end undefined when a == b (numToRemove of 1)
 	{
 		start = b;
 		end = a;
@@ -730,8 +730,11 @@ getNextValue(arr, startIndex)
 		startIndex = -1;
 	if(isSuperArray(arr))
 	{
-		if(isDefined(arr["values"][arr["keys"][startIndex + 1]]))
-			return arr["values"][arr["keys"][startIndex + 1]];
+		key = arr["keys"][startIndex + 1]; //resolve key first; indexing values with undefined is a runtime error
+		if(!isDefined(key))
+			return undefined;
+		if(isDefined(arr["values"][key]))
+			return arr["values"][key];
 		else
 			return undefined;
 	}
@@ -758,7 +761,6 @@ getPreviousValue(arr, startIndex)
 			return arr[startIndex - 1];
 		else
 			return undefined;
-		
 	}
 	else
 	{
@@ -766,14 +768,18 @@ getPreviousValue(arr, startIndex)
 			startIndex = arr["length"];
 			
 		if(startIndex < 1)
-			return undefined;	
-			
-		if(isDefined(arr["values"][arr["keys"][startIndex - 1]]))
-			return arr["values"][arr["keys"][startIndex - 1]];
+			return undefined;
+		
+		key = arr["keys"][startIndex - 1]; //resolve key first; indexing values with undefined is a runtime error
+		if(!isDefined(key))
+			return undefined;
+		if(isDefined(arr["values"][key]))
+			return arr["values"][key];
 		else
 			return undefined;
 	}
 }
+
 /* *************************************************************************************************
 **** randomizeArray(array arr)
 ****
