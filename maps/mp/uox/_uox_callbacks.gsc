@@ -656,6 +656,11 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 
 	body = self cloneplayer();
 
+    //reset held weapons
+    self.pers["weapon1"] = undefined;
+	self.pers["weapon2"] = undefined;
+	self.pers["spawnweapon"] = undefined;
+
 	// Stop thread if map ended on this death
 	if(level.mapended || level.roundended)
 	{

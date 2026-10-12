@@ -1121,7 +1121,8 @@ endRound(roundwinner, numRoundWins)
 	game["timepassed"] = game["timepassed"] + ((getTime() - level.starttime) / 1000) / 60.0;
 
 	// for all living players store their weapons
-	if(game["matchstarted"]){ //only do if game started
+	if(game["matchstarted"])
+    { //only do if game started
 		players = getentarray("player", "classname"); //get players
 		for(i = 0; i < players.size; i++) //loop players
 		{	//for current player
