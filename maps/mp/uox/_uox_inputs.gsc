@@ -29,8 +29,8 @@ initInputSequences()
 	//init default input sequences (hold use, hold melee, doubletap use, double tap melee
 	self.holdUse = maps\mp\uox\_uox_arrays::superArray();
 	//TO DO: add cvar for setting default action
-
 	self.holdMelee = maps\mp\uox\_uox_arrays::superArray();
+    self.holdFire = maps\mp\uox\_uox_arrays::superArray();
 	//TO DO: add cvar for setting default action
 
     self.inputCombos = maps\mp\uox\_uox_arrays::superArray();
