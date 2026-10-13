@@ -51,6 +51,7 @@ checkPlayerKilled(victim, attacker)
 					game["alliedkills"]--; //subtract a kill from running total
 				else if(attacker.pers["team"] == "axis")
 					game["axiskills"]--;  //subtract a kill from running total
+                attacker.pers["kills"]--;
 			}
 		}
 		else //normal non-team kill
@@ -59,6 +60,7 @@ checkPlayerKilled(victim, attacker)
 				game["alliedkills"]++; //add kill to running total
 			else if(attacker.pers["team"] == "axis")
 				game["axiskills"]++; //add kill to running total
+            attacker.pers["kills"]++;
 		}
 	}
 	else //if free for all game

@@ -120,7 +120,7 @@ watchUse()
 			continue;
 		}
 
-		if((isAlive(self)) && (self useButtonPressed()) && !(self meleeButtonPressed())) // made it past the delay time
+		if((isAlive(self)) && (self useButtonPressed()) && !(self meleeButtonPressed()) ) // made it past the delay time
 		{	
 			if(drawProgressBar)
 				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
@@ -351,7 +351,7 @@ watchMelee()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed()) && (meleetime < waittime)) //wait until wait time passed
+			while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed())  && (meleetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 meleetime = (meleetime + level.frametime);
@@ -453,6 +453,214 @@ removeHoldMelee(msg)
 }
 
 /* *************************************************************************************************
+**** monitorFireKey()
+****
+**** sends a notify when the fire key is pressed
+****  
+************************************************************************************************* */
+monitorFireKey()
+{
+	//don't monitor in any of these cases
+	if(!isPlayer(self)|| !isAlive(self) || !(self isOnGround()) || self.pers["team"] == "spectator"
+		|| level.mapended || level.roundended)
+		return;
+	if(!isDefined(self.isFiring))
+		self.isFiring = false;
+	
+	if(self.isFiring)
+		return;
+	
+	if(self attackButtonPressed())
+	{
+		self.isUsing = true;
+		self notify("Pressed Fire");
+	}
+	else
+		self.isFiring = false;
+}
+
+isPressingFire()
+{
+	if(self attackButtonPressed())
+		return true;
+	return false;
+}
+
+watchFire()
+{
+	self endon("disconnect");
+	
+	//array shape n["callback"] - what happens when finished
+	// n["delaytime"] how long before hold starts counting
+	// n["waittime"] how long it takes
+	// n["progressbar"] whether to draw progress bar
+	fire = maps\mp\uox\_uox_arrays::getNextValue(self.holdUse); //load top of stack
+	firetime = 0; //the number of frames held down
+	
+	if(!isDefined(fire)
+	{
+		skipHold = true; //no current hold fire, nothing to do
+		delaytime = 0;
+	}
+	else
+	{
+		skipHold = false;
+		msg = maps\mp\uox\_uox_arrays::getNextKey(self.holdFire); //get the notify msg
+		delaytime = fire["delaytime"]; //get how long it must be held to register as a fire
+		waittime = fire["waittime"]; //how long to wait before doing the action
+		conditionCallback = fire["condition"]; //the functionPointer that returns true or false for the hold fire, must be fired with trigger
+		holdCallback = fire["callback"]; //the functionPointer of the success path
+		failCallback = fire["failure"]; //the functionPointer of the fail path
+		drawProgressBar = fire["progressbar"]; //should a progress bar be drawn
+		lockInPlace = fire["lock"]; //should the player be locked in place while doing it
+		disableWeapon = fire["disableweapon"]; //can the player shoot/reload while doing it
+		trigger = fire["trigger"]; //the entity associated with the hold fire
+		audioCue = fire["audiocue"]; //sound to play while doing hold fire
+	}
+	
+	if(!isDefined(conditionCallback))
+		conditionCallback = ::isPressingFire; //defined that fire key must be pressed by default
+	
+	//self.currenttime = 0; //frames held down
+	while(!skipHold && self attackButtonPressed()  //while the fire button is pressed and the condition callback is true
+		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
+	{
+		while(isAlive(self) && self attackButtonPressed() && (firetime < delaytime)) //button must be held down for the delay time first
+		{
+			wait level.frametime;
+			firetime = (firetime + level.frametime);
+		}
+		
+		if(!(self isOnGround())) //if player is no longer on ground, restart sequence
+		{
+			continue;
+		}
+
+		if((isAlive(self)) && (self attackButtonPressed()) ) // made it past the delay time
+		{	
+			if(drawProgressBar)
+				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
+
+			self notify("kill_check_" + msg); //send a kill notify to end any endon threads
+			
+			if(isDefined(trigger)) //if trigger exists
+				trigger.doing = true; //mark it as being done
+			
+			if(lockInPlace) //spawn a struct and link player to it if lockinplace is true
+			{
+				spawned = spawn("script_origin", self.origin);
+				if(isdefined(spawned))
+					self linkto(spawned);
+			}
+			
+			if(disableWeapon) //if disable weapon is set then disable weapon
+				self disableWeapon();
+			
+			if(isDefined(audioCue)) //play the audio cue
+				self playsound(audioCue);
+			
+			while(isAlive(self) && self attackButtonPressed() && (firetime < waittime)) //wait until wait time passed
+			{
+				wait level.frametime;
+                firetime = (firetime + level.frametime);
+			}
+
+			//delete hud elems
+			self maps\mp\uox\_uox_hud::deleteClientHUDProgressBar();
+
+			//did it!
+			if(firetime >= waittime)
+			{
+                if(isDefined(trigger)) //and that the trigger isn't being done anymore
+                {
+                    trigger.doing = undefined;
+                    self thread [[holdCallback]](trigger); //do success path
+                }
+				else
+                    self thread [[holdCallback]](); //do success path
+				self unlink(); //let the player move
+				self enableWeapon(); //and shoot
+				self.isFiring = false; //mark that the player isn't holding fire
+                if(lockInPlace) //destroy struct that held player in place
+                {
+                    if(isdefined(spawned))
+                        spawned destroy();
+                }
+				return; //finish hold fire
+			}
+			else // didnt hold long enough
+			{
+				self.isFiring = false; //mark that player isn't holding fire
+				self unlink(); //let player move
+				self enableWeapon(); //let player shoot
+				if(isDefined(trigger)) //trigger isn't being done anymore
+                {
+                    trigger.doing = undefined;
+                    if(isDefined(failCallback)) //do fail path
+                        self thread [[failCallback]](trigger);
+                }
+                else
+                {
+                    if(isDefined(failCallback)) //do fail path
+                        self thread [[failCallback]]();
+                }
+			}
+		}
+	}
+	//got here, record the input instead TODO input recording
+	recordtime = level.inputFrameWindow; //5 frames default held time to register a tap
+      
+	//before recording input, makesure it still isn't held down
+	while(self attackButtonPressed())
+    {
+        wait level.frametime;
+        firetime = (firetime + level.frametime);
+    }
+    if(firetime <= recordtime) 
+    {
+        self.inputStream[self.inputStream.size] = "fire";
+    }
+	//mark as no using
+	self.isFiring = false;
+}
+
+addHoldFire(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
+{
+		
+	if(!isDefined(drawProgressBar))
+		drawProgressBar = false;
+	if(!isDefined(lockInPlace))
+		lockInPlace = false;
+	if(!isDefined(disableWeapon))
+		disableWeapon = false;
+	
+	hold = [];
+	hold["msg"] = msg;
+	hold["delaytime"] = delayTime;
+	hold["waittime"] = waitTime;
+	hold["condition"] = conditionCallback;
+	hold["callback"] = successCallback;
+	hold["failure"] = failCallback;
+	hold["progressbar"] = drawProgressBar;
+	hold["lock"] = lockInPlace;
+	hold["disableweapon"] = disableWeapon;
+	hold["trigger"] = trigger;
+	hold["audiocue"] = audioCue;
+	
+	if(dir) //false pushes hold fire to top of stack, true to the bottom
+		self.holdFire = maps\mp\uox\_uox_arrays::arrayPush(self.holdFire, hold, msg);
+	else
+		self.holdFire = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdFire, hold, msg);
+	maps\mp\uox\_uox_debug::debugLog("info", "HoldFire register: msg=" + msg + " new size=" + self.holdFire["length"], "self.holdFire", self.holdFire);
+}
+
+removeHoldFire(msg)
+{
+	self.holdFire = maps\mp\uox\_uox_arrays::arraySlice(self.holdFire, msg);
+	maps\mp\uox\_uox_debug::debugLog("info", "HoldFire deregister: msg=" + msg + " new size=" + self.holdFire["length"], "self.holdFire", self.holdFire);
+}
+
+/* *************************************************************************************************
 **** monitorInputs()
 ****
 **** monitors Input stream
@@ -515,6 +723,7 @@ addInputCombination(combo, callback, callbackName)
         {
             case "use":
             case "melee":
+            case "fire":
             case "meleeuse":
                 break;
             default:
