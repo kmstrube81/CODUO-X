@@ -497,7 +497,7 @@ watchFire()
 	fire = maps\mp\uox\_uox_arrays::getNextValue(self.holdUse); //load top of stack
 	firetime = 0; //the number of frames held down
 	
-	if(!isDefined(fire)
+	if(!isDefined(fire))
 	{
 		skipHold = true; //no current hold fire, nothing to do
 		delaytime = 0;
