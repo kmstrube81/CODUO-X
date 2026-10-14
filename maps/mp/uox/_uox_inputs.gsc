@@ -293,7 +293,7 @@ watchMelee()
 		conditionCallback = ::isPressingMelee; //defined that use key must be pressed by default
 	
 	//self.currenttime = 0; //frames held down
-	while(!skipHold && self useButtonPressed() && !(self useButtonPressed()) //while the use button is pressed and the condition callback is true
+	while(!skipHold && self meleeButtonPressed() && !(self useButtonPressed()) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
 		
