@@ -163,6 +163,8 @@ finalKillcamListener()
 	// wait till the next server frame to allow code a chance to update archivetime if it needs trimming
 	wait level.frametime;
 	
+	level notify("start_finalkillcam");
+	
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++)
 	{	
