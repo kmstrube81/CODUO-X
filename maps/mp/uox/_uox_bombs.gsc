@@ -138,7 +138,7 @@ canPlant(trigger)
 
 planting(trigger)
 {
-	if(self istouching(trigger) && isAlive(self) && self useButtonPressed() 
+	if(self istouching(trigger) && isAlive(self) 
 		&& (self maps\mp\_util_mp_gmi::canPlantGMI()))
 		return true;
 	return false;
@@ -408,7 +408,7 @@ canDefuse(trigger)
 
 defusing(trigger)
 {
-	if(self islookingat(trigger) && distance(self.origin, trigger.origin) < 64 && isAlive(self) && self useButtonPressed())
+	if(self islookingat(trigger) && distance(self.origin, trigger.origin) < 64 && isAlive(self))
 		return true;
 	return false;
 }

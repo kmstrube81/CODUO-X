@@ -259,7 +259,7 @@ retrieval_think(other) //each objective model runs this to find it's trigger and
 
 dropping(trigger)
 {
-	if(self useButtonPressed() && (isAlive(self)))
+	if(isAlive(self))
 		return true;
 	return false;
 }

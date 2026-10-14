@@ -109,18 +109,13 @@ watchUse()
 	while(!skipHold && self useButtonPressed() && !(self meleeButtonPressed()) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
-		while(isAlive(self) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < delaytime)) //button must be held down for the delay time first
+		while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
 			usetime = (usetime + level.frametime);
 		}
-		
-		if(!(self isOnGround())) //if player is no longer on ground, restart sequence
-		{
-			continue;
-		}
 
-		if((isAlive(self)) && (self useButtonPressed()) && !(self meleeButtonPressed()) ) // made it past the delay time
+		if((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && (self useButtonPressed()) && !(self meleeButtonPressed()) ) // made it past the delay time
 		{	
 			if(drawProgressBar)
 				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
@@ -143,7 +138,7 @@ watchUse()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < waittime)) //wait until wait time passed
+			while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 usetime = (usetime + level.frametime);
@@ -202,6 +197,7 @@ watchUse()
     }
     if(usetime <= recordtime) 
     {
+    	
         self.inputStream[self.inputStream.size] = "use";
     }
 	//mark as no using
@@ -317,18 +313,13 @@ watchMelee()
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
 		
-		while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed()) && (meleetime < delaytime)) //button must be held down for the delay time first
+		while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self meleeButtonPressed() && !(self useButtonPressed()) && (meleetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
 			meleetime = (meleetime + level.frametime);
 		}
-		
-		if(!(self isOnGround())) //if player is no longer on ground, restart sequence
-		{
-			continue;
-		}
 
-		if((isAlive(self)) && (self meleeButtonPressed()) && !(self useButtonPressed())) // made it past the delay time
+		if((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && (self meleeButtonPressed()) && !(self useButtonPressed())) // made it past the delay time
 		{	
 			if(drawProgressBar)
 				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
@@ -351,7 +342,7 @@ watchMelee()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed())  && (meleetime < waittime)) //wait until wait time passed
+			while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self meleeButtonPressed() && !(self useButtonPressed())  && (meleetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 meleetime = (meleetime + level.frametime);
@@ -525,18 +516,13 @@ watchFire()
 	while(!skipHold && self attackButtonPressed()  //while the fire button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
-		while(isAlive(self) && self attackButtonPressed() && (firetime < delaytime)) //button must be held down for the delay time first
+		while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self attackButtonPressed() && (firetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
 			firetime = (firetime + level.frametime);
 		}
-		
-		if(!(self isOnGround())) //if player is no longer on ground, restart sequence
-		{
-			continue;
-		}
 
-		if((isAlive(self)) && (self attackButtonPressed()) ) // made it past the delay time
+		if((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && (self attackButtonPressed()) ) // made it past the delay time
 		{	
 			if(drawProgressBar)
 				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
@@ -559,7 +545,7 @@ watchFire()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self attackButtonPressed() && (firetime < waittime)) //wait until wait time passed
+			while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self attackButtonPressed() && (firetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 firetime = (firetime + level.frametime);
