@@ -147,17 +147,13 @@ Default_StartGameType()
 
 
     level.exist["teams"] = false;
-    if(level.uox_teamplay) {
-        level.exist["allies"] = 0;
-        level.exist["axis"] = 0;
-        level.didexist["allies"] = false;
-        level.didexist["axis"] = false;
-    }
-    else 
-    {
-        level.exist["2players"] = -1;
-        level.didexist["2players"] = false;
-    }
+    level.exist["allies"] = 0;
+    level.exist["axis"] = 0;
+    level.didexist["allies"] = false;
+    level.didexist["axis"] = false;
+
+    level.exist["2players"] = -1;
+    level.didexist["2players"] = false;
 	
 	level.roundstarted = false;
 	level.roundended = false;
