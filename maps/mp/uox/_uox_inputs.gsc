@@ -459,7 +459,7 @@ watchFire()
 	// n["delaytime"] how long before hold starts counting
 	// n["waittime"] how long it takes
 	// n["progressbar"] whether to draw progress bar
-	fire = maps\mp\uox\_uox_arrays::getNextValue(self.holdUse); //load top of stack
+	fire = maps\mp\uox\_uox_arrays::getNextValue(self.holdFire); //load top of stack
 	firetime = 0; //the number of frames held down
 	
 	if(!isDefined(fire))
