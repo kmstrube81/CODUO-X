@@ -46,6 +46,7 @@ killcam(doKillcam, attackerNum, attackerGUID, attackerTeam, attackerName, delay)
 
 doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 {
+	
 	if(!isDefined(extradelay))
 		extradelay = 0;
 	options = [];
@@ -92,6 +93,8 @@ doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 	options["fontscale"] = 3.5;
 	maps\mp\uox\_uox_hud::updateClientHUDElement("kc_timer", "tenthsTimer", kcTimer, options);
 	
+	self.doingKillcam = true;
+
 	self thread spawnedKillcamCleanup();
     if ( doSkipText )
         self thread waitSkipKillcamButton();
@@ -102,7 +105,7 @@ doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 
 	self.spectatorclient = -1;
 	self.archivetime = 0;
-
+	self.doingKillcam = undefined;
 }
 
 waitKillcamTime(extradelay)
