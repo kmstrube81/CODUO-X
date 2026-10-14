@@ -150,14 +150,16 @@ finalKillcamListener()
 {
 	level waittill("postround");
 	level.didFinalKillcam = true;
+
+
+	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
 	
-	if(!isDefined(level.finalKillcamTime) || !game["matchstarted"])
+	if(!isDefined(level.finalKillcamTime) || ( ((getTime() - level.finalKillcamTime) / 1000) > 20 ) || !game["matchstarted"])
 	{
+		level.finalKillcamSpectatorClient = undefined;
 		level notify("end_finalkillcam");
 		return; //if no defined killcam data just abort
 	}
-	
-	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
 	
 	logPrint("A;" + level.finalKillcamAttackerGUID + ";" + level.finalKillcamSpectatorClient + ";" +
 		level.finalKillcamAttackerTeam + ";" + level.finalKillcamAttacker + ";" +
