@@ -13,8 +13,11 @@ initPlayerInputs()
 	self initInputSequences();
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorUseKey, "monitorUseKey");
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorMeleeKey, "monitorMeleeKey");
+	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorFireKey, "monitorFireKey");
     self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorInputs, "monitorInputs");
 	self maps\mp\uox\_uox_loops::addToWaitTills(self, "Pressed Use", ::watchUse);
+	self maps\mp\uox\_uox_loops::addToWaitTills(self, "Pressed Melee", ::watchMelee);
+	self maps\mp\uox\_uox_loops::addToWaitTills(self, "Pressed Fire", ::watchFire);
 }
 
 /* *************************************************************************************************
@@ -44,23 +47,13 @@ initInputSequences()
 ************************************************************************************************* */
 monitorUseKey()
 {
-	//don't monitor in any of these cases
-	if(!isPlayer(self)|| !isAlive(self) || !(self isOnGround()) || self.pers["team"] == "spectator"
-		|| level.mapended || level.roundended)
-		return;
-	if(!isDefined(self.isUsing))
-		self.isUsing = false;
-	
-	if(self.isUsing)
-		return;
-	
-	if(self useButtonPressed())
-	{
-		self.isUsing = true;
-		self notify("Pressed Use");
-	}
-	else
-		self.isUsing = false;
+    if(!isPlayer(self) || level.roundended || level.mapended)
+        return;
+    pressed = self useButtonPressed();
+    if(pressed && !isDefined(self.wasUsing))
+        self notify("Pressed Use");
+    if(pressed) self.wasUsing = true;
+    else self.wasUsing = undefined;
 }
 
 isPressingUse()
@@ -159,7 +152,7 @@ watchUse()
                     self thread [[holdCallback]](); //do success path
 				self unlink(); //let the player move
 				self enableWeapon(); //and shoot
-				self.isUsing = false; //mark that the player isn't holding use
+				self.wasUsing = false; //mark that the player isn't holding use
                 if(lockInPlace) //destroy struct that held player in place
                 {
                     if(isdefined(spawned))
@@ -169,7 +162,7 @@ watchUse()
 			}
 			else // didnt hold long enough
 			{
-				self.isUsing = false; //mark that player isn't holding use
+				self.wasUsing = false; //mark that player isn't holding use
 				self unlink(); //let player move
 				self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
@@ -201,7 +194,7 @@ watchUse()
         self.inputStream[self.inputStream.size] = "use";
     }
 	//mark as no using
-	self.isUsing = false;
+	self.wasUsing = false;
 }
 
 addHoldUse(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
@@ -248,22 +241,13 @@ removeHoldUse(msg)
 ************************************************************************************************* */
 monitorMeleeKey()
 {
-	//don't monitor in any of these cases
-	if(!isPlayer(self)|| !isAlive(self) || !(self isOnGround()) || self.pers["team"] == "spectator"
-		|| level.mapended || level.roundended)
-	return;
-	
-	if(!isDefined(self.isMelee))
-		self.isMelee = false;
-	
-	if(self.isMelee)
-		return;
-	
-	if(self meleeButtonPressed())
-	{
-		self.isMelee = true;
-		self notify("Pressed Melee");
-	}
+    if(!isPlayer(self) || level.roundended || level.mapended)
+        return;
+    pressed = self meleeButtonPressed();
+    if(pressed && !isDefined(self.wasMelee))
+        self notify("Pressed Melee");
+    if(pressed) self.wasMelee = true;
+    else self.wasMelee = undefined;
 }
 
 isPressingMelee(trigger)
@@ -363,7 +347,7 @@ watchMelee()
                     self thread [[holdCallback]](); //do success path
 				self unlink(); //let the player move
 				self enableWeapon(); //and shoot
-				self.isMelee = false; //mark that the player isn't holding use
+				self.wasMelee = false; //mark that the player isn't holding use
                 if(lockInPlace) //destroy struct that held player in place
                 {
                     if(isdefined(spawned))
@@ -373,7 +357,7 @@ watchMelee()
 			}
 			else // didnt hold long enough
 			{
-				self.isMelee = false; //mark that player isn't holding use
+				self.wasMelee = false; //mark that player isn't holding use
 				self unlink(); //let player move
 				self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
@@ -404,7 +388,7 @@ watchMelee()
         self.inputStream[self.inputStream.size] = "melee";
     }
 	//mark as no using
-	self.isMelee = false;
+	self.wasMelee = false;
 }
 
 addHoldMelee(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
@@ -451,23 +435,13 @@ removeHoldMelee(msg)
 ************************************************************************************************* */
 monitorFireKey()
 {
-	//don't monitor in any of these cases
-	if(!isPlayer(self)|| !isAlive(self) || !(self isOnGround()) || self.pers["team"] == "spectator"
-		|| level.mapended || level.roundended)
-		return;
-	if(!isDefined(self.isFiring))
-		self.isFiring = false;
-	
-	if(self.isFiring)
-		return;
-	
-	if(self attackButtonPressed())
-	{
-		self.isUsing = true;
-		self notify("Pressed Fire");
-	}
-	else
-		self.isFiring = false;
+    if(!isPlayer(self) || level.roundended || level.mapended)
+        return;
+    pressed = self attackButtonPressed();
+    if(pressed && !isDefined(self.wasFiring))
+        self notify("Pressed Fire");
+    if(pressed) self.wasFiring = true;
+    else self.wasFiring = undefined;
 }
 
 isPressingFire()
@@ -566,7 +540,7 @@ watchFire()
                     self thread [[holdCallback]](); //do success path
 				self unlink(); //let the player move
 				self enableWeapon(); //and shoot
-				self.isFiring = false; //mark that the player isn't holding fire
+				self.wasFiring = false; //mark that the player isn't holding fire
                 if(lockInPlace) //destroy struct that held player in place
                 {
                     if(isdefined(spawned))
@@ -576,7 +550,7 @@ watchFire()
 			}
 			else // didnt hold long enough
 			{
-				self.isFiring = false; //mark that player isn't holding fire
+				self.wasFiring = false; //mark that player isn't holding fire
 				self unlink(); //let player move
 				self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
@@ -607,7 +581,7 @@ watchFire()
         self.inputStream[self.inputStream.size] = "fire";
     }
 	//mark as no using
-	self.isFiring = false;
+	self.wasFiring = false;
 }
 
 addHoldFire(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)

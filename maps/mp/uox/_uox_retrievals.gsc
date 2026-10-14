@@ -638,7 +638,7 @@ clear_player_dropbar(player)
 	{
 		player maps\mp\uox\_uox_hud::deleteClientHUDProgressBar();
 		player unlink();
-		player.isusing = false;
+		player.isUsing = false;
 	}
 }
 
