@@ -151,8 +151,8 @@ finalKillcamListener()
 	level waittill("postround");
 	level.didFinalKillcam = true;
 
-
-	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
+	if(isDefined(finalKillcamTime))
+		level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
 	
 	if(!isDefined(level.finalKillcamTime) || ( isDefined(level.finalKillcamTime) && (level.finalKillcamTime > 20) ) || !game["matchstarted"])
 	{
