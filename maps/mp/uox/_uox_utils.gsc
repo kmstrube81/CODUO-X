@@ -6,7 +6,7 @@
 **** returns substring array
 ****  
 ************************************************************************************************* */
-stringSplit(str, sep, skipEmpty, quote)
+stringSplit(str, sep, skipEmpty, quote, trimWhiteSpace)
 {
     if ( !isdefined( str ) || ( str == "" ) )
 		return ( [] );
@@ -17,9 +17,16 @@ stringSplit(str, sep, skipEmpty, quote)
 	if ( !isdefined( quote ) )
 		quote = "";
 
+    if ( !isdefined( trimWhiteSpace ) )
+        trimWhiteSpace = true;
+
 	skipEmpty = isdefined( skipEmpty );
 
 	a = _splitRecur( 0, str, sep, quote, skipEmpty );
+
+
+    if(trimWhiteSpace)
+        a = trimArray(a);
 
 	return ( a );
 }
@@ -284,4 +291,68 @@ _splitRecur( iter, str, sep, quote, skipEmpty )
 	}
 
 	return ( _a );
+}
+
+/* *************************************************************************************************
+**** trim(string str, string chars [optional])
+****
+**** USAGE: removes leading and trailing characters found in chars from str
+****        chars defaults to " " (space). Pass e.g. " ," to also strip commas.
+****
+**** returns trimmed string ("" if str is undefined or entirely trimmed)
+****  
+************************************************************************************************* */
+trim( str, chars )
+{
+	if ( !isdefined( str ) || ( str == "" ) )
+		return ( "" );
+
+	if ( !isdefined( chars ) || ( chars == "" ) )
+		chars = " ";
+
+	// find first character not in chars
+	start = 0;
+	while ( ( start < str.size ) && _isTrimChar( str[ start ], chars ) )
+		start++;
+
+	// find last character not in chars
+	end = str.size - 1;
+	while ( ( end >= start ) && _isTrimChar( str[ end ], chars ) )
+		end--;
+
+	// rebuild the kept range
+	_s = "";
+	for ( i = start; i <= end; i++ )
+		_s += str[ i ];
+
+	return ( _s );
+}
+
+/* *************************************************************************************************
+**** trimArray(array arr, string chars [optional])
+****
+**** USAGE: trims every string element of arr (e.g. the result of stringSplit)
+****
+**** returns new array of trimmed strings
+****  
+************************************************************************************************* */
+trimArray( arr, chars )
+{
+	_a = [];
+	if ( !isdefined( arr ) )
+		return ( _a );
+
+	for ( i = 0; i < arr.size; i++ )
+		_a[ i ] = trim( arr[ i ], chars );
+
+	return ( _a );
+}
+
+_isTrimChar( ch, chars )
+{
+	for ( j = 0; j < chars.size; j++ )
+		if ( ch == chars[ j ] )
+			return ( true );
+
+	return ( false );
 }
