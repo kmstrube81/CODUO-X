@@ -154,7 +154,7 @@ finalKillcamListener()
 
 	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
 	
-	if(!isDefined(level.finalKillcamTime) || ( ((getTime() - level.finalKillcamTime) / 1000) > 20 ) || !game["matchstarted"])
+	if(!isDefined(level.finalKillcamTime) || (( isDefined(level.finalKillcamTime) && ((getTime()/1000) - level.finalKillcamTime) > 20) ) || !game["matchstarted"])
 	{
 		level.finalKillcamSpectatorClient = undefined;
 		level notify("end_finalkillcam");
@@ -179,8 +179,8 @@ finalKillcamListener()
 	
 		if(player.sessionstate != "dead")
 		{
-			currentorigin = self.origin;
-			currentangles = self.angles;
+			currentorigin = player.origin;
+			currentangles = player.angles;
 			level.specmode = "death";
 			
 			if(!isDefined(currentorigin) || !isDefined(currentangles))
@@ -192,7 +192,9 @@ finalKillcamListener()
 		
 		player thread doFinalKillcam();	
 	}
-	wait level.finalKillcamDelay + 9;
+	archivetime = level.finalKillcamDelay + level.finalKillcamTime + 7;
+	delay =  level.finalKillcamDelay + level.finalKillcamTime;
+	wait archivetime - delay + 2;
 	level notify("end_finalkillcam");
 }
 
