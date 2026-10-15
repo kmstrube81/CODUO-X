@@ -154,7 +154,7 @@ finalKillcamListener()
 
 	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
 	
-	if(!isDefined(level.finalKillcamTime) || (( isDefined(level.finalKillcamTime) && ((getTime()/1000) - level.finalKillcamTime) > 20) ) || !game["matchstarted"])
+	if(!isDefined(level.finalKillcamTime) || ( isDefined(level.finalKillcamTime) && (level.finalKillcamTime > 20) ) || !game["matchstarted"])
 	{
 		level.finalKillcamSpectatorClient = undefined;
 		level notify("end_finalkillcam");
