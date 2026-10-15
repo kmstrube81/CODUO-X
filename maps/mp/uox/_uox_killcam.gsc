@@ -151,7 +151,7 @@ finalKillcamListener()
 	level waittill("postround");
 	level.didFinalKillcam = true;
 
-	if(!isDefined(finalKillcamTime) || !game["matchstarted"])
+	if(!isDefined(level.finalKillcamTime) || !game["matchstarted"])
 	{
 		level.finalKillcamSpectatorClient = undefined;
 		level notify("end_finalkillcam");
