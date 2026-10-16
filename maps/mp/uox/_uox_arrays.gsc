@@ -365,6 +365,71 @@ arrayFind(arr, searchVal, oneOrAll)
 }
 
 /* *************************************************************************************************
+**** arrayOffset(array arr, int offset)
+****
+**** USAGE: rotates the order of the array by offset indexes, wrapping values around the ends.
+**** positive offset shifts right (offset of 1: last element becomes first), negative offset shifts
+**** left (offset of -1: first element becomes last), 0 returns the array unchanged. offsets larger
+**** than the array length are reduced so no redundant full rotations are done.
+**** SUPER ARRAY USAGE: rotates the key order by offset; each value stays paired with its key, so
+**** values move with their keys and iteration order (keys[0..length-1]) reflects the rotation
+****
+**** returns rotated array, undefined if arr is undefined or empty
+****  
+************************************************************************************************* */
+arrayOffset(arr, offset)
+{
+	if(!isDefined(arr))
+		return undefined;
+	
+	len = getArrayLength(arr);
+	if(!isDefined(len) || len == 0)
+		return undefined; //empty array, bail before the reduction loops can spin
+	
+	if(!isDefined(offset) || offset == 0)
+		return arr;
+	
+	//reduce offset to within (-len, len)
+	while(offset >= len)
+		offset = offset - len;
+	while(offset <= len * -1)
+		offset = offset + len;
+	
+	//a left shift of n is the same as a right shift of len - n, so only one direction is needed below
+	if(offset < 0)
+		offset = offset + len;
+	
+	if(offset == 0) //offset was an exact multiple of len
+		return arr;
+	
+	if(isSuperArray(arr))
+	{
+		tempArr = [];
+		tempArr["keys"] = [];
+		for(i = 0; i < len; i++)
+		{
+			src = i - offset;
+			if(src < 0)
+				src = src + len;
+			tempArr["keys"][i] = arr["keys"][src];
+		}
+		tempArr["values"] = arr["values"]; //values are keyed, not ordered, so they follow their keys as-is
+		tempArr["length"] = len;
+		return tempArr;
+	}
+	
+	tempArr = [];
+	for(i = 0; i < len; i++)
+	{
+		src = i - offset;
+		if(src < 0)
+			src = src + len;
+		tempArr[i] = arr[src];
+	}
+	return tempArr;
+}
+
+/* *************************************************************************************************
 **** searchObjArrayByProperty(array arr, string property, mixedtype searchVal)
 ****
 **** USAGE: searches an array of objects for a property value

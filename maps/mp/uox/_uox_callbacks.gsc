@@ -321,10 +321,30 @@ Default_PlayerConnect()
 		{
 			maps\mp\uox\_uox_respawns::spawnSpectator();
 
-			if(self.pers["team"] == "allies")
-				self openMenu(game["menu_weapon_allies"]);
-			else
-				self openMenu(game["menu_weapon_axis"]);
+			if(level.objective == "bel" && ( maps\mp\gametypes\_teams::isweaponavailable("axis")
+                || maps\mp\gametypes\_teams::isweaponavailable("allies") ))
+            {
+                menu = game["menu_weapon_all"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            if(self.pers["team"] == "allies" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"]))
+            {
+                menu = game["menu_weapon_allies"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            else if(self.pers["team"] == "axis" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"])) 
+            {
+                menu = game["menu_weapon_axis"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            else
+            {
+                self setClientCvar("ui_weapontab", "0");
+                self maps\mp\uox\_uox_respawns::menu_spawn("none");
+            }
 		}
 	}
 	else

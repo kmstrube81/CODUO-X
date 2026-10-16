@@ -1553,6 +1553,17 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	if(round > 0) //if we started playing
 	{
         headercolor = (.99, .99, .75);
+        if(game["team1"] == "allies")
+        {
+            team1 = game["allies"];
+            team2 = "german";
+        }
+        else
+        {
+            team1 = "german";
+            team2 = game["allies"];
+        }
+
         switch(game["team1"])
         {
             case "russian":

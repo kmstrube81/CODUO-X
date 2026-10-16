@@ -356,3 +356,35 @@ _isTrimChar( ch, chars )
 
 	return ( false );
 }
+
+/* *************************************************************************************************
+**** subStr(string str, int start, int len [optional])
+****
+**** USAGE: returns the rest of the given string, starting at start, for optional length
+**** (leave undefined to return rest of string)
+****
+**** returns new string
+****  
+************************************************************************************************* */
+subStr( str, start, len )
+{
+	if ( !isdefined( str ) || ( str == "" ) )
+		return ( "" );
+
+	if ( !isdefined( start ) || ( start < 0 ) )
+		start = 0;
+
+	if ( start >= str.size )
+		return ( "" );
+
+	// Optional length: if omitted, run to end of string
+	end = str.size;
+	if ( isdefined( len ) && ( start + len < end ) )
+		end = start + len;
+
+	out = "";
+	for ( i = start; i < end; i++ )
+		out += str[ i ];
+
+	return ( out );
+}
