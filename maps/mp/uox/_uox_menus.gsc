@@ -181,6 +181,10 @@ handleTeamMenu(response, optional)
                 response = getAutoAssign();
                 skipbalancecheck = true;
             }
+            else if(response == "allies" && level.lockallies)
+                break;
+            else if(response == "axis" && level.lockaxis)
+                break;    
 
             if(response == self.pers["team"] && self.sessionstate == "playing")
                 break;

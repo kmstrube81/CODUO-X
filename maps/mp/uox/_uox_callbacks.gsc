@@ -164,6 +164,8 @@ Default_StartGameType()
 	level.playersready = false;
 	level.playerLock = false;
 	level.lockteams = false;
+	level.lockallies = false;
+	level.lockaxis = false;
 	level.healthqueue = [];
 	level.healthqueuecurrent = 0;
 	if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") != 1)
