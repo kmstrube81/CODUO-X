@@ -2315,7 +2315,7 @@ GivePointsToTeam( team, points )
 ************************************************************************************************* */
 lockPlayersInPlace(time)
 {
-
+    level endon("kill_endround");
 	if(isdefined(time))
 		wait time;
 		
@@ -3459,7 +3459,7 @@ getWeaponProperty(weapon, property)
                 case "enfield_mp":
                     return "ui_mp/assets/hud@enfield.tga";
                 case "fg42_mp":
-                case "fg42_semi_mp"
+                case "fg42_semi_mp":
                     return "ui_mp/assets/hud@fg42.tga";
                 case "flamethrower_mp":
                     return "gfx/icons/flame.dds";
@@ -3534,89 +3534,89 @@ getWeaponProperty(weapon, property)
             {
                 case "bar_mp":
                 case "bar_slow_mp":
-                    2;
+                    return 2;
                 case "bazooka_mp":
-                    2;
+                    return 2;
                 case "binoculars_mp":
                 case "binoculars_artillery_mp":
-                    1;
+                    return 1;
                 case "colt_mp":
-                    1;
+                    return 1;
                 case "bren_mp":
-                    2;
+                    return 2;
                 case "dp28_mp":
-                    2;
+                    return 2;
                 case "enfield_mp":
-                    2;
+                    return 2;
                 case "fg42_mp":
-                case "fg42_semi_mp"
-                    2;
+                case "fg42_semi_mp":
+                    return 2;
                 case "flamethrower_mp":
-                    2;
+                    return 2;
                 case "fraggrenade_mp":
-                    1;
+                    return 1;
                 case "gewehr43_mp":
-                    2;
+                    return 2;
                 case "kar98k_mp":
-                    2;
+                    return 2;
                 case "kar98k_sniper_mp":
-                    2;
+                    return 2;
                 case "luger_mp":
-                    1;
+                    return 1;
                 case "m1garand_mp":
-                    2;
+                    return 2;
                 case "m1carbine_mp":
-                    2;
+                    return 2;
                 case "mg34_mp":
-                    2;
+                    return 2;
                 case "mg30cal_mp":
-                    2;
+                    return 2;
                 case "mk1britishfrag_mp":
-                    1;
+                    return 1;
                 case "mg42_mp":
                 case "mg42_bipod_duck_mp":
                 case "mg42_bipod_prone_mp":
                 case "mg42_bipod_stand_mp":
-                    2;
+                    return 2;
                 case "mosin_nagant_mp":
-                    2;
+                    return 2;
                 case "mosin_nagant_sniper_mp":
-                    2;
+                    return 2;
                 case "mp40_mp":
-                    2;
+                    return 2;
                 case "mp44_mp":
                 case "mp44_semi_mp":
-                    2;
+                    return 2;
                 case "panzerfaust_mp":
-                    2;
+                    return 2;
                 case "panzerschreck_mp":
-                    2;
+                    return 2;
                 case "ppsh_mp":
                 case "ppsh_semi_mp":
-                    2;
+                    return 2;
                 case "rgd-33russianfrag_mp":
-                    1;
+                    return 1;
                 case "satchelcharge_mp":
-                    1;
+                    return 1;
                 case "smokegrenade_mp":
-                    1;
+                    return 1;
                 case "springfield_mp":
-                    2;
+                    return 2;
                 case "sten_mp":
-                    2;
+                    return 2;
                 case "sten_silenced_mp":
-                    2;
+                    return 2;
                 case "stielhandgranate_mp":
-                    1;
+                    return 1;
                 case "svt40_mp":
-                    2;
+                    return 2;
                 case "thompson_mp":
                 case "thompson_semi_mp":
-                    2;
+                    return 2;
                 case "tt33_mp":
-                    1;
+                    return 1;
                 case "webley_mp":
-                    1";
+                    return 1;
             }
             return 0;
     }
