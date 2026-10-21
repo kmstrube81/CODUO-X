@@ -3426,3 +3426,200 @@ updateFriendlyFire(friendlyfire)
 {
 	level.friendlyfire = friendlyfire;
 }
+
+/* **************************************************************************************************
+**** getWeaponProperty(str weapon, str property)
+****
+**** returns various information about stock weapons
+****
+*************************************************************************************************** */
+getWeaponProperty(weapon, property)
+{
+    switch(property)
+    {
+        case "useAn":
+            return maps\mp\gametypes\teams::useAn(weapon);
+        case "shader":
+            switch(weapon)
+            {
+                case "bar_mp":
+                case "bar_slow_mp":
+                    return "ui_mp/assets/hud@bar.tga";
+                case "bazooka_mp":
+                    return "gfx/icons/hud@bazooka.dds";
+                case "binoculars_mp":
+                case "binoculars_artillery_mp":
+                    return "gfx/icons/hud@bino.dds";
+                case "colt_mp":
+                    return "ui_mp/assets/hud@colt45.tga";
+                case "bren_mp":
+                    return "ui_mp/assets/hud@bren.tga";
+                case "dp28_mp":
+                    return "ui_mp/assets/hud@dp28.dds";
+                case "enfield_mp":
+                    return "ui_mp/assets/hud@enfield.tga";
+                case "fg42_mp":
+                case "fg42_semi_mp"
+                    return "ui_mp/assets/hud@fg42.tga";
+                case "flamethrower_mp":
+                    return "gfx/icons/flame.dds";
+                case "fraggrenade_mp":
+                    return "ui_mp/assets/hud@us_grenade.dds";
+                case "gewehr43_mp":
+                    return "ui_mp/assets/hud@G43.dds";
+                case "kar98k_mp":
+                    return "ui_mp/assets/hud@kar98.tga";
+                case "kar98k_sniper_mp":
+                    return "ui_mp/assets/hud@kar98scoped.tga";
+                case "luger_mp":
+                    return "ui_mp/assets/hud@luger.tga";
+                case "m1garand_mp":
+                    return "ui_mp/assets/hud@m1garand.tga";
+                case "m1carbine_mp":
+                    return "ui_mp/assets/hud@m1carbine.tga";
+                case "mg34_mp":
+                    return "ui_mp/assets/hud@mg34.dds";
+                case "mg30cal_mp":
+                    return "ui_mp/assets/hud@30cal.dds";
+                case "mk1britishfrag_mp":
+                    return "ui_mp/assets/hud@british_grenade.dds";
+                case "mg42_mp":
+                case "mg42_bipod_duck_mp":
+                case "mg42_bipod_prone_mp":
+                case "mg42_bipod_stand_mp":
+                    return "gfx/hud/death_mg42.dds";
+                case "mosin_nagant_mp":
+                    return "ui_mp/assets/hud@nagant.tga";
+                case "mosin_nagant_sniper_mp":
+                    return "ui_mp/assets/hud@nagantscoped.tga";
+                case "mp40_mp":
+                    return "ui_mp/assets/hud@mp40.tga";
+                case "mp44_mp":
+                case "mp44_semi_mp":
+                    return "ui_mp/assets/hud@mp44.tga";
+                case "panzerfaust_mp":
+                    return "gfx/icons/hud@panzerfaust.dds";
+                case "panzerschreck_mp":
+                    return "gfx/icons/hud@panzerschreck.dds";
+                case "ppsh_mp":
+                case "ppsh_semi_mp":
+                    return "ui_mp/assets/hud@ppsh.tga";
+                case "rgd-33russianfrag_mp":
+                    return "ui_mp/assets/hud@russian_grenade.dds";
+                case "satchelcharge_mp":
+                    return "gfx/icons/hud@satchel.dds";
+                case "smokegrenade_mp":
+                    return "gfx/icons/hud@us_smokegrenade.dds";
+                case "springfield_mp":
+                    return "ui_mp/assets/hud@springfield.tga";
+                case "sten_mp":
+                    return "ui_mp/assets/hud@sten.tga";
+                case "sten_silenced_mp":
+                    return "gfx/icons/hud@sten_silent.dds";
+                case "stielhandgranate_mp":
+                    return "gfx/icons/hud@steilhandgrenate.dds";
+                case "svt40_mp":
+                    return "ui_mp/assets/hud@svt40.dds";
+                case "thompson_mp":
+                case "thompson_semi_mp":
+                    return "ui_mp/assets/hud@thompson.tga";
+                case "tt33_mp":
+                    return "gfx/icons/hud@tt33.dds";
+                case "webley_mp":
+                    return "gfx/icons/hud@webly.dds";
+            }
+            return "";
+        case "shaderAspectRatio":
+            switch(weapon)
+            {
+                case "bar_mp":
+                case "bar_slow_mp":
+                    2;
+                case "bazooka_mp":
+                    2;
+                case "binoculars_mp":
+                case "binoculars_artillery_mp":
+                    1;
+                case "colt_mp":
+                    1;
+                case "bren_mp":
+                    2;
+                case "dp28_mp":
+                    2;
+                case "enfield_mp":
+                    2;
+                case "fg42_mp":
+                case "fg42_semi_mp"
+                    2;
+                case "flamethrower_mp":
+                    2;
+                case "fraggrenade_mp":
+                    1;
+                case "gewehr43_mp":
+                    2;
+                case "kar98k_mp":
+                    2;
+                case "kar98k_sniper_mp":
+                    2;
+                case "luger_mp":
+                    1;
+                case "m1garand_mp":
+                    2;
+                case "m1carbine_mp":
+                    2;
+                case "mg34_mp":
+                    2;
+                case "mg30cal_mp":
+                    2;
+                case "mk1britishfrag_mp":
+                    1;
+                case "mg42_mp":
+                case "mg42_bipod_duck_mp":
+                case "mg42_bipod_prone_mp":
+                case "mg42_bipod_stand_mp":
+                    2;
+                case "mosin_nagant_mp":
+                    2;
+                case "mosin_nagant_sniper_mp":
+                    2;
+                case "mp40_mp":
+                    2;
+                case "mp44_mp":
+                case "mp44_semi_mp":
+                    2;
+                case "panzerfaust_mp":
+                    2;
+                case "panzerschreck_mp":
+                    2;
+                case "ppsh_mp":
+                case "ppsh_semi_mp":
+                    2;
+                case "rgd-33russianfrag_mp":
+                    1;
+                case "satchelcharge_mp":
+                    1;
+                case "smokegrenade_mp":
+                    1;
+                case "springfield_mp":
+                    2;
+                case "sten_mp":
+                    2;
+                case "sten_silenced_mp":
+                    2;
+                case "stielhandgranate_mp":
+                    1;
+                case "svt40_mp":
+                    2;
+                case "thompson_mp":
+                case "thompson_semi_mp":
+                    2;
+                case "tt33_mp":
+                    1;
+                case "webley_mp":
+                    1";
+            }
+            return 0;
+    }
+    return "";
+}
+
