@@ -3438,7 +3438,7 @@ getWeaponProperty(weapon, property)
     switch(property)
     {
         case "useAn":
-            return maps\mp\gametypes\teams::useAn(weapon);
+            return maps\mp\gametypes\_teams::useAn(weapon);
         case "shader":
             switch(weapon)
             {
