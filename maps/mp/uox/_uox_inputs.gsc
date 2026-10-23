@@ -663,7 +663,7 @@ doInputCombination(combo)
     
     maps\mp\uox\_uox_debug::debugLog("info", self.name + " did input combo: " + combo_str);
 
-    callback = maps\mp\uox\_uox_arrays::getValue(self.inputCombos, "combo_str");
+    callback = maps\mp\uox\_uox_arrays::getValue(self.inputCombos, combo_str);
 
     if(isDefined(callback))
         thread [[callback]]();
