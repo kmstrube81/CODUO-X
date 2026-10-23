@@ -463,6 +463,7 @@ isDigit(char)
 	{
 		return true;
 	}
+    return false;
 }
 
 // /////
