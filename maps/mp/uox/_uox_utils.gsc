@@ -526,7 +526,7 @@ shortName(name, otherNames)
                 best = k;
         }
         b = best;
-        while(b > 0 && isAlphaNumclean[b - 1]))
+        while(b > 0 && isAlphaNum(clean[b - 1]))
             b--;
         if(b >= 2 && b < clean.size)
             result = subStr(clean, b);
