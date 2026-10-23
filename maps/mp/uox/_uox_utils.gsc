@@ -388,3 +388,154 @@ subStr( str, start, len )
 
 	return ( out );
 }
+
+
+// Remove ^1 colors from string
+// may be like: "ahoj^1kokos^^25pica^^^123neco_^^^^1234_^nic^^kok^^1os^^1p2a"
+// clean:      	"ahoj^1kokos^5pica^3neco_^4_^nic^^kok^os^p2a"
+removeColorsFromString(strValue, keepSingleColors)
+{
+	clean = "";
+
+	if (!isDefined(strValue))
+		return clean;
+
+	maxLevel = -1;
+	if (isDefined(keepSingleColors))
+		maxLevel = 0;
+
+	deepLevel = 0;
+	charLast = "";
+	for (j = 0; j < strValue.size; j++)
+	{
+		char = strValue[j];
+
+		if (char == "^")
+		{
+			deepLevel++;
+		}
+		else if (isDigit(char))
+		{
+			if (deepLevel > 0)
+			{
+				deepLevel--;
+				if (deepLevel == maxLevel)
+					clean += "^" + char;
+			}
+			else
+				clean += char;
+		}
+		else
+		{
+			for (; deepLevel > 0; deepLevel--)
+				clean += "^";
+			clean += char;
+		}
+	}
+
+	return clean;
+}
+
+// /////
+// Returns true if character is alphanumeric or false otherwise
+// /////
+isAlphaNum(char)
+{
+    chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    if(findStr(char, chars, "anywhere"))
+        return true;
+    else
+        return false;
+}
+
+isDigit(char)
+{
+	if (char == "0" ||
+	    char == "1" ||
+	    char == "2" ||
+	    char == "3" ||
+	    char == "4" ||
+	    char == "5" ||
+	    char == "6" ||
+	    char == "7" ||
+	    char == "8" ||
+	    char == "9")
+	{
+		return true;
+	}
+}
+
+// /////
+// Removes clan tags and other garbo to make the name display pretty
+// /////
+shortName(name, otherNames)
+{
+    max = 10;
+    clean = removeColorsFromString(name);
+    if(clean.size <= max)
+        return clean;
+
+    // --- split into alternating alnum / symbol runs ---
+    runs = [];
+    alnum = [];
+    cur = "";
+    curAlnum = 0;
+    for(i = 0; i < clean.size; i++)
+    {
+        a = isAlphaNum(clean[i]);
+        if(cur != "" && a != curAlnum)
+        {
+            runs[runs.size] = cur;
+            alnum[alnum.size] = curAlnum;
+            cur = "";
+        }
+        cur += clean[i];
+        curAlnum = a;
+    }
+    runs[runs.size] = cur;
+    alnum[alnum.size] = curAlnum;
+
+    n = runs.size;
+    result = "";
+
+    // --- prefix tag: [sym][<=4 alnum][sym]rest ---
+    if(n >= 4 && !alnum[0] && alnum[1] && runs[1].size <= 4 && !alnum[2])
+    {
+        for(i = 3; i < n; i++)
+            result += runs[i];
+    }
+    // --- suffix tag: rest[sym][<=4 alnum][sym] ---
+    else if(n >= 4 && !alnum[n - 1] && alnum[n - 2] && runs[n - 2].size <= 4 && !alnum[n - 3])
+    {
+        for(i = 0; i < n - 3; i++)
+            result += runs[i];
+    }
+    // --- shared prefix with another player, cut back to a symbol boundary ---
+    else if(isDefined(otherNames))
+    {
+        best = 0;
+        for(p = 0; p < otherNames.size; p++)
+        {
+            other = otherNames[p];
+            if(other == clean)
+                continue;   // ourselves (or an exact duplicate)
+            k = 0;
+            while(k < clean.size && k < other.size && clean[k] == other[k])
+                k++;
+            if(k > best)
+                best = k;
+        }
+        b = best;
+        while(b > 0 && isAlphaNumclean[b - 1]))
+            b--;
+        if(b >= 2 && b < clean.size)
+            result = subStr(clean, b);
+    }
+
+    if(result == "")
+        result = clean;   // nothing stripped, or the tag was the whole name
+
+    if(result.size > max)
+        result = subStr(result, 0, max);
+    return result;
+}
