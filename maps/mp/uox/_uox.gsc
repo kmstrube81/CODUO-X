@@ -457,7 +457,7 @@ endMap(make_announcement)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "axis"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
 		} //if axis won game
-		else if(winner == "axis")
+		else if(winner == "axis" || winner == "draw")
 		{	//if player is on allies
 			if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "allies"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
@@ -465,7 +465,7 @@ endMap(make_announcement)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "axis"))
 				winners = (winners + ";" + lpGuid + ";" + players[i].name); //append to winners
 		} //if free for all player won game
-		else if(winner != "draw")
+        else if(winner != "draw")
 		{	//add winner to winners string
 			winners = lpGuid + ";" + winner;
 		}
@@ -488,6 +488,11 @@ endMap(make_announcement)
 			logToPrintW = "W;;" + winners + "\n";
 		}
 	}
+    else
+    {
+        logToPrintW = "TIE;axis;" + winners + "\n";
+		logToPrintL = "TIE;allies;" + losers + "\n";
+    }
 	
 	wait 1; //wait a second for scoreboard for auto screen shot
 
@@ -502,13 +507,10 @@ endMap(make_announcement)
 		}
 	}
 	
-	if(winner != "draw") //if winner is not a draw
-	{
-		if(logToPrintW != "") //is something to log
-			logPrint(logToPrintW); //print winners to log
-		if(logToPrintL != "") // if something to log
-			logPrint(logToPrintL); //print losers to log
-	}
+    if(logToPrintW != "") //is something to log
+        logPrint(logToPrintW); //print winners to log
+    if(logToPrintL != "") // if something to log
+        logPrint(logToPrintL); //print losers to log
 
 	level notify("map_ended");
 	wait 10; //display scoreboard for 10 seconds
