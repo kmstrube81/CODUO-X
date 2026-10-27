@@ -475,13 +475,13 @@ endMap(make_announcement)
 	{
 		if(winner == "allies") //allies won game
 		{	//print to log
-			logToPrintW = "W;allies;" + winners + "\n";
-			logToPrintL = "L;axis;" + losers + "\n";
+			logToPrintW = "W;allies" + winners + "\n";
+			logToPrintL = "L;axis" + losers + "\n";
 		}
 		else if(winner == "axis") //axis won game
 		{	//print to log
-			logToPrintW = "W;axis;" + winners + "\n";
-			logToPrintL = "L;allies;" + losers + "\n";
+			logToPrintW = "W;axis" + winners + "\n";
+			logToPrintL = "L;allies" + losers + "\n";
 		}
 		else //if free for all player won game
 		{
@@ -490,8 +490,8 @@ endMap(make_announcement)
 	}
     else
     {
-        logToPrintW = "TIE;axis;" + winners + "\n";
-		logToPrintL = "TIE;allies;" + losers + "\n";
+        logToPrintW = "TIE;axis" + winners + "\n";
+		logToPrintL = "TIE;allies" + losers + "\n";
     }
 	
 	wait 1; //wait a second for scoreboard for auto screen shot
