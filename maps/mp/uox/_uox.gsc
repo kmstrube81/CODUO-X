@@ -483,9 +483,9 @@ endMap(make_announcement)
 			logToPrintW = "W;axis" + winners + "\n";
 			logToPrintL = "L;allies" + losers + "\n";
 		}
-		else //if free for all player won game
+		else if(winner != "Nobody") //if free for all player won game
 		{
-			logToPrintW = "W;;" + winners + "\n";
+            logToPrintW = "W;;" + winners + "\n";
 		}
 	}
     else
