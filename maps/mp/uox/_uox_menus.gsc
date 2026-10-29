@@ -189,6 +189,9 @@ handleTeamMenu(response, optional)
             if(response == self.pers["team"] && self.sessionstate == "playing")
                 break;
 
+            if(isDefined(self.pers["isBot"]))
+                skipbalancecheck = true;
+
             //Check if the teams will become unbalanced when the player goes to this team...
             //------------------------------------------------------------------------------
             if ( (level.teambalance > 0) && (!isdefined (skipbalancecheck)) )

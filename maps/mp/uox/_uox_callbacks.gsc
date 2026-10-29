@@ -289,9 +289,14 @@ Default_PlayerConnect()
 	if(isDefined(self.pers["team"]) && self.pers["team"] != "spectator")
 	{
 		self setClientCvar("ui_weapontab", "1");
-		self.sessionteam = "none";
+		if(level.uox_teamplay)
+			self.sessionteam = self.pers["team"];
+		else
+			self.sessionteam = "none";
 
-		if(self.pers["team"] == "allies")
+        if(level.objective == "bel")
+            self setClientCvar("g_scriptMainMenu", game["menu_weapon_all"]);
+		else if(self.pers["team"] == "allies")
 			self setClientCvar("g_scriptMainMenu", game["menu_weapon_allies"]);
 		else
 			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
@@ -328,7 +333,7 @@ Default_PlayerConnect()
                 self setClientCvar("ui_weapontab", "1");
                 self openMenu(menu);
             }
-            if(self.pers["team"] == "allies" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"]))
+            else if(self.pers["team"] == "allies" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"]))
             {
                 menu = game["menu_weapon_allies"];
                 self setClientCvar("ui_weapontab", "1");

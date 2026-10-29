@@ -513,6 +513,7 @@ endMap(make_announcement)
         logPrint(logToPrintL); //print losers to log
 
 	level notify("map_ended");
+    level endon("kill_endmap");
 	wait 10; //display scoreboard for 10 seconds
 	exitLevel(false); //load next level
 }
@@ -2555,6 +2556,8 @@ addBotClients()
 			break;
 		wait 1;
 	}
+
+    game["hasBots"] = true;
 
 	switch(game["allies"])
 	{
