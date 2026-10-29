@@ -3242,7 +3242,7 @@ updateTimeLimit(timer)
     if([[level.getVars]]("scr_roundlimit") == 1) // if game is a single round then the round timer must be set as well.
     {
         level notify("timer_paused");
-        startRoundTimer(timer);
+        startRoundTimer(timer * 60);
     }
 }
 
