@@ -705,7 +705,7 @@ startRoundTimer(timer, doGracePeriod)
 	if(!isDefined(doGracePeriod))
 		doGracePeriod = false;
 	
-	if([[level.getVars]]("scr_roundlength") <= 0) //if no timelimit
+	if(timer <= 0) //if no timelimit
 		return; //nothing to check
 	if(game["suddendeath"]) //in sudden death overtime
 		return; //ignore timelimit
@@ -3238,6 +3238,12 @@ updateTimeLimit(timer)
 	level.starttime = getTime();
 
 	checkTimeLimit();
+
+    if([[level.getVars]]("scr_roundlimit") == 1) // if game is a single round then the round timer must be set as well.
+    {
+        level notify("timer_paused");
+        startRoundTimer(timer);
+    }
 }
 
 /* **************************************************************************************************
