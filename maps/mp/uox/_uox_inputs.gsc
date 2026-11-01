@@ -150,11 +150,12 @@ watchUse()
                 }
 				else
                     self thread [[holdCallback]](); //do success path
-				self unlink(); //let the player move
-				self enableWeapon(); //and shoot
+				if(disableWeapon)
+					self enableWeapon(); //and shoot
 				self.wasUsing = false; //mark that the player isn't holding use
                 if(lockInPlace) //destroy struct that held player in place
                 {
+                		self unlink(); //let the player move
                     if(isdefined(spawned))
                         spawned destroy();
                 }
@@ -163,8 +164,10 @@ watchUse()
 			else // didnt hold long enough
 			{
 				self.wasUsing = false; //mark that player isn't holding use
-				self unlink(); //let player move
-				self enableWeapon(); //let player shoot
+				if(lockInPlace)
+					self unlink(); //let player move
+				if(disableWeapon)	
+					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
                 {
                     trigger.doing = undefined;
@@ -199,6 +202,9 @@ watchUse()
 
 addHoldUse(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
+
+	if(isDefined(self.pers["isBot"]))
+		return; //bots can't do inputs anyway
 		
 	if(!isDefined(drawProgressBar))
 		drawProgressBar = false;
@@ -345,11 +351,12 @@ watchMelee()
                 }
 				else
                     self thread [[holdCallback]](); //do success path
-				self unlink(); //let the player move
-				self enableWeapon(); //and shoot
+				if(disableWeapon) 
+					self enableWeapon(); //and shoot
 				self.wasMelee = false; //mark that the player isn't holding use
                 if(lockInPlace) //destroy struct that held player in place
                 {
+                		self unlink(); //let the player move
                     if(isdefined(spawned))
                         spawned destroy();
                 }
@@ -358,8 +365,10 @@ watchMelee()
 			else // didnt hold long enough
 			{
 				self.wasMelee = false; //mark that player isn't holding use
-				self unlink(); //let player move
-				self enableWeapon(); //let player shoot
+				if(lockInPlace)
+					self unlink(); //let player move
+				if(disableWeapon)
+					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
                 {
                     trigger.doing = undefined;
@@ -393,7 +402,9 @@ watchMelee()
 
 addHoldMelee(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
-		
+	if(isDefined(self.pers["isBot"]))
+		return; //bots can't do inputs anyway
+			
 	if(!isDefined(drawProgressBar))
 		drawProgressBar = false;
 	if(!isDefined(lockInPlace))
@@ -538,11 +549,12 @@ watchFire()
                 }
 				else
                     self thread [[holdCallback]](); //do success path
-				self unlink(); //let the player move
-				self enableWeapon(); //and shoot
+				if(disableWeapon)
+					self enableWeapon(); //and shoot
 				self.wasFiring = false; //mark that the player isn't holding fire
                 if(lockInPlace) //destroy struct that held player in place
-                {
+                { 
+					self unlink(); //let the player move
                     if(isdefined(spawned))
                         spawned destroy();
                 }
@@ -551,8 +563,10 @@ watchFire()
 			else // didnt hold long enough
 			{
 				self.wasFiring = false; //mark that player isn't holding fire
-				self unlink(); //let player move
-				self enableWeapon(); //let player shoot
+				if(lockInPlace)
+					self unlink(); //let player move
+				if(disableWeapon)
+					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
                 {
                     trigger.doing = undefined;
@@ -586,7 +600,9 @@ watchFire()
 
 addHoldFire(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
-		
+	if(isDefined(self.pers["isBot"]))
+		return; //bots can't do inputs anyway
+			
 	if(!isDefined(drawProgressBar))
 		drawProgressBar = false;
 	if(!isDefined(lockInPlace))
