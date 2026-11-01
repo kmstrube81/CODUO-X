@@ -157,15 +157,19 @@ watchUse()
                 {
                 		self unlink(); //let the player move
                     if(isdefined(spawned))
-                        spawned destroy();
+                        spawned delete(); //destroy();
                 }
 				return; //finish hold use
 			}
 			else // didnt hold long enough
 			{
 				self.wasUsing = false; //mark that player isn't holding use
-				if(lockInPlace)
-					self unlink(); //let player move
+				if(lockInPlace) //destroy struct that held player in place
+                { 
+					self unlink(); //let the player move
+                    if(isdefined(spawned))
+                        spawned delete(); //destroy();
+                }
 				if(disableWeapon)	
 					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
@@ -358,15 +362,19 @@ watchMelee()
                 {
                 		self unlink(); //let the player move
                     if(isdefined(spawned))
-                        spawned destroy();
+                        spawned delete(); //destroy();
                 }
 				return; //finish hold use
 			}
 			else // didnt hold long enough
 			{
 				self.wasMelee = false; //mark that player isn't holding use
-				if(lockInPlace)
-					self unlink(); //let player move
+				if(lockInPlace) //destroy struct that held player in place
+                { 
+					self unlink(); //let the player move
+                    if(isdefined(spawned))
+                        spawned delete(); //destroy();
+                }
 				if(disableWeapon)
 					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
@@ -556,15 +564,19 @@ watchFire()
                 { 
 					self unlink(); //let the player move
                     if(isdefined(spawned))
-                        spawned destroy();
+                        spawned delete(); //destroy();
                 }
 				return; //finish hold fire
 			}
 			else // didnt hold long enough
 			{
 				self.wasFiring = false; //mark that player isn't holding fire
-				if(lockInPlace)
-					self unlink(); //let player move
+				if(lockInPlace) //destroy struct that held player in place
+                { 
+					self unlink(); //let the player move
+                    if(isdefined(spawned))
+                        spawned delete(); //destroy();
+                }
 				if(disableWeapon)
 					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
@@ -687,6 +699,8 @@ doInputCombination(combo)
 
 addInputCombination(combo, callback, callbackName)
 {
+	if(isDefined(self.pers["isBot"]))
+		return;
     if(!isDefined(callbackName))
         callbackName = combo;
 
