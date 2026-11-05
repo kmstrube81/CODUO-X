@@ -1136,13 +1136,13 @@ is_near_carrier(attacker)
 	// if the flag is at the base then return false
 	if ( !flag.moved )
 		return false;
+
+	// no carrier (the flag is lying dropped), or a dead or invalid one
+	if ( !isdefined(flag.carried_by) || !isAlive(flag.carried_by) || !isValidPlayer(flag.carried_by) )
+		return false;
 	
 	// if the attacker is the carrier then return false
 	if ( attacker == flag.carried_by )
-		return false;
-		
-	// if the attacker is the carrier then return false
-	if ( !isdefined(flag.carried_by) || !isAlive(flag.carried_by) || !isValidPlayer(flag.carried_by) )
 		return false;
 		
 	dist = distance(self.origin, flag.carried_by.origin);
