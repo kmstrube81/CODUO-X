@@ -1342,6 +1342,10 @@ updateTeamStatus()
         return;
     }
 
+    //end round if side is out of reenforcemnets, otherwise exit early
+    if([[level.getVars]]("scr_reinforcements") == -1)
+        return;
+
 	if(level.uox_teamplay) //if  team game
 	{	
         //if allies did exist and now they don't and axis did exist and they don't either
