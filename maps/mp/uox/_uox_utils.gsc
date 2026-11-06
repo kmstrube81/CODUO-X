@@ -136,23 +136,24 @@ round(num, places)
             }
         }
         //walk whole numbers in reverse and add to rounded string
-        for(i = wholes.size - 1; i <= 0; i--)
+        for(i = wholes.size - 1; i >= 0; i--)
             rounded += (string)wholes[i];
     }
     else if(places < 0) //move rightward for decimals
     {
         decimals = []; //keep chars in an array in case of multiple 9s
         place = places * -1;
-        for(index = 0; index < place; index++)
+        for(index = 0; index < place && index < decimalDigits; index++)
         {
             if(index + 1 < place)
-                decimals[decimals.size] = (int)decimal[charIndex];
+                decimals[decimals.size] = (int)decimal[index];
             else if(index + 1 == place)
             {
-                if(!isDefined(decimal[index + 1]))
-                    factor = 0;
-                else
-                    factor = (int)decimal[index + 1];
+                if(index + 1 >= decimalDigits)
+				    factor = 0;
+				else
+				    factor = (int)decimal[index + 1];
+
                 if(factor >= 5)
                     n = (int)(decimal[index]) + 1;
                 else
@@ -162,6 +163,12 @@ round(num, places)
             }
         }
         roundUp = false;
+        //add any extra padding
+        while(index < place)
+        {
+        		decimals[decimals.size] = 0;
+        		index++;
+        }
         //walk decimals and resolve any rounding
         for(index = decimals.size - 1; index >= 0; index--)
         {
