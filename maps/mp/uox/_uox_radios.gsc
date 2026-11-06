@@ -12,8 +12,6 @@ precache()
 
     precacheShader("gfx/hud/hud@field_radio.tga");
 
-    level._effect["radioexplosion"] = loadfx("fx/explosions/grenade1.efx");
-
     game["radioTimerText"] = &"Radio Timer: ";
     game["nextRadioText"] = &"Next Radio: ";
 
@@ -114,6 +112,8 @@ initVars()
 *************************************************************************************************** */
 hq_setup()
 {
+	level._effect["radioexplosion"] = loadfx("fx/explosions/grenade1.efx");
+	
 	wait level.frametime; // wait a server fram
 	
 	level.radio = getentarray ("hqradio","targetname"); //load radios to level.radio array
@@ -247,6 +247,7 @@ hq_radio_think()
         players = getentarray("player", "classname"); //get players
         self.allies = 0; //reset count allies in radius
         self.axis = 0; //reset count axis in radius
+        
         for(i = 0; i < players.size; i++)
         {
             player = players[i];
@@ -256,66 +257,52 @@ hq_radio_think()
                 {
                     if(player.pers["team"] == self.team) //if radio is already captured by this team
                         continue; //do nothing
-                    
+
                     if ( (level.captured_radios[player.pers["team"]] > 0) && (self.team == "none") ) //if another radio was already captured
                         continue; //do nothing
 
                     //create radio icon for capturing players
                     iconOptions = [];
-                	iconOptions["alignX"] = "center";
-                	iconOptions["alignY"] = "middle";
-                	iconOptions["x"] = 600;
-                	iconOptions["y"] = 390;
-                	iconOptions["width"] = 40;
-                	iconOptions["height"] = 32;
+                    iconOptions["alignX"] = "center";
+                    iconOptions["alignY"] = "middle";
+                    iconOptions["x"] = 600;
+                    iconOptions["y"] = 390;
+                    iconOptions["width"] = 40;
+                    iconOptions["height"] = 32;
                     //test if element already exists, don't spam hud updates
-        			if(!isDefined(player maps\mp\uox\_uox_hud::getClientHUDElement("radio_icon")))
-        				player maps\mp\uox\_uox_hud::updateClientHUDElement("radio_icon", "shader",
-        					"gfx/hud/hud@field_radio.tga", iconOptions);
-                    
+                    if(!isDefined(player maps\mp\uox\_uox_hud::getClientHUDElement("radio_icon")))
+                        player maps\mp\uox\_uox_hud::updateClientHUDElement("radio_icon", "shader",
+                            "gfx/hud/hud@field_radio.tga", iconOptions);
+
+                    //this player's team hold time (player is never on the owning team past this point)
+                    if(player.pers["team"] == "allies")
+                        holdtime = self.holdtime_allies;
+                    else
+                        holdtime = self.holdtime_axis;
+
                     if ( (level.captured_radios[player.pers["team"]] <= 0) && (self.team == "none") ) //if no radios are currently captured
-                    {
-                       if (player.pers["team"] == "allies") //if player in the radius is allies
-                            player maps\mp\uox\_uox_hud::createClientHUDProgressBar([[level.getVars]]("scr_radiocapturetime"), &"HQ_CAPTURNING_RADIO", self.holdtime_allies); //create progress bar for allies
-                        else //else if he's axis
-                            player maps\mp\uox\_uox_hud::createClientHUDProgressBar([[level.getVars]]("scr_radiocapturetime"), &"HQ_CAPTURNING_RADIO", self.holdtime_axis); //create progress bar for axis
+                    {   //capture bar for the capturing player
+                        player maps\mp\uox\_uox_hud::createClientHUDProgressBar([[level.getVars]]("scr_radiocapturetime"), &"HQ_CAPTURNING_RADIO", holdtime);
                     }
-                    else if (self.team != "none") //else if someone has captured the radio
-                    {	
-                       
-                        if (player.pers["team"] == "allies") //if player in the radius is allies
-                            player maps\mp\uox\_uox_hud::createClientHUDProgressBar([[level.getVars]]("scr_radiocapturetime"), &"HQ_DESTROYING_RADIO", self.holdtime_allies); //create progress bar for allies
-                        else //else if player is axis
-                            player maps\mp\uox\_uox_hud::createClientHUDProgressBar([[level.getVars]]("scr_radiocapturetime"), &"HQ_DESTROYING_RADIO", self.holdtime_axis); //create progress bar for axis
-                        
-                        
-                        if (self.team == "allies") //if radio is owned by allies
-                        {
-                            if (players[i].pers["team"] == "allies") //if player in radius is allies
-                                level.progressbar_axis_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_axis_neutralize, "allies", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_allies); //create a team progress bar for allies
-                            else //else if player in radius is axis
-                                 level.progressbar_axis_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_axis_neutralize, "axis", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_axis); //create a team progress bar for axis
-                        }
+                    else if (self.team != "none") //else radio is owned by the other team, player is an attacker
+                    {   //destroy bar for the attacking player
+                        player maps\mp\uox\_uox_hud::createClientHUDProgressBar([[level.getVars]]("scr_radiodestroytime"), &"HQ_DESTROYING_RADIO", holdtime);
+
+                        //losing bar shown to the owning (defending) team, tracking the attackers' hold time
+                        if (self.team == "allies")
+                            level.progressbar_axis_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
+                                level.progressbar_axis_neutralize, "allies", [[level.getVars]]("scr_radiodestroytime"), &"HQ_LOSING_RADIO", holdtime);
                         else
-                        if (self.team == "axis") //if radio is owned by axis
-                        {
-                            if (players[i].pers["team"] == "allies") //if player in radius is allies
-                                level.progressbar_allies_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_allies_neutralize, "allies", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_allies); //create a team progress bar for allies
-                            else //else if player in radius is axis
-                                 level.progressbar_allies_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_allies_neutralize, "axis", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_axis); //create a team progress bar for axis
-                        }
+                            level.progressbar_allies_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
+                                level.progressbar_allies_neutralize, "axis", [[level.getVars]]("scr_radiodestroytime"), &"HQ_LOSING_RADIO", holdtime);
                     }
-                    
-                    if(players[i].pers["team"] == "allies")
+
+                    if(player.pers["team"] == "allies")
                         self.allies++;
                     else
                         self.axis++;
                 }
-                else 
+                else
                 {
                     player maps\mp\uox\_uox_hud::deleteClientHUDElement("radio_icon");
                     player maps\mp\uox\_uox_hud::deleteClientHUDProgressBar();
