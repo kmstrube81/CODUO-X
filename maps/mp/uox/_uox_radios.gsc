@@ -621,12 +621,12 @@ hq_score_update(team, points)
 		iprintln (&"HQ_SCORED_AXIS", points);
 
     newscore = (getTeamScore(team) + points);
-	
-	if( newscore > scorelimit )
-        maps\mp\uox\_uox::incrementTeamScore(team, newscore - scorelimit);
-	else
+
+	if( scorelimit > 0 && newscore > scorelimit )
+        points = scorelimit - getTeamScore(team);
+
+	if( points > 0 )
         maps\mp\uox\_uox::incrementTeamScore(team, points);
-	level thread hq_playsound_onplayers("hq_score");
 	
 }
 
