@@ -276,7 +276,7 @@ hold_objective(player) //the objective model runs this to be held by 'player'
 	logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + game["re_attackers"] + ";" + player.name + ";" + "re_pickup" + "\n");
     player.notification = "re_pickup";
 	
-	if(player.pers["team"] == game["re_attackers"])
+	//if(player.pers["team"] == game["re_attackers"])
 
 	self.trigger triggerOff();
 	player playLocalSound("re_pickup_paper");
@@ -315,10 +315,12 @@ objective_carrier_atgoal_wait(other)
         return;
 
 	//loop objectives
-    for(i = 0; i < self.objectives.size; i++) {
-        objective = objectives[i];
+    for(i = 0; i < self.objectives.size; i++)
+    {   //ignore already captured objectives
+        if(!isDefined(self.objectives[i]))
+            continue;
+        objective = self.objectives[i];
 		
-		other.hasobj[objective.objnum] = objective;
         hasObj = false;
 
         if(isDefined(other.hasobj[objective.objnum]) && other.hasobj[objective.objnum] == objective) 
@@ -333,17 +335,10 @@ objective_carrier_atgoal_wait(other)
             level.objectives_done++;
             level.defense_points--;
 
-            objective_delete(objective.objnum);
             objective notify("completed");
 
             //org = (player.origin);
             other thread drop_objective_at_goal(objective);
-            //remove drop addhold
-            other maps\mp\uox\_uox_inputs::removeHoldUse("picked up");
-
-            objective_delete(objective.objnum);
-
-            objective delete();
 
             if(level.objectives_done < level.retrieval_objective.size)
             {
@@ -355,11 +350,7 @@ objective_carrier_atgoal_wait(other)
                 level thread maps\mp\uox\_uox::endRound(game["re_attackers"]);
                 return;
             }
-        }
-        else
-        {
-            wait level.frametime;
-        }
+        }   
     }   
 }
 
