@@ -51,6 +51,7 @@ checkPlayerKilled(victim, attacker)
 					game["alliedkills"]--; //subtract a kill from running total
 				else if(attacker.pers["team"] == "axis")
 					game["axiskills"]--;  //subtract a kill from running total
+                attacker.pers["kills"]--;
 			}
 		}
 		else //normal non-team kill
@@ -59,6 +60,7 @@ checkPlayerKilled(victim, attacker)
 				game["alliedkills"]++; //add kill to running total
 			else if(attacker.pers["team"] == "axis")
 				game["axiskills"]++; //add kill to running total
+            attacker.pers["kills"]++;
 		}
 	}
 	else //if free for all game
@@ -376,10 +378,12 @@ endMap(make_announcement)
 	}
 	else //if free for all game
 	{
-		winningPlayer = getHighScore(); //get high scoring player
+		winningPlayer = getHighScore([[level.getVars]]("scr_score_rounds")); //get high scoring player
 		
-		if(!winningPlayer.tied)
+		if(isDefined(winningPlayer) && !winningPlayer.tied)
 			winner = winningPlayer.name;
+		else
+			winner = "Nobody";	
 		
 		if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_roundreset"))
 		{	//if scoring rounds over kills
@@ -420,7 +424,7 @@ endMap(make_announcement)
 			player setClientCvar("cg_objectiveText", text); //change scoreboard text
 		else //if free for all game
 		{
-			if(winner == "draw") //if tie, change scoreboard text to tie text
+			if(winner == "Nobody") //if tie, change scoreboard text to tie text
 				player setClientCvar("cg_objectiveText", &"MPSCRIPT_THE_GAME_IS_A_TIE");
 			else //else if there is a winner, set scoreboard to announce winner
 				player setClientCvar("cg_objectiveText", &"MPSCRIPT_WINS", winner);
@@ -436,7 +440,7 @@ endMap(make_announcement)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "axis"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
 		} //if axis won game
-		else if(winner == "axis")
+		else if(winner == "axis" || winner == "draw")
 		{	//if player is on allies
 			if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "allies"))
 				losers = (losers + ";" + lpGuid + ";" + players[i].name); //append to losers
@@ -444,7 +448,7 @@ endMap(make_announcement)
 			else if((isdefined(players[i].pers["team"])) && (players[i].pers["team"] == "axis"))
 				winners = (winners + ";" + lpGuid + ";" + players[i].name); //append to winners
 		} //if free for all player won game
-		else if(winner != "draw")
+        else if(winner != "draw")
 		{	//add winner to winners string
 			winners = lpGuid + ";" + winner;
 		}
@@ -454,19 +458,24 @@ endMap(make_announcement)
 	{
 		if(winner == "allies") //allies won game
 		{	//print to log
-			logToPrintW = "W;allies;" + winners + "\n";
-			logToPrintL = "L;axis;" + losers + "\n";
+			logToPrintW = "W;allies" + winners + "\n";
+			logToPrintL = "L;axis" + losers + "\n";
 		}
 		else if(winner == "axis") //axis won game
 		{	//print to log
-			logToPrintW = "W;axis;" + winners + "\n";
-			logToPrintL = "L;allies;" + losers + "\n";
+			logToPrintW = "W;axis" + winners + "\n";
+			logToPrintL = "L;allies" + losers + "\n";
 		}
-		else //if free for all player won game
+		else if(winner != "Nobody") //if free for all player won game
 		{
-			logToPrintW = "W;;" + winners + "\n";
+            logToPrintW = "W;;" + winners + "\n";
 		}
 	}
+    else
+    {
+        logToPrintW = "TIE;axis" + winners + "\n";
+		logToPrintL = "TIE;allies" + losers + "\n";
+    }
 	
 	wait 1; //wait a second for scoreboard for auto screen shot
 
@@ -481,14 +490,13 @@ endMap(make_announcement)
 		}
 	}
 	
-	if(winner != "draw") //if winner is not a draw
-	{
-		if(logToPrintW != "") //is something to log
-			logPrint(logToPrintW); //print winners to log
-		if(logToPrintL != "") // if something to log
-			logPrint(logToPrintL); //print losers to log
-	}
-	
+    if(logToPrintW != "") //is something to log
+        logPrint(logToPrintW); //print winners to log
+    if(logToPrintL != "") // if something to log
+        logPrint(logToPrintL); //print losers to log
+
+	level notify("map_ended");
+    level endon("kill_endmap");
 	wait 10; //display scoreboard for 10 seconds
 	exitLevel(false); //load next level
 }
@@ -592,13 +600,15 @@ startGame()
 **** overtime is enabled, then run overtime in case of a tie 
 ****
 ************************************************************************************************* */
-checkTimeLimit()
+checkTimeLimit(endMap)
 {
+	if(!isDefined(endMap))
+		endMap = false;
 	if([[level.getVars]]("scr_timelimit") <= 0) //if no timelimit
 		return; //nothing to check
 	if(game["suddendeath"]) //in sudden death overtime
 		return; //ignore timelimit
-	if(level.roundended) //wait til next round to call time up
+	if(level.roundended && !endMap) //wait til next round to call time up
 		return;
 	if(level.mapended) //if map is already over 
 		return; //no point in checking time limit
@@ -621,7 +631,7 @@ checkTimeLimit()
 		level.mapended = true; //set map ended flag
 		level thread endMap(); //end map
 	}
-	else //if round based game, end round.
+	else if(!endMap)//if round based game, end round.
 	{
 		iprintln(&"MPSCRIPT_TIME_LIMIT_REACHED"); //announce time is over
 		if([[level.getVars]]("scr_overtime")) //if overtime is enabled
@@ -657,6 +667,11 @@ checkTimeLimit()
 		else //free for all game
 			endRound("deathmatch");
 	}
+	else
+	{
+		level.mapended = true; //set map ended flag
+		level thread endMap(); //end map
+	}
 }
 
 /* *************************************************************************************************
@@ -674,7 +689,7 @@ startRoundTimer(timer, doGracePeriod)
 	if(!isDefined(doGracePeriod))
 		doGracePeriod = false;
 	
-	if([[level.getVars]]("scr_roundlength") <= 0) //if no timelimit
+	if(timer <= 0) //if no timelimit
 		return; //nothing to check
 	if(game["suddendeath"]) //in sudden death overtime
 		return; //ignore timelimit
@@ -912,6 +927,7 @@ endRound(roundwinner, numRoundWins)
 	level.playerlock = true;
 	level thread lockPlayersInPlace(postroundtime);
 
+    level.roundwinner = roundwinner; //make roundwinner global for other scripts to access
 	// End bombzone threads and remove related hud elements and objectives
 	level notify("round_ended");
 
@@ -972,36 +988,39 @@ endRound(roundwinner, numRoundWins)
 	else if(roundwinner == "deathmatch")
 	{
 		winner = getHighScore(); //get highest scoring player
-		tied = winner.tied;		 //store tied flag to var
-		guid = winner.guid;		 //winner guid
-		name = winner.name;		 //winner name
-		
-		if(!tied) //if game tied flag was not set
+		if(isDefined(winner))
 		{
-			winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
-			winner.pers["roundswon"] += numRoundWins; //increment rounds won
+			tied = winner.tied	;		 //store tied flag to var
+			guid = winner.guid;		 //winner guid
+			name = winner.name;		 //winner name
 			
-			if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
+			if(!tied) //if game tied flag was not set
 			{
-				if(game["half"] % 2) //if game is in 1st Half
-					winner.pers["1HScore"] += numRoundWins; //increment 1st half score rounds won
-				else //if game is in second half
-					winner.pers["2HScore"] += numRoundWins; //increment 2nd half score rounds won
-				//get rounds won leader
-				leader = getHighScore(true);
-				if(game["half"] % 2) //if game is in 1st half
-					game["round1axisscore"] = leader.pers["1HScore"]; //set leader round 1 score
-				else //if game is in 2nd half
-					game["round2axisscore"] = leader.pers["2HScore"]; //set leader round 2 score
+				winners = (winners + ";" + guid + ";" + name); //set winners to highest scoring player
+				winner.pers["roundswon"] += numRoundWins; //increment rounds won
+				
+				if([[level.getVars]]("scr_score_rounds")) //if score rounds is set
+				{
+					if(game["half"] % 2) //if game is in 1st Half
+						winner.pers["1HScore"] += numRoundWins; //increment 1st half score rounds won
+					else //if game is in second half
+						winner.pers["2HScore"] += numRoundWins; //increment 2nd half score rounds won
+					//get rounds won leader
+					leader = getHighScore(true);
+					if(game["half"] % 2) //if game is in 1st half
+						game["round1axisscore"] = leader.pers["1HScore"]; //set leader round 1 score
+					else //if game is in 2nd half
+						game["round2axisscore"] = leader.pers["2HScore"]; //set leader round 2 score
+				}
+				else //if score method is total score
+				{
+					if(game["half"] % 2) //if game is in 1st half
+						game["round1axisscore"] = winner.score; //set half score
+					else //if game is in 2nd half
+						game["round2axisscore"] = winner.score; //set half score
+				}
+				iprintlnbold(winner.name + " ^7wins");
 			}
-			else //if score method is total score
-			{
-				if(game["half"] % 2) //if game is in 1st half
-					game["round1axisscore"] = winner.score; //set half score
-				else //if game is in 2nd half
-					game["round2axisscore"] = winner.score; //set half score
-			}
-			iprintlnbold(winner.name + " ^7wins");
 		}
 	}
 	
@@ -1092,7 +1111,8 @@ endRound(roundwinner, numRoundWins)
 	game["timepassed"] = game["timepassed"] + ((getTime() - level.starttime) / 1000) / 60.0;
 
 	// for all living players store their weapons
-	if(game["matchstarted"]){ //only do if game started
+	if(game["matchstarted"])
+    { //only do if game started
 		players = getentarray("player", "classname"); //get players
 		for(i = 0; i < players.size; i++) //loop players
 		{	//for current player
@@ -1188,7 +1208,7 @@ endRound(roundwinner, numRoundWins)
 		game["roundsplayed"] = 0; //set rounds played to 0
 	}
 
-	checkTimeLimit(); //check that time limit wasn't reached during round end
+	checkTimeLimit(true); //check that time limit wasn't reached during round end
 
 	if(level.mapended) //if map has already ended
 		return;	//nothing to do
@@ -1244,7 +1264,7 @@ updateTeamStatus()
 		//if player is on a team and team isn't spectator and round isn't started or player lives aren't 
 		//defined or player has lives left or player doesn't have lives left but it doesn't matter 
 		//because reinforcements are set to unlimited
-		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && (!level.roundstarted || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && [[level.getVars]]("scr_reinforcements") == -1)))
+		if(isDefined(player.pers["team"]) && player.pers["team"] != "spectator" && ( (!level.roundstarted || !isDefined(player.lives) || player.lives > -1 || (player.lives < 0 && [[level.getVars]]("scr_reinforcements") == -1)) && ( player.sessionspawned || level.graceperiod ) ) )
 		{
             level.exist[player.pers["team"]]++; //increment number of alive players on team
             level.exist["2players"]++; //increment number of alive players in general
@@ -1297,6 +1317,18 @@ updateTeamStatus()
 
         return;
     }
+
+    // round does not start until the match starts
+	if ( !game["matchstarted"] )
+    {
+        if( (oldvalue["allies"] && !level.exist["allies"]) || (oldvalue["axis"] && !level.exist["axis"]) )
+            level maps\mp\uox\_uox_warmup::abortReadyUp();
+        return;
+    }
+
+    //end round if side is out of reenforcemnets, otherwise exit early
+    if([[level.getVars]]("scr_reinforcements") == -1)
+        return;
 
 	if(level.uox_teamplay) //if  team game
 	{	
@@ -2249,7 +2281,7 @@ GivePointsToTeam( team, points )
 ************************************************************************************************* */
 lockPlayersInPlace(time)
 {
-
+    level endon("kill_endround");
 	if(isdefined(time))
 		wait time;
 		
@@ -2333,8 +2365,8 @@ getHighScore(checkRounds)
 	for(i = 0; i < players.size; i++) //loop players
 	{
 		player = players[i]; //current player
-		//if player is a spectator
-		if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator")
+		//if player is a spectator and we aren't checking rounds won
+		if(isDefined(player.pers["team"]) && player.pers["team"] == "spectator" && !checkRounds)
 			continue; //don't check
 
 		if(!isDefined(highscore)) //if a highscore player isn't defined yet
@@ -2383,6 +2415,10 @@ getHighScore(checkRounds)
 	winner.guid = guid; //set winner's guid to stored guid
 	winner.tied = tied; //set whether winner was tied by another player to tied flag
 	winner.roundsWon = winner.pers["roundswon"]; //set winner roundsWon to roundswon
+	
+	if(level.roundended && winner.pers["team"] == "spectator") //move winner to playing if they were spectating
+		winner.sessionteam = "none";
+	
 	
 	return winner; //return high scoring player
 }
@@ -2483,6 +2519,8 @@ addBotClients()
 			break;
 		wait 1;
 	}
+
+    game["hasBots"] = true;
 
 	switch(game["allies"])
 	{
@@ -3163,6 +3201,12 @@ updateTimeLimit(timer)
 	level.starttime = getTime();
 
 	checkTimeLimit();
+
+    if([[level.getVars]]("scr_roundlimit") == 1) // if game is a single round then the round timer must be set as well.
+    {
+        level notify("timer_paused");
+        startRoundTimer(timer * 60);
+    }
 }
 
 /* **************************************************************************************************
@@ -3356,3 +3400,200 @@ updateFriendlyFire(friendlyfire)
 {
 	level.friendlyfire = friendlyfire;
 }
+
+/* **************************************************************************************************
+**** getWeaponProperty(str weapon, str property)
+****
+**** returns various information about stock weapons
+****
+*************************************************************************************************** */
+getWeaponProperty(weapon, property)
+{
+    switch(property)
+    {
+        case "useAn":
+            return maps\mp\gametypes\_teams::useAn(weapon);
+        case "shader":
+            switch(weapon)
+            {
+                case "bar_mp":
+                case "bar_slow_mp":
+                    return "ui_mp/assets/hud@bar.tga";
+                case "bazooka_mp":
+                    return "gfx/icons/hud@bazooka.dds";
+                case "binoculars_mp":
+                case "binoculars_artillery_mp":
+                    return "gfx/icons/hud@bino.dds";
+                case "colt_mp":
+                    return "ui_mp/assets/hud@colt45.tga";
+                case "bren_mp":
+                    return "ui_mp/assets/hud@bren.tga";
+                case "dp28_mp":
+                    return "ui_mp/assets/hud@dp28.dds";
+                case "enfield_mp":
+                    return "ui_mp/assets/hud@enfield.tga";
+                case "fg42_mp":
+                case "fg42_semi_mp":
+                    return "ui_mp/assets/hud@fg42.tga";
+                case "flamethrower_mp":
+                    return "gfx/icons/flame.dds";
+                case "fraggrenade_mp":
+                    return "ui_mp/assets/hud@us_grenade.dds";
+                case "gewehr43_mp":
+                    return "ui_mp/assets/hud@G43.dds";
+                case "kar98k_mp":
+                    return "ui_mp/assets/hud@kar98.tga";
+                case "kar98k_sniper_mp":
+                    return "ui_mp/assets/hud@kar98scoped.tga";
+                case "luger_mp":
+                    return "ui_mp/assets/hud@luger.tga";
+                case "m1garand_mp":
+                    return "ui_mp/assets/hud@m1garand.tga";
+                case "m1carbine_mp":
+                    return "ui_mp/assets/hud@m1carbine.tga";
+                case "mg34_mp":
+                    return "ui_mp/assets/hud@mg34.dds";
+                case "mg30cal_mp":
+                    return "ui_mp/assets/hud@30cal.dds";
+                case "mk1britishfrag_mp":
+                    return "ui_mp/assets/hud@british_grenade.dds";
+                case "mg42_mp":
+                case "mg42_bipod_duck_mp":
+                case "mg42_bipod_prone_mp":
+                case "mg42_bipod_stand_mp":
+                    return "gfx/hud/death_mg42.dds";
+                case "mosin_nagant_mp":
+                    return "ui_mp/assets/hud@nagant.tga";
+                case "mosin_nagant_sniper_mp":
+                    return "ui_mp/assets/hud@nagantscoped.tga";
+                case "mp40_mp":
+                    return "ui_mp/assets/hud@mp40.tga";
+                case "mp44_mp":
+                case "mp44_semi_mp":
+                    return "ui_mp/assets/hud@mp44.tga";
+                case "panzerfaust_mp":
+                    return "gfx/icons/hud@panzerfaust.dds";
+                case "panzerschreck_mp":
+                    return "gfx/icons/hud@panzerschreck.dds";
+                case "ppsh_mp":
+                case "ppsh_semi_mp":
+                    return "ui_mp/assets/hud@ppsh.tga";
+                case "rgd-33russianfrag_mp":
+                    return "ui_mp/assets/hud@russian_grenade.dds";
+                case "satchelcharge_mp":
+                    return "gfx/icons/hud@satchel.dds";
+                case "smokegrenade_mp":
+                    return "gfx/icons/hud@us_smokegrenade.dds";
+                case "springfield_mp":
+                    return "ui_mp/assets/hud@springfield.tga";
+                case "sten_mp":
+                    return "ui_mp/assets/hud@sten.tga";
+                case "sten_silenced_mp":
+                    return "gfx/icons/hud@sten_silent.dds";
+                case "stielhandgranate_mp":
+                    return "gfx/icons/hud@steilhandgrenate.dds";
+                case "svt40_mp":
+                    return "ui_mp/assets/hud@svt40.dds";
+                case "thompson_mp":
+                case "thompson_semi_mp":
+                    return "ui_mp/assets/hud@thompson.tga";
+                case "tt33_mp":
+                    return "gfx/icons/hud@tt33.dds";
+                case "webley_mp":
+                    return "gfx/icons/hud@webly.dds";
+            }
+            return "";
+        case "shaderAspectRatio":
+            switch(weapon)
+            {
+                case "bar_mp":
+                case "bar_slow_mp":
+                    return 2;
+                case "bazooka_mp":
+                    return 2;
+                case "binoculars_mp":
+                case "binoculars_artillery_mp":
+                    return 1;
+                case "colt_mp":
+                    return 1;
+                case "bren_mp":
+                    return 2;
+                case "dp28_mp":
+                    return 2;
+                case "enfield_mp":
+                    return 2;
+                case "fg42_mp":
+                case "fg42_semi_mp":
+                    return 2;
+                case "flamethrower_mp":
+                    return 2;
+                case "fraggrenade_mp":
+                    return 1;
+                case "gewehr43_mp":
+                    return 2;
+                case "kar98k_mp":
+                    return 2;
+                case "kar98k_sniper_mp":
+                    return 2;
+                case "luger_mp":
+                    return 1;
+                case "m1garand_mp":
+                    return 2;
+                case "m1carbine_mp":
+                    return 2;
+                case "mg34_mp":
+                    return 2;
+                case "mg30cal_mp":
+                    return 2;
+                case "mk1britishfrag_mp":
+                    return 1;
+                case "mg42_mp":
+                case "mg42_bipod_duck_mp":
+                case "mg42_bipod_prone_mp":
+                case "mg42_bipod_stand_mp":
+                    return 2;
+                case "mosin_nagant_mp":
+                    return 2;
+                case "mosin_nagant_sniper_mp":
+                    return 2;
+                case "mp40_mp":
+                    return 2;
+                case "mp44_mp":
+                case "mp44_semi_mp":
+                    return 2;
+                case "panzerfaust_mp":
+                    return 2;
+                case "panzerschreck_mp":
+                    return 2;
+                case "ppsh_mp":
+                case "ppsh_semi_mp":
+                    return 2;
+                case "rgd-33russianfrag_mp":
+                    return 1;
+                case "satchelcharge_mp":
+                    return 1;
+                case "smokegrenade_mp":
+                    return 1;
+                case "springfield_mp":
+                    return 2;
+                case "sten_mp":
+                    return 2;
+                case "sten_silenced_mp":
+                    return 2;
+                case "stielhandgranate_mp":
+                    return 1;
+                case "svt40_mp":
+                    return 2;
+                case "thompson_mp":
+                case "thompson_semi_mp":
+                    return 2;
+                case "tt33_mp":
+                    return 1;
+                case "webley_mp":
+                    return 1;
+            }
+            return 0;
+    }
+    return "";
+}
+

@@ -138,7 +138,7 @@ canPlant(trigger)
 
 planting(trigger)
 {
-	if(self istouching(trigger) && isAlive(self) && self useButtonPressed() 
+	if(self istouching(trigger) && isAlive(self) 
 		&& (self maps\mp\_util_mp_gmi::canPlantGMI()))
 		return true;
 	return false;
@@ -408,7 +408,7 @@ canDefuse(trigger)
 
 defusing(trigger)
 {
-	if(self islookingat(trigger) && distance(self.origin, trigger.origin) < 64 && isAlive(self) && self useButtonPressed())
+	if(self islookingat(trigger) && distance(self.origin, trigger.origin) < 64 && isAlive(self))
 		return true;
 	return false;
 }
@@ -510,7 +510,7 @@ check_bomb(trigger)
 
 		self maps\mp\uox\_uox_hud::updateClientHUDElement("defuse_icon", "shader",
 			"ui_mp/assets/hud@defusebomb.tga", iconOptions);
-		self maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", false, 0, [[level.getVars]]("scr_bombplanttime"),
+		self maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", false, 0, [[level.getVars]]("scr_bombdefusetime"),
 			::defusing, ::defuseBomb, ::check_bomb, true, true, true, trigger, "MP_bomb_defuse");
 
 		while(self canDefuse(trigger))

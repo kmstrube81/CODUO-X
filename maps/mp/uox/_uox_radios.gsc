@@ -594,18 +594,24 @@ hq_points_players(team, reason)
         {
             player.score += holdbonus;
             player.pers["score"] = player.score;
+            player.notification = "radio_hold";
+            logPrint("A;" + player getGuid() + ";" + player getEntityNumber() + ";" + player.pers["team"] + ";" + player.name + ";" + "radio_hold" + "\n");
         }
         // if capture then give points to the attacking team
         else if (reason == "captured" && player.pers["team"] == team)
         {
             player.score += capturebonus;
             player.pers["score"] = player.score;
+            player.notification = "radio_captured";
+            logPrint("A;" + player getGuid() + ";" + player getEntityNumber() + ";" + player.pers["team"] + ";" + player.name + ";" + "radio_captured" + "\n");
         }
         // if lost then give points to the attacking team
         else if (reason == "lost" && player.pers["team"] != team)
         {
             player.score += destroybonus;
             player.pers["score"] = player.score;
+            player.notification = "radio_destroyed";
+            logPrint("A;" + player getGuid() + ";" + player getEntityNumber() + ";" + player.pers["team"] + ";" + player.name + ";" + "radio_destroyed" + "\n");
         }
     }
 	

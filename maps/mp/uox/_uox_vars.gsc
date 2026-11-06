@@ -56,48 +56,61 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 	//define type, shouldMonitor, gametype and mapname if not defined
 	if(!isDefined(type)) type = "";
 	if(!isDefined(gt)) gt = getCvar("g_gametype");
+    else setGt = gt;
 	if(!isDefined(map)) map = getCvar("mapname");
+    else setMap = map;
 	
+    defaultFlag = false;
 	setFlag = false; //flag if cvar needs to be set because it used the default value
 	
 	if(getCvar(prefix + "_" + gt + "_" + varname + "_" + map) != "") //if gt + map specific var is set
-		varname = prefix + "_" + gt + "_" + varname + "_" + map; //hasValue type is 4
+		cvarname = prefix + "_" + gt + "_" + varname + "_" + map; //hasValue type is 4
 	else if(getCvar(prefix + "_" + varname + "_" + map) != "") //if map specific var is set
-		varname = prefix + "_" + varname + "_" + map; //hasValue type is 3
+		cvarname = prefix + "_" + varname + "_" + map; //hasValue type is 3
 	else if(getCvar(prefix + "_" + gt + "_" + varname) != "") //if gt specific var is set
-		varname = prefix + "_" + gt + "_" + varname; //hasValue type is 2
+		cvarname = prefix + "_" + gt + "_" + varname; //hasValue type is 2
 	else if(getCvar(prefix + "_" + varname) != "") //if var is set
-		varname = prefix + "_" + varname; //hasValue type is 1
+		cvarname = prefix + "_" + varname; //hasValue type is 1
 	else //var has no value
 	{
-		varname = prefix + "_" + varname;
+		cvarname = prefix + "_" + varname;
 		value = defValue;
 		//if no default value then return undefined
 		if(!isDefined(defValue))
 			return undefined;
-		setFlag = true;
+		defaultFlag = true;
 	}
 		
 	//get value
 	if(!isDefined(value))
 	{
 		if(type == "int")
-			value = getCvarInt(varname);
+			value = getCvarInt(cvarname);
 		else if(type == "float")
-			value = getCvarFloat(varname);
+			value = getCvarFloat(cvarname);
 		else
-			value = getCvar(varname);
+			value = getCvar(cvarname);
 	}
 		
 	//valid types - bool, int, float, string
 	switch(type)
 	{
 		case "bool": //for boolean vars
-			if(!isDefined(value) || value == 0 || value == false
-			  || value == "false" || value == "0") //valid false values
-				_val = false;
-			else //all other values are true
-				_val = true;
+			if(defaultFlag)
+            {
+                if(value == 0 || value == false)
+                    _val = false;
+                else
+                    _val = true;
+            }
+            else
+            {
+                if(value == "false" || value == "0")//valid false values
+    				_val = false;
+    			else //all other values are true
+    				_val = true;
+
+            }
 			if(_val != value) //check if value was valid
 				setFlag = true; //setFlag if value had to be adjusted
 			break;
@@ -118,8 +131,27 @@ getVar(prefix, varname, type, defValue, minVal, maxVal, gt, map)
 		default:
 			_val = value;
 	}
-	if(setFlag)
-		setCvar(varname,_val);
+	if(defaultFlag)
+    {
+        if(isDefined(setGt) && isDefined(setMap)) //exact gt + map rule 
+        {
+            setCvar(prefix + "_" + setGt + "_" + varname + "_" + setMap, _val);
+        }
+        else if(isDefined(setGt)) //gametype-scoped rule
+        {
+            setCvar(prefix + "_" + setGt + "_" + varname, _val);
+        }
+        else if(isDefined(setMap)) //map-scoped rule
+        {
+            setCvar(prefix + "_" + varname + "_" + setMap, _val);
+        }
+        else //global rule
+        {
+            setCvar(prefix + "_" + varname, _val);
+        }
+    }
+    else if(setFlag)
+        setCvar(cvarname, _val);
 	return _val;
 }
 
@@ -177,8 +209,7 @@ updateCvar(prefix, varname, value, gt, map)
 			return value;
 		setCvar(gtMapName, value);
 	}
-	
-	updateVar(prefix + "_" + varname, value);
+    updateVar(prefix + "_" + varname, value);
 	return value;
 }
 
@@ -233,7 +264,7 @@ updateVars()
 	level thread maps\mp\uox\_uox_arrays::arrayReadEach(level.monitoredVars, ::updateVarValues);
 }
 
-updateVarValues(var)
+updateVarValues(var, cvarname)
 {
 	_val = getVar(var["prefix"], var["varname"], var["type"]);
 		
@@ -377,7 +408,7 @@ initGameTypeVars()
             level.wavenumber = 0;
             break;
 	}
-	varDef("scr", "battlerank", "int", true, 1, 0, 2, "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
+	varDef("scr", "battlerank", "bool", true, true, "", "", "Battle Rank", maps\mp\uox\_uox::updateBattleRank);
 	setCvar("ui_battlerank", [[level.getVars]]("scr_battlerank"));
     varDef("scr", "forcerank", "int", true, 0, 0, 99, "Force Battle Rank Level");
     varDef("scr", "rank_ppr", "int", true, 10, 0, 99, "Points Per Rank");

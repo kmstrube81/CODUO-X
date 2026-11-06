@@ -61,7 +61,7 @@ modtype(gt)
         //UOX CAPTURE THE FLAG
 		case "ctf":
 			//register gametype logic here
-			registerGametype( maps\mp\gametypes\_uox_dm::UOX_Main );
+			registerGametype( maps\mp\gametypes\_uox_ctf::UOX_Main );
             //register mods here - first agurement is mod init function, second argument is name - can not be "main"
             registerMod();
             break;

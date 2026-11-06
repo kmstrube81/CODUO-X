@@ -23,25 +23,10 @@ Callback_StartGameType()
     }
 }
 
-debugTiming()
-{
-    if(!isDefined(level.debugTime)) {
-        level.debugTime = getTime();
-    }
-
-    newTime = getTime();
-
-    maps\mp\uox\_uox_debug::debugLog("info", "Loop Time =" + (newTime - level.debugTime)/1000.0);
-
-    level.debugTime = newTime;
-}
-
 Default_StartGameType()
 {   
     //init loops
 	level thread maps\mp\uox\_uox_loops::initServerLoop();
-
-    //level maps\mp\uox\_uox_loops::addToLoop(level,"slow", ::debugTiming, "debugTiming");
 	
     //init gametype teamplay and map vars
 	level.gametype = getCvar("g_gametype");
@@ -129,7 +114,8 @@ Default_StartGameType()
 		maps\mp\gametypes\_teams::precache();
 		maps\mp\gametypes\_teams::scoreboard();
 	}
-
+    //init menu handlers
+    maps\mp\uox\_uox_menus::setupMenuHandlers();
     //define player models
     maps\mp\gametypes\_teams::modeltype();
 
@@ -146,17 +132,13 @@ Default_StartGameType()
 
 
     level.exist["teams"] = false;
-    if(level.uox_teamplay) {
-        level.exist["allies"] = 0;
-        level.exist["axis"] = 0;
-        level.didexist["allies"] = false;
-        level.didexist["axis"] = false;
-    }
-    else 
-    {
-        level.exist["2players"] = -1;
-        level.didexist["2players"] = false;
-    }
+    level.exist["allies"] = 0;
+    level.exist["axis"] = 0;
+    level.didexist["allies"] = false;
+    level.didexist["axis"] = false;
+
+    level.exist["2players"] = -1;
+    level.didexist["2players"] = false;
 	
 	level.roundstarted = false;
 	level.roundended = false;
@@ -167,6 +149,8 @@ Default_StartGameType()
 	level.playersready = false;
 	level.playerLock = false;
 	level.lockteams = false;
+	level.lockallies = false;
+	level.lockaxis = false;
 	level.healthqueue = [];
 	level.healthqueuecurrent = 0;
 	if([[level.getVars]]("scr_score_rounds") && [[level.getVars]]("scr_scorelimit") != 1)
@@ -290,9 +274,14 @@ Default_PlayerConnect()
 	if(isDefined(self.pers["team"]) && self.pers["team"] != "spectator")
 	{
 		self setClientCvar("ui_weapontab", "1");
-		self.sessionteam = "none";
+		if(level.uox_teamplay)
+			self.sessionteam = self.pers["team"];
+		else
+			self.sessionteam = "none";
 
-		if(self.pers["team"] == "allies")
+        if(level.objective == "bel")
+            self setClientCvar("g_scriptMainMenu", game["menu_weapon_all"]);
+		else if(self.pers["team"] == "allies")
 			self setClientCvar("g_scriptMainMenu", game["menu_weapon_allies"]);
 		else
 			self setClientCvar("g_scriptMainMenu", game["menu_weapon_axis"]);
@@ -322,10 +311,30 @@ Default_PlayerConnect()
 		{
 			maps\mp\uox\_uox_respawns::spawnSpectator();
 
-			if(self.pers["team"] == "allies")
-				self openMenu(game["menu_weapon_allies"]);
-			else
-				self openMenu(game["menu_weapon_axis"]);
+			if(level.objective == "bel" && ( maps\mp\gametypes\_teams::isweaponavailable("axis")
+                || maps\mp\gametypes\_teams::isweaponavailable("allies") ))
+            {
+                menu = game["menu_weapon_all"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            else if(self.pers["team"] == "allies" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"]))
+            {
+                menu = game["menu_weapon_allies"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            else if(self.pers["team"] == "axis" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"])) 
+            {
+                menu = game["menu_weapon_axis"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            else
+            {
+                self setClientCvar("ui_weapontab", "0");
+                self maps\mp\uox\_uox_respawns::menu_spawn("none");
+            }
 		}
 	}
 	else
@@ -619,9 +628,10 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
                 attacker.god = true;
                 iprintln (&"BEL_KILLED_ALLIED_SOLDIER",attacker);
                 attacker thread maps\mp\uox\_uox::moveTeams(true, &"BEL_BLACKSCREEN_KILLEDALLIED");
-                
+                attacker.notification = "bel_kill_allied";
                 if (attacker.pers["team"] == "axis") // only move victim teams if killer is axis
                 {
+                    logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + attacker.pers["team"] + ";" + attacker.name + ";bel_kill_allied\n");
                     self thread maps\mp\uox\_uox::moveTeams();
                 }
             }
@@ -653,6 +663,11 @@ Default_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDir
 	self dropHealth();
 
 	body = self cloneplayer();
+
+    //reset held weapons
+    self.pers["weapon1"] = undefined;
+	self.pers["weapon2"] = undefined;
+	self.pers["spawnweapon"] = undefined;
 
 	// Stop thread if map ended on this death
 	if(level.mapended || level.roundended)

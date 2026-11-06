@@ -46,6 +46,7 @@ killcam(doKillcam, attackerNum, attackerGUID, attackerTeam, attackerName, delay)
 
 doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 {
+	
 	if(!isDefined(extradelay))
 		extradelay = 0;
 	options = [];
@@ -92,6 +93,8 @@ doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 	options["fontscale"] = 3.5;
 	maps\mp\uox\_uox_hud::updateClientHUDElement("kc_timer", "tenthsTimer", kcTimer, options);
 	
+	self.doingKillcam = true;
+
 	self thread spawnedKillcamCleanup();
     if ( doSkipText )
         self thread waitSkipKillcamButton();
@@ -102,7 +105,7 @@ doKillCam(kcTitle, doSkipText, kcTimer, extradelay)
 
 	self.spectatorclient = -1;
 	self.archivetime = 0;
-
+	self.doingKillcam = undefined;
 }
 
 waitKillcamTime(extradelay)
@@ -147,14 +150,22 @@ finalKillcamListener()
 {
 	level waittill("postround");
 	level.didFinalKillcam = true;
-	
+
 	if(!isDefined(level.finalKillcamTime) || !game["matchstarted"])
 	{
+		level.finalKillcamSpectatorClient = undefined;
 		level notify("end_finalkillcam");
 		return; //if no defined killcam data just abort
 	}
-	
+
 	level.finalKillcamTime = (getTime() - level.finalKillcamTime) / 1000;
+	
+	if( level.finalKillcamDelay + level.finalKillcamTime > 20 )
+	{
+		level.finalKillcamSpectatorClient = undefined;
+		level notify("end_finalkillcam");
+		return; //if no defined killcam data just abort
+	}
 	
 	logPrint("A;" + level.finalKillcamAttackerGUID + ";" + level.finalKillcamSpectatorClient + ";" +
 		level.finalKillcamAttackerTeam + ";" + level.finalKillcamAttacker + ";" +
@@ -162,6 +173,8 @@ finalKillcamListener()
 
 	// wait till the next server frame to allow code a chance to update archivetime if it needs trimming
 	wait level.frametime;
+	
+	level notify("start_finalkillcam");
 	
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++)
@@ -172,8 +185,8 @@ finalKillcamListener()
 	
 		if(player.sessionstate != "dead")
 		{
-			currentorigin = self.origin;
-			currentangles = self.angles;
+			currentorigin = player.origin;
+			currentangles = player.angles;
 			level.specmode = "death";
 			
 			if(!isDefined(currentorigin) || !isDefined(currentangles))
@@ -185,7 +198,9 @@ finalKillcamListener()
 		
 		player thread doFinalKillcam();	
 	}
-	wait level.finalKillcamDelay + 9;
+	archivetime = level.finalKillcamDelay + level.finalKillcamTime + 7;
+	delay =  level.finalKillcamDelay + level.finalKillcamTime;
+	wait archivetime - delay + 2;
 	level notify("end_finalkillcam");
 }
 

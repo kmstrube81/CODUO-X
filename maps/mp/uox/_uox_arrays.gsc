@@ -247,7 +247,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 				tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 				tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 			}
-            tempArr["length"] = tempArr["keys"].size;
+			tempArr["length"] = tempArr["keys"].size;
 			return tempArr;
 		}
 		if(numToRemove > 0) abs = numToRemove; else abs = numToRemove * -1;
@@ -265,7 +265,6 @@ arraySlice(arr, startIndex, numToRemove, keys)
 		if(numToRemove > 0) key = i + cnt; else key = i - cnt;
 		while(cnt < abs && key > -1 && key < arr["length"])
 		{
-			
 			if(isDefined(arr["keys"][key]))
 				keys[keys.size] = arr["keys"][key];
 			cnt++;
@@ -284,6 +283,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 			tempArr["keys"][tempArr["keys"].size] = arr["keys"][i];
 			tempArr["values"][arr["keys"][i]] = arr["values"][arr["keys"][i]];
 		}
+		tempArr["length"] = tempArr["keys"].size; //FIX: was never written, left length at 0 after every removal
 		return tempArr;
 	}
 
@@ -301,7 +301,7 @@ arraySlice(arr, startIndex, numToRemove, keys)
 		start = a;
 		end = b;
 	}
-	else if(a > b)
+	else //FIX: was "else if(a > b)", left start/end undefined when a == b (numToRemove of 1)
 	{
 		start = b;
 		end = a;
@@ -362,6 +362,71 @@ arrayFind(arr, searchVal, oneOrAll)
 	if(tempArr.size > 0)
 		return tempArr;
 	return undefined;
+}
+
+/* *************************************************************************************************
+**** arrayOffset(array arr, int offset)
+****
+**** USAGE: rotates the order of the array by offset indexes, wrapping values around the ends.
+**** positive offset shifts right (offset of 1: last element becomes first), negative offset shifts
+**** left (offset of -1: first element becomes last), 0 returns the array unchanged. offsets larger
+**** than the array length are reduced so no redundant full rotations are done.
+**** SUPER ARRAY USAGE: rotates the key order by offset; each value stays paired with its key, so
+**** values move with their keys and iteration order (keys[0..length-1]) reflects the rotation
+****
+**** returns rotated array, undefined if arr is undefined or empty
+****  
+************************************************************************************************* */
+arrayOffset(arr, offset)
+{
+	if(!isDefined(arr))
+		return undefined;
+	
+	len = getArrayLength(arr);
+	if(!isDefined(len) || len == 0)
+		return undefined; //empty array, bail before the reduction loops can spin
+	
+	if(!isDefined(offset) || offset == 0)
+		return arr;
+	
+	//reduce offset to within (-len, len)
+	while(offset >= len)
+		offset = offset - len;
+	while(offset <= len * -1)
+		offset = offset + len;
+	
+	//a left shift of n is the same as a right shift of len - n, so only one direction is needed below
+	if(offset < 0)
+		offset = offset + len;
+	
+	if(offset == 0) //offset was an exact multiple of len
+		return arr;
+	
+	if(isSuperArray(arr))
+	{
+		tempArr = [];
+		tempArr["keys"] = [];
+		for(i = 0; i < len; i++)
+		{
+			src = i - offset;
+			if(src < 0)
+				src = src + len;
+			tempArr["keys"][i] = arr["keys"][src];
+		}
+		tempArr["values"] = arr["values"]; //values are keyed, not ordered, so they follow their keys as-is
+		tempArr["length"] = len;
+		return tempArr;
+	}
+	
+	tempArr = [];
+	for(i = 0; i < len; i++)
+	{
+		src = i - offset;
+		if(src < 0)
+			src = src + len;
+		tempArr[i] = arr[src];
+	}
+	return tempArr;
 }
 
 /* *************************************************************************************************
@@ -607,26 +672,6 @@ updateProperty(arr, key, property, value)
 	}
 }
 
-getNextValue(arr, startIndex)
-{
-	if(!isDefined(startIndex) || startIndex < -1)
-		startIndex = -1;
-	if(isSuperArray(arr))
-	{
-		if(isDefined(arr["keys"][startIndex + 1]))
-			return arr["values"][arr["keys"][startIndex + 1]];
-		else
-			return undefined;
-	}
-	else
-	{
-		if(isDefined(arr[startIndex + 1]))
-			return arr[startIndex + 1];
-		else
-			return undefined;
-	}
-}
-
 getArrayKeys(arr)
 {
 	if(isSuperArray(arr))
@@ -687,7 +732,7 @@ arrayReadEach(arr, callback)
 		key = arr["keys"][i];
 		item = arr["values"][key];
         if(isDefined(callback))
-            [[callback]](item);
+            [[callback]](item, key);
         else //if callback isn't defined then the aray value is the callback
             [[item]]();
 	}
@@ -708,6 +753,93 @@ getNextKey(arr, startIndex)
 	{
 		if(isDefined(arr[startIndex + 1]))
 			return startIndex + 1;
+		else
+			return undefined;
+	}
+}
+
+getPreviousKey(arr, startIndex)
+{
+	if(!isSuperArray(arr))
+	{
+		if(!isDefined(startIndex) || startIndex > arr.size)
+			startIndex = arr.size;
+		
+		if(startIndex < 1)
+			return undefined;
+		
+		if(isDefined(arr[startIndex - 1]))
+			return startIndex - 1;
+		else
+			return undefined;
+		
+	}
+	else
+	{
+		if(!isDefined(startIndex) || startIndex > arr["length"])
+			startIndex = arr["length"];
+		
+		if(startIndex < 1)
+			return undefined;	
+			
+		if(isDefined(arr["keys"][startIndex - 1]))
+			return arr["keys"][startIndex - 1];
+		else
+			return undefined;
+	}
+}
+
+getNextValue(arr, startIndex)
+{
+	if(!isDefined(startIndex) || startIndex < -1)
+		startIndex = -1;
+	if(isSuperArray(arr))
+	{
+		key = arr["keys"][startIndex + 1]; //resolve key first; indexing values with undefined is a runtime error
+		if(!isDefined(key))
+			return undefined;
+		if(isDefined(arr["values"][key]))
+			return arr["values"][key];
+		else
+			return undefined;
+	}
+	else
+	{
+		if(isDefined(arr[startIndex + 1]))
+			return arr[startIndex + 1];
+		else
+			return undefined;
+	}
+}
+
+getPreviousValue(arr, startIndex)
+{
+	if(!isSuperArray(arr))
+	{
+		if(!isDefined(startIndex) || startIndex > arr.size)
+			startIndex = arr.size;
+			
+		if(startIndex < 1)
+			return undefined;	
+		
+		if(isDefined(arr[startIndex - 1]))
+			return arr[startIndex - 1];
+		else
+			return undefined;
+	}
+	else
+	{
+		if(!isDefined(startIndex) || startIndex > arr["length"])
+			startIndex = arr["length"];
+			
+		if(startIndex < 1)
+			return undefined;
+		
+		key = arr["keys"][startIndex - 1]; //resolve key first; indexing values with undefined is a runtime error
+		if(!isDefined(key))
+			return undefined;
+		if(isDefined(arr["values"][key]))
+			return arr["values"][key];
 		else
 			return undefined;
 	}

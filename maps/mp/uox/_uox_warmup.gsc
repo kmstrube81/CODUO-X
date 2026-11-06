@@ -122,6 +122,7 @@ doWarmUp(switchingSides)
 
 waitUntilReady()
 {
+    level endon("abort ready");
 	wait 0;
 	
 	if([[level.getVars]]("scr_autoreadytime"))
@@ -169,6 +170,7 @@ waitUntilReady()
 
 waitUntilWarmup()
 {
+    level endon("abort ready");
 	wait 0;
 	
 	if([[level.getVars]]("scr_autoreadytime"))
@@ -213,6 +215,7 @@ waitUntilWarmup()
 
 readyup(entity, switchingSides)
 {
+    level endon("abort ready");
 	wait 0; // required to let any notify happen before this happens
 	
 	if(!isDefined(switchingSides))
@@ -317,3 +320,36 @@ CheckServerReady()
 	if (checkready == true)
 		level.playersready = true;
 }
+
+abortReadyUp()
+{
+    if(!level.doingReadyUp)
+        return;
+
+    level notify("abort ready");
+
+    level.doingReadyUp = false;
+    level.playersReady = false;
+
+    //ready up finished
+	maps\mp\uox\_uox_hud::deleteReadyUpHUD();
+	
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		player = players[i];
+		if ([[level.getVars]]("scr_battlerank"))
+			player.statusicon = maps\mp\gametypes\_rank_gmi::GetRankStatusIcon(player);
+		else
+			player.statusicon = "";
+
+        player.doingReadyUp = false;
+		
+		player.readyState = "notready";
+        player maps\mp\uox\_uox_hud::deletePlayerReadyUpHUD();
+	}
+	
+	level.doingReadyUp = false;
+    maps\mp\uox\_uox_hud::deleteHUDMainClock();
+}
+

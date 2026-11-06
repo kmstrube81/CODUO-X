@@ -13,8 +13,11 @@ initPlayerInputs()
 	self initInputSequences();
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorUseKey, "monitorUseKey");
 	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorMeleeKey, "monitorMeleeKey");
+	self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorFireKey, "monitorFireKey");
     self maps\mp\uox\_uox_loops::addToLoop(self, "fast", ::monitorInputs, "monitorInputs");
 	self maps\mp\uox\_uox_loops::addToWaitTills(self, "Pressed Use", ::watchUse);
+	self maps\mp\uox\_uox_loops::addToWaitTills(self, "Pressed Melee", ::watchMelee);
+	self maps\mp\uox\_uox_loops::addToWaitTills(self, "Pressed Fire", ::watchFire);
 }
 
 /* *************************************************************************************************
@@ -29,8 +32,8 @@ initInputSequences()
 	//init default input sequences (hold use, hold melee, doubletap use, double tap melee
 	self.holdUse = maps\mp\uox\_uox_arrays::superArray();
 	//TO DO: add cvar for setting default action
-
 	self.holdMelee = maps\mp\uox\_uox_arrays::superArray();
+    self.holdFire = maps\mp\uox\_uox_arrays::superArray();
 	//TO DO: add cvar for setting default action
 
     self.inputCombos = maps\mp\uox\_uox_arrays::superArray();
@@ -44,23 +47,13 @@ initInputSequences()
 ************************************************************************************************* */
 monitorUseKey()
 {
-	//don't monitor in any of these cases
-	if(!isPlayer(self)|| !isAlive(self) || !(self isOnGround()) || self.pers["team"] == "spectator"
-		|| level.mapended || level.roundended)
-		return;
-	if(!isDefined(self.isUsing))
-		self.isUsing = false;
-	
-	if(self.isUsing)
-		return;
-	
-	if(self useButtonPressed())
-	{
-		self.isUsing = true;
-		self notify("Pressed Use");
-	}
-	else
-		self.isUsing = false;
+    if(!isPlayer(self) || level.roundended || level.mapended)
+        return;
+    pressed = self useButtonPressed();
+    if(pressed && !isDefined(self.wasUsing))
+        self notify("Pressed Use");
+    if(pressed) self.wasUsing = true;
+    else self.wasUsing = undefined;
 }
 
 isPressingUse()
@@ -109,18 +102,13 @@ watchUse()
 	while(!skipHold && self useButtonPressed() && !(self meleeButtonPressed()) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
-		while(isAlive(self) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < delaytime)) //button must be held down for the delay time first
+		while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
 			usetime = (usetime + level.frametime);
 		}
-		
-		if(!(self isOnGround())) //if player is no longer on ground, restart sequence
-		{
-			continue;
-		}
 
-		if((isAlive(self)) && (self useButtonPressed()) && !(self meleeButtonPressed())) // made it past the delay time
+		if((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && (self useButtonPressed()) && !(self meleeButtonPressed()) ) // made it past the delay time
 		{	
 			if(drawProgressBar)
 				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
@@ -143,7 +131,7 @@ watchUse()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < waittime)) //wait until wait time passed
+			while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self useButtonPressed() && !(self meleeButtonPressed()) && (usetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 usetime = (usetime + level.frametime);
@@ -162,21 +150,28 @@ watchUse()
                 }
 				else
                     self thread [[holdCallback]](); //do success path
-				self unlink(); //let the player move
-				self enableWeapon(); //and shoot
-				self.isUsing = false; //mark that the player isn't holding use
+				if(disableWeapon)
+					self enableWeapon(); //and shoot
+				self.wasUsing = false; //mark that the player isn't holding use
                 if(lockInPlace) //destroy struct that held player in place
                 {
+                		self unlink(); //let the player move
                     if(isdefined(spawned))
-                        spawned destroy();
+                        spawned delete(); //destroy();
                 }
 				return; //finish hold use
 			}
 			else // didnt hold long enough
 			{
-				self.isUsing = false; //mark that player isn't holding use
-				self unlink(); //let player move
-				self enableWeapon(); //let player shoot
+				self.wasUsing = false; //mark that player isn't holding use
+				if(lockInPlace) //destroy struct that held player in place
+                { 
+					self unlink(); //let the player move
+                    if(isdefined(spawned))
+                        spawned delete(); //destroy();
+                }
+				if(disableWeapon)	
+					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
                 {
                     trigger.doing = undefined;
@@ -202,14 +197,18 @@ watchUse()
     }
     if(usetime <= recordtime) 
     {
+    	
         self.inputStream[self.inputStream.size] = "use";
     }
 	//mark as no using
-	self.isUsing = false;
+	self.wasUsing = false;
 }
 
 addHoldUse(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
+
+	if(isDefined(self.pers["isBot"]))
+		return; //bots can't do inputs anyway
 		
 	if(!isDefined(drawProgressBar))
 		drawProgressBar = false;
@@ -252,22 +251,13 @@ removeHoldUse(msg)
 ************************************************************************************************* */
 monitorMeleeKey()
 {
-	//don't monitor in any of these cases
-	if(!isPlayer(self)|| !isAlive(self) || !(self isOnGround()) || self.pers["team"] == "spectator"
-		|| level.mapended || level.roundended)
-	return;
-	
-	if(!isDefined(self.isMelee))
-		self.isMelee = false;
-	
-	if(self.isMelee)
-		return;
-	
-	if(self meleeButtonPressed())
-	{
-		self.isMelee = true;
-		self notify("Pressed Melee");
-	}
+    if(!isPlayer(self) || level.roundended || level.mapended)
+        return;
+    pressed = self meleeButtonPressed();
+    if(pressed && !isDefined(self.wasMelee))
+        self notify("Pressed Melee");
+    if(pressed) self.wasMelee = true;
+    else self.wasMelee = undefined;
 }
 
 isPressingMelee(trigger)
@@ -313,22 +303,17 @@ watchMelee()
 		conditionCallback = ::isPressingMelee; //defined that use key must be pressed by default
 	
 	//self.currenttime = 0; //frames held down
-	while(!skipHold && self useButtonPressed() && !(self useButtonPressed()) //while the use button is pressed and the condition callback is true
+	while(!skipHold && self meleeButtonPressed() && !(self useButtonPressed()) //while the use button is pressed and the condition callback is true
 		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
 	{
 		
-		while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed()) && (meleetime < delaytime)) //button must be held down for the delay time first
+		while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self meleeButtonPressed() && !(self useButtonPressed()) && (meleetime < delaytime)) //button must be held down for the delay time first
 		{
 			wait level.frametime;
 			meleetime = (meleetime + level.frametime);
 		}
-		
-		if(!(self isOnGround())) //if player is no longer on ground, restart sequence
-		{
-			continue;
-		}
 
-		if((isAlive(self)) && (self meleeButtonPressed()) && !(self useButtonPressed())) // made it past the delay time
+		if((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && (self meleeButtonPressed()) && !(self useButtonPressed())) // made it past the delay time
 		{	
 			if(drawProgressBar)
 				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
@@ -351,7 +336,7 @@ watchMelee()
 			if(isDefined(audioCue)) //play the audio cue
 				self playsound(audioCue);
 			
-			while(isAlive(self) && self meleeButtonPressed() && !(self useButtonPressed()) && (meleetime < waittime)) //wait until wait time passed
+			while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self meleeButtonPressed() && !(self useButtonPressed())  && (meleetime < waittime)) //wait until wait time passed
 			{
 				wait level.frametime;
                 meleetime = (meleetime + level.frametime);
@@ -370,21 +355,28 @@ watchMelee()
                 }
 				else
                     self thread [[holdCallback]](); //do success path
-				self unlink(); //let the player move
-				self enableWeapon(); //and shoot
-				self.isMelee = false; //mark that the player isn't holding use
+				if(disableWeapon) 
+					self enableWeapon(); //and shoot
+				self.wasMelee = false; //mark that the player isn't holding use
                 if(lockInPlace) //destroy struct that held player in place
                 {
+                		self unlink(); //let the player move
                     if(isdefined(spawned))
-                        spawned destroy();
+                        spawned delete(); //destroy();
                 }
 				return; //finish hold use
 			}
 			else // didnt hold long enough
 			{
-				self.isMelee = false; //mark that player isn't holding use
-				self unlink(); //let player move
-				self enableWeapon(); //let player shoot
+				self.wasMelee = false; //mark that player isn't holding use
+				if(lockInPlace) //destroy struct that held player in place
+                { 
+					self unlink(); //let the player move
+                    if(isdefined(spawned))
+                        spawned delete(); //destroy();
+                }
+				if(disableWeapon)
+					self enableWeapon(); //let player shoot
 				if(isDefined(trigger)) //trigger isn't being done anymore
                 {
                     trigger.doing = undefined;
@@ -413,12 +405,14 @@ watchMelee()
         self.inputStream[self.inputStream.size] = "melee";
     }
 	//mark as no using
-	self.isMelee = false;
+	self.wasMelee = false;
 }
 
 addHoldMelee(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
 {
-		
+	if(isDefined(self.pers["isBot"]))
+		return; //bots can't do inputs anyway
+			
 	if(!isDefined(drawProgressBar))
 		drawProgressBar = false;
 	if(!isDefined(lockInPlace))
@@ -450,6 +444,208 @@ removeHoldMelee(msg)
 {
 	self.holdMelee = maps\mp\uox\_uox_arrays::arraySlice(self.holdMelee, msg);
 	maps\mp\uox\_uox_debug::debugLog("info", "HoldMelee deregister: msg=" + msg + " new size=" + self.holdMelee["length"], "self.holdMelee", self.holdMelee);
+}
+
+/* *************************************************************************************************
+**** monitorFireKey()
+****
+**** sends a notify when the fire key is pressed
+****  
+************************************************************************************************* */
+monitorFireKey()
+{
+    if(!isPlayer(self) || level.roundended || level.mapended)
+        return;
+    pressed = self attackButtonPressed();
+    if(pressed && !isDefined(self.wasFiring))
+        self notify("Pressed Fire");
+    if(pressed) self.wasFiring = true;
+    else self.wasFiring = undefined;
+}
+
+isPressingFire()
+{
+	if(self attackButtonPressed())
+		return true;
+	return false;
+}
+
+watchFire()
+{
+	self endon("disconnect");
+	
+	//array shape n["callback"] - what happens when finished
+	// n["delaytime"] how long before hold starts counting
+	// n["waittime"] how long it takes
+	// n["progressbar"] whether to draw progress bar
+	fire = maps\mp\uox\_uox_arrays::getNextValue(self.holdFire); //load top of stack
+	firetime = 0; //the number of frames held down
+	
+	if(!isDefined(fire))
+	{
+		skipHold = true; //no current hold fire, nothing to do
+		delaytime = 0;
+	}
+	else
+	{
+		skipHold = false;
+		msg = maps\mp\uox\_uox_arrays::getNextKey(self.holdFire); //get the notify msg
+		delaytime = fire["delaytime"]; //get how long it must be held to register as a fire
+		waittime = fire["waittime"]; //how long to wait before doing the action
+		conditionCallback = fire["condition"]; //the functionPointer that returns true or false for the hold fire, must be fired with trigger
+		holdCallback = fire["callback"]; //the functionPointer of the success path
+		failCallback = fire["failure"]; //the functionPointer of the fail path
+		drawProgressBar = fire["progressbar"]; //should a progress bar be drawn
+		lockInPlace = fire["lock"]; //should the player be locked in place while doing it
+		disableWeapon = fire["disableweapon"]; //can the player shoot/reload while doing it
+		trigger = fire["trigger"]; //the entity associated with the hold fire
+		audioCue = fire["audiocue"]; //sound to play while doing hold fire
+	}
+	
+	if(!isDefined(conditionCallback))
+		conditionCallback = ::isPressingFire; //defined that fire key must be pressed by default
+	
+	//self.currenttime = 0; //frames held down
+	while(!skipHold && self attackButtonPressed()  //while the fire button is pressed and the condition callback is true
+		&& (( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) )
+	{
+		while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self attackButtonPressed() && (firetime < delaytime)) //button must be held down for the delay time first
+		{
+			wait level.frametime;
+			firetime = (firetime + level.frametime);
+		}
+
+		if((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && (self attackButtonPressed()) ) // made it past the delay time
+		{	
+			if(drawProgressBar)
+				self maps\mp\uox\_uox_hud::createClientHUDProgressBar(waittime); //draw the progress bar
+
+			self notify("kill_check_" + msg); //send a kill notify to end any endon threads
+			
+			if(isDefined(trigger)) //if trigger exists
+				trigger.doing = true; //mark it as being done
+			
+			if(lockInPlace) //spawn a struct and link player to it if lockinplace is true
+			{
+				spawned = spawn("script_origin", self.origin);
+				if(isdefined(spawned))
+					self linkto(spawned);
+			}
+			
+			if(disableWeapon) //if disable weapon is set then disable weapon
+				self disableWeapon();
+			
+			if(isDefined(audioCue)) //play the audio cue
+				self playsound(audioCue);
+			
+			while((( !isDefined(trigger) && [[ conditionCallback ]]() ) || (isDefined(trigger) && self [[ conditionCallback ]](trigger))) && self attackButtonPressed() && (firetime < waittime)) //wait until wait time passed
+			{
+				wait level.frametime;
+                firetime = (firetime + level.frametime);
+			}
+
+			//delete hud elems
+			self maps\mp\uox\_uox_hud::deleteClientHUDProgressBar();
+
+			//did it!
+			if(firetime >= waittime)
+			{
+                if(isDefined(trigger)) //and that the trigger isn't being done anymore
+                {
+                    trigger.doing = undefined;
+                    self thread [[holdCallback]](trigger); //do success path
+                }
+				else
+                    self thread [[holdCallback]](); //do success path
+				if(disableWeapon)
+					self enableWeapon(); //and shoot
+				self.wasFiring = false; //mark that the player isn't holding fire
+                if(lockInPlace) //destroy struct that held player in place
+                { 
+					self unlink(); //let the player move
+                    if(isdefined(spawned))
+                        spawned delete(); //destroy();
+                }
+				return; //finish hold fire
+			}
+			else // didnt hold long enough
+			{
+				self.wasFiring = false; //mark that player isn't holding fire
+				if(lockInPlace) //destroy struct that held player in place
+                { 
+					self unlink(); //let the player move
+                    if(isdefined(spawned))
+                        spawned delete(); //destroy();
+                }
+				if(disableWeapon)
+					self enableWeapon(); //let player shoot
+				if(isDefined(trigger)) //trigger isn't being done anymore
+                {
+                    trigger.doing = undefined;
+                    if(isDefined(failCallback)) //do fail path
+                        self thread [[failCallback]](trigger);
+                }
+                else
+                {
+                    if(isDefined(failCallback)) //do fail path
+                        self thread [[failCallback]]();
+                }
+			}
+		}
+	}
+	//got here, record the input instead TODO input recording
+	recordtime = level.inputFrameWindow; //5 frames default held time to register a tap
+      
+	//before recording input, makesure it still isn't held down
+	while(self attackButtonPressed())
+    {
+        wait level.frametime;
+        firetime = (firetime + level.frametime);
+    }
+    if(firetime <= recordtime) 
+    {
+        self.inputStream[self.inputStream.size] = "fire";
+    }
+	//mark as no using
+	self.wasFiring = false;
+}
+
+addHoldFire(msg, dir, delayTime, waitTime, conditionCallback, successCallback, failCallback, drawProgressBar, lockInPlace, disableWeapon, trigger, audioCue)
+{
+	if(isDefined(self.pers["isBot"]))
+		return; //bots can't do inputs anyway
+			
+	if(!isDefined(drawProgressBar))
+		drawProgressBar = false;
+	if(!isDefined(lockInPlace))
+		lockInPlace = false;
+	if(!isDefined(disableWeapon))
+		disableWeapon = false;
+	
+	hold = [];
+	hold["msg"] = msg;
+	hold["delaytime"] = delayTime;
+	hold["waittime"] = waitTime;
+	hold["condition"] = conditionCallback;
+	hold["callback"] = successCallback;
+	hold["failure"] = failCallback;
+	hold["progressbar"] = drawProgressBar;
+	hold["lock"] = lockInPlace;
+	hold["disableweapon"] = disableWeapon;
+	hold["trigger"] = trigger;
+	hold["audiocue"] = audioCue;
+	
+	if(dir) //false pushes hold fire to top of stack, true to the bottom
+		self.holdFire = maps\mp\uox\_uox_arrays::arrayPush(self.holdFire, hold, msg);
+	else
+		self.holdFire = maps\mp\uox\_uox_arrays::arrayUnshift(self.holdFire, hold, msg);
+	maps\mp\uox\_uox_debug::debugLog("info", "HoldFire register: msg=" + msg + " new size=" + self.holdFire["length"], "self.holdFire", self.holdFire);
+}
+
+removeHoldFire(msg)
+{
+	self.holdFire = maps\mp\uox\_uox_arrays::arraySlice(self.holdFire, msg);
+	maps\mp\uox\_uox_debug::debugLog("info", "HoldFire deregister: msg=" + msg + " new size=" + self.holdFire["length"], "self.holdFire", self.holdFire);
 }
 
 /* *************************************************************************************************
@@ -495,7 +691,7 @@ doInputCombination(combo)
     
     maps\mp\uox\_uox_debug::debugLog("info", self.name + " did input combo: " + combo_str);
 
-    callback = maps\mp\uox\_uox_arrays::getValue(self.inputCombos, "combo_str");
+    callback = maps\mp\uox\_uox_arrays::getValue(self.inputCombos, combo_str);
 
     if(isDefined(callback))
         thread [[callback]]();
@@ -503,6 +699,8 @@ doInputCombination(combo)
 
 addInputCombination(combo, callback, callbackName)
 {
+	if(isDefined(self.pers["isBot"]))
+		return;
     if(!isDefined(callbackName))
         callbackName = combo;
 
@@ -515,6 +713,7 @@ addInputCombination(combo, callback, callbackName)
         {
             case "use":
             case "melee":
+            case "fire":
             case "meleeuse":
                 break;
             default:

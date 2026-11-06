@@ -15,6 +15,7 @@ defineMenus()
     game["menu_quickresponses"] = "quickresponses";
     game["menu_quickvehicles"] = "quickvehicles";
     game["menu_quickrequests"] = "quickrequests";
+
 }
 
 precache()
@@ -31,6 +32,96 @@ precache()
     precacheMenu(game["menu_quickresponses"]);
     precacheMenu(game["menu_quickvehicles"]);
     precacheMenu(game["menu_quickrequests"]);
+}
+
+registerMenu(menu, handlerCallback, dir, response, responseCallback)
+{
+    if(!isDefined(handlerCallback))
+        handlerCallback = ::handleUnknownMenu;
+    if(!isDefined(dir))
+        dir = true;
+    if(!isDefined(responseCallback))
+       responseCallback = ::handleMenuOpen;
+
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, menu);
+
+    if(!isDefined(handlers))
+    {
+        handlers = [];
+        handlers[0] = handlerCallback;
+    }
+    else
+    {
+        handlers = maps\mp\uox\_uox_arrays::arrayPush(handlers, handlerCallback);
+    }
+    if(dir) //if direction is true, add menuhandler to bottom of callback stack
+        level.menuHandlers = maps\mp\uox\_uox_arrays::arrayPush(level.menuHandlers, handlers, menu);
+    else //otherwise put it on top of the stack
+        level.menuHandlers = maps\mp\uox\_uox_arrays::arrayUnshift(level.menuHandlers, handlers, menu);
+
+    if(!isDefined(response))
+        return;
+    responseArr = [];
+    responseArr[0] = responseCallback; //callback
+    responseArr[1] = menu; //registering menu
+    level.menuResponses = maps\mp\uox\_uox_arrays::arrayPush(level.menuResponses, responseArr, response);
+}
+
+setupMenuHandlers()
+{
+    //set up menu handlers
+    if(!isDefined(level.menuHandlers))
+        level.menuHandlers = maps\mp\uox\_uox_arrays::superArray();
+    //map menu to response
+    if(!isDefined(level.menuResponses))
+        level.menuResponses = maps\mp\uox\_uox_arrays::superArray();
+    //handle server info
+    registerMenu(game["menu_serverinfo"], ::handleServerInfoMenu);
+    //handle teams
+    registerMenu(game["menu_team"], ::handleTeamMenu, true,  "team");
+    //handle weapons - all
+    registerMenu(game["menu_weapon_all"], ::handleWeaponMenu, true, "weapon", ::handleWeaponMenuOpen);
+    //handle weapons - allies
+    registerMenu(game["menu_weapon_allies"], ::handleWeaponMenu);
+    //hande weapons - axis
+    registerMenu(game["menu_weapon_axis"], ::handleWeaponMenu);
+    //handle Map
+    registerMenu(game["menu_viewmap"], undefined, true, "viewmap");
+    //handle call vote
+    registerMenu(game["menu_callvote"], undefined, true, "callvote");
+    //handle quick commands
+    registerMenu(game["menu_quickcommands"], ::handleQuickCommandsMenu);
+    //handle quick statements
+    registerMenu(game["menu_quickstatements"], ::handleQuickStatementsMenu);
+    //handle quick responses
+    registerMenu(game["menu_quickresponses"], ::handleQuickResponsesMenu);
+    //handle quick Vehicles
+    registerMenu(game["menu_quickvehicles"], ::handleQuickVehiclesMenu);
+    //handle quick requests
+    registerMenu(game["menu_quickrequests"], ::handleQuickRequestsMenu);
+}
+
+handleMenuOpen(close, open)
+{
+    if(close == open)
+        return;
+
+    self closeMenu(close);
+    self openMenu(open);
+}
+
+handleWeaponMenuOpen(close, open)
+{
+    if(close == open)
+        return;
+
+    self closeMenu(close);
+    if(level.objective == "bel")
+        self openMenu(game["menu_weapon_all"]);
+    else if(self.pers["team"] == "allies")
+        self openMenu(game["menu_weapon_allies"]);
+    else if(self.pers["team"] == "axis")
+        self openMenu(game["menu_weapon_axis"]);
 }
 
 getServerInfoMenu()
@@ -62,21 +153,24 @@ getServerInfoMenu()
         return "serverinfo_dm";
 }
 
-handleMenuResponse(menu, response)
+handleServerInfoMenu(response, optional)
 {
-    if(menu == game["menu_serverinfo"] && response == "close")
+    if(response == "close")
     {
         self.pers["skipserverinfo"] = true;
         self openMenu(game["menu_team"]);
     }
 
-    if(response == "open" || response == "close")
+    else if(response == "open")
         return;
 
-    if(menu == game["menu_team"])
+}
+
+handleTeamMenu(response, optional)
+{
+
+    switch(response)
     {
-        switch(response)
-        {
         case "allies":
         case "axis":
         case "autoassign":
@@ -87,9 +181,16 @@ handleMenuResponse(menu, response)
                 response = getAutoAssign();
                 skipbalancecheck = true;
             }
+            else if(response == "allies" && level.lockallies)
+                break;
+            else if(response == "axis" && level.lockaxis)
+                break;    
 
             if(response == self.pers["team"] && self.sessionstate == "playing")
                 break;
+
+            if(isDefined(self.pers["isBot"]))
+                skipbalancecheck = true;
 
             //Check if the teams will become unbalanced when the player goes to this team...
             //------------------------------------------------------------------------------
@@ -165,18 +266,22 @@ handleMenuResponse(menu, response)
             if(level.uox_teamplay) // update spectator permissions immediately on change of team
                 maps\mp\gametypes\_teams::SetSpectatePermissions();
 
-            // if there are weapons the user can select then open the weapon menu
-            if ( maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"]) )
+            // if there are weapons the user can select then open the weapon menu      
+            if(level.objective == "bel" && ( maps\mp\gametypes\_teams::isweaponavailable("axis") || maps\mp\gametypes\_teams::isweaponavailable("allies") ))
             {
-                if(self.pers["team"] == "allies")
-                {
-                    menu = game["menu_weapon_allies"];
-                }
-                else
-                {
-                    menu = game["menu_weapon_axis"];
-                }
-            
+                menu = game["menu_weapon_all"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            if(self.pers["team"] == "allies" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"]))
+            {
+                menu = game["menu_weapon_allies"];
+                self setClientCvar("ui_weapontab", "1");
+                self openMenu(menu);
+            }
+            else if(self.pers["team"] == "axis" && maps\mp\gametypes\_teams::isweaponavailable(self.pers["team"])) 
+            {
+                menu = game["menu_weapon_axis"];
                 self setClientCvar("ui_weapontab", "1");
                 self openMenu(menu);
             }
@@ -185,7 +290,9 @@ handleMenuResponse(menu, response)
                 self setClientCvar("ui_weapontab", "0");
                 self maps\mp\uox\_uox_respawns::menu_spawn("none");
             }
-    
+
+            if(!isDefined(menu))
+                menu = game["menu_team"];
             self setClientCvar("g_scriptMainMenu", menu);
             break;
 
@@ -211,111 +318,120 @@ handleMenuResponse(menu, response)
                 maps\mp\uox\_uox_respawns::spawnSpectator();
             }
             break;
-
-        case "weapon":
-            if(self.pers["team"] == "allies")
-                self openMenu(game["menu_weapon_allies"]);
-            else if(self.pers["team"] == "axis")
-                self openMenu(game["menu_weapon_axis"]);
-            break;
-
-        case "viewmap":
-            self openMenu(game["menu_viewmap"]);
-            break;
-
-        case "callvote":
-            self openMenu(game["menu_callvote"]);
-            break;
-        }
     }
-    else if(menu == game["menu_weapon_allies"] || menu == game["menu_weapon_axis"] || menu == game["menu_weapon_all"])
-    {
-        if(response == "team")
-        {
-            self openMenu(game["menu_team"]);
-            return;
-        }
-        else if(response == "viewmap")
-        {
-            self openMenu(game["menu_viewmap"]);
-            return;
-        }
-        else if(response == "callvote")
-        {
-            self openMenu(game["menu_callvote"]);
-            return;
-        }
+}
 
-        if(!isDefined(self.pers["team"]) || (self.pers["team"] != "allies" && self.pers["team"] != "axis"))
-            return;
-            
+handleWeaponMenu(response, weapon) //allow to pass in a weapon for custom menu handling
+{
+
+    if(!isDefined(self.pers["team"]) || (self.pers["team"] != "allies" && self.pers["team"] != "axis"))
+        return;
+    
+    if(isDefined(weapon))
+        maps\mp\uox\_uox_debug::debugLog("info", self.name + " handleWeaponMenu passed in weapon is " + weapon);
+
+    if(!isDefined(weapon) || weapon != "restricted") 
         weapon = self maps\mp\gametypes\_teams::restrict(response);
 
-        if(weapon == "restricted")
-        {
-            self openMenu(menu);
-            return;
-        }
-
-        self.pers["selectedweapon"] = weapon;
-
-        if(isDefined(self.pers["weapon"]) && self.pers["weapon"] == weapon)
-            return;
-
-        maps\mp\uox\_uox_respawns::menu_spawn(weapon);
-    }
-    else if(menu == game["menu_viewmap"])
+    if(weapon == "restricted")
     {
-        switch(response)
-        {
-        case "team":
-            self openMenu(game["menu_team"]);
-            break;
+        if(level.objective == "bel")
+            menu = game["menu_weapon_all"];
+        else if(self.pers["team"] == "allies")
+            menu = game["menu_weapon_allies"];
+        else if(self.pers["team"] == "axis")
+            menu = game["menu_weapon_axis"];
 
-        case "weapon":
-            if(self.pers["team"] == "allies")
-                self openMenu(game["menu_weapon_allies"]);
-            else if(self.pers["team"] == "axis")
-                self openMenu(game["menu_weapon_axis"]);
-            break;
-
-        case "callvote":
-            self openMenu(game["menu_callvote"]);
-            break;
-        }
+        self openMenu(menu);
+        return;
     }
-    else if(menu == game["menu_callvote"])
-    {
-        switch(response)
-        {
-        case "team":
-            self openMenu(game["menu_team"]);
-            break;
 
-        case "weapon":
-            if(self.pers["team"] == "allies")
-                self openMenu(game["menu_weapon_allies"]);
-            else if(self.pers["team"] == "axis")
-                self openMenu(game["menu_weapon_axis"]);
-            break;
+    self.pers["selectedweapon"] = weapon;
 
-        case "viewmap":
-            self openMenu(game["menu_viewmap"]);
-            break;
-        }
-    }
-    else if(maps\mp\uox\_uox_debug::debug("info"))
-        maps\mp\uox\_uox_debug::vsay_debug(menu, response);
-    else if(menu == game["menu_quickcommands"])
+    if(isDefined(self.pers["weapon"]) && self.pers["weapon"] == weapon)
+        return;
+
+    maps\mp\uox\_uox_respawns::menu_spawn(weapon);
+}
+
+handleQuickCommandsMenu(response, optional)
+{
+    if(maps\mp\uox\_uox_debug::debug("info"))
+        maps\mp\uox\_uox_debug::vsay_debug(game["menu_quickcommands"], response);
+    else
         maps\mp\gametypes\_teams::quickcommands(response);
-    else if(menu == game["menu_quickstatements"])
+}
+
+handleQuickStatementsMenu(response, optional)
+{
+
+    if(maps\mp\uox\_uox_debug::debug("info"))
+        maps\mp\uox\_uox_debug::vsay_debug(game["menu_quickstatements"], response);
+    else
         maps\mp\gametypes\_teams::quickstatements(response);
-    else if(menu == game["menu_quickresponses"])
+}
+
+handleQuickResponsesMenu(response, optional)
+{
+
+    if(maps\mp\uox\_uox_debug::debug("info"))
+        maps\mp\uox\_uox_debug::vsay_debug(game["menu_quickresponses"], response);
+    else
         maps\mp\gametypes\_teams::quickresponses(response);
-    else if(menu == game["menu_quickvehicles"])
+}
+
+handleQuickVehiclesMenu(response, optional)
+{
+
+    if(maps\mp\uox\_uox_debug::debug("info"))
+        maps\mp\uox\_uox_debug::vsay_debug(game["menu_quickvehicles"], response);
+    else
         maps\mp\gametypes\_teams::quickvehicles(response);
-    else if(menu == game["menu_quickrequests"])
+}
+
+handleQuickRequestsMenu(response, optional)
+{
+
+    if(maps\mp\uox\_uox_debug::debug("info"))
+        maps\mp\uox\_uox_debug::vsay_debug(game["menu_quickrequests"], response);
+    else
         maps\mp\gametypes\_teams::quickrequests(response);
+}
+
+handleUnknownMenu(response, optional)
+{
+    if(response == "open" || response == "close")
+        return;
+}
+
+handleMenuResponse(menu, response)
+{
+    handlers = maps\mp\uox\_uox_arrays::getValue(level.menuHandlers, menu);
+
+    if(!isDefined(handlers))
+    {
+        handleUnknownMenu();
+        return;
+    }
+    else
+    {
+        if((response == "open" || response == "close") && menu != game["menu_serverinfo"])
+            return;
+        //check response array for menu
+        newmenu = maps\mp\uox\_uox_arrays::getValue(level.menuResponses, response);
+        if(!isDefined(newmenu))
+        {   //if there isn't a menu to open, handle menu choice
+            for(i = 0; i < handlers.size; i++)
+            {
+                handler = handlers[i];
+                optional = [[ handler ]](response, optional);
+            }
+        }
+        else //open new menu
+        {
+            [[ newmenu[0] ]](menu, newmenu[1]);
+        }
+    }
 }
 
 getAutoAssign()
@@ -352,3 +468,5 @@ getAutoAssign()
 	}
 	return response;
 }
+
+

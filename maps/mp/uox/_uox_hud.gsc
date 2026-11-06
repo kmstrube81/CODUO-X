@@ -399,21 +399,41 @@ animateHUDElement(element, type, options, time)
 	if(isDefined(options))
 	{
 		if(isDefined(options["x"]))
-			x = options["x"];
+			element.x = options["x"];
 		if(isDefined(options["y"]))
-			y = options["y"];
+			element.y = options["y"];
+		if(isDefined(options["alignX"]))
+			element.alignX = options["alignX"];
+		if(isDefined(options["alignY"]))
+			element.alignY = options["alignY"];
+		if(isDefined(options["font"]))
+			element.font = options["font"];
 		if(isDefined(options["color"]))
-			color = options["color"];
+			element.color = options["color"];
 		if(isDefined(options["fontscale"]))
-			fontscale = options["fontscale"];
+			element.fontscale = options["fontscale"];
 		if(isDefined(options["alpha"]))
-			alpha = options["alpha"];
+			element.alpha = options["alpha"];
 		if(isDefined(options["width"]))
 			width = options["width"];
-		else width = 16;
+		else
+			width = 16;
 		if(isDefined(options["height"]))
 			height = options["height"];
-		else height = 16;
+		else
+			height = 16;
+        if(isDefined(options["crop_width"]))
+			crop_width = options["crop_width"];
+		else
+			crop_width = 1.0;
+		if(isDefined(options["crop_height"]))
+			crop_height = options["crop_height"];
+		else
+			crop_height = 1.0;
+        if(isDefined(options["sort"]))
+			element.sort = options["sort"];
+        if(isDefined(options["label"]))
+            element.label = options["label"];
 	}
 	
 	if(time <= 0) //if no timer, nothing to animate
@@ -427,6 +447,13 @@ animateHUDElement(element, type, options, time)
 			break;
         case "fade":
             element fadeOverTime(time);
+            break;
+        case "popText":
+            popText(element, time, options["fontscale"], options["alpha"]);
+            break;
+        case "slamText":
+            slamText(element, time, options["fontscale"], options["alpha"]);
+            break;
 	}
 }
 
@@ -491,9 +518,9 @@ clearClientHUD()
     initClientHUD();
 }
 
-destroyClientHUDElement( element )
+destroyClientHUDElement( element, name )
 {
-	maps\mp\uox\_uox_debug::debugLog("info", "Clearing " + element.elementName + " HUD Element");
+	maps\mp\uox\_uox_debug::debugLog("info", "Clearing " + name + " HUD Element");
 	element destroy();
 	element = undefined;
 }
@@ -1526,6 +1553,17 @@ createHUDEndRoundScore(time, lastRound, doHalfTime)
 	if(round > 0) //if we started playing
 	{
         headercolor = (.99, .99, .75);
+        if(game["team1"] == "allies")
+        {
+            team1 = game["allies"];
+            team2 = "german";
+        }
+        else
+        {
+            team1 = "german";
+            team2 = game["allies"];
+        }
+
         switch(game["team1"])
         {
             case "russian":
@@ -2412,7 +2450,7 @@ tweenFontScale(element, from, to, duration, ease, token)
 ****
 **** call threaded; returns nothing
 ***************************************************************************************************** */
-popText(element, target, alpha)
+popText(element, time, target, alpha)
 {
     if(!isDefined(element))
         return;
@@ -2426,11 +2464,16 @@ popText(element, target, alpha)
     element.uox_animToken++;
     token = element.uox_animToken;
 
+    time1 = time / 3;
+    time2 = time / 1.5;
+
+    element.alpha = 0;
+    element fadeOverTime(0.15);
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target, target * 2.0, 0.2, "out", token))
+    if(!tweenFontScale(element, target, target * 2.0, time1, "out", token))
     		return;
-	tweenFontScale(element, target * 2.0, target, 0.4, "linear", token);
+	tweenFontScale(element, target * 2.0, target, time2, "linear", token);
 
             
 }
@@ -2445,7 +2488,7 @@ popText(element, target, alpha)
 ****
 **** call threaded; returns nothing
 ***************************************************************************************************** */
-slamText(element, target, alpha)
+slamText(element, time, target, alpha)
 {
     if(!isDefined(element))
         return;
@@ -2459,12 +2502,16 @@ slamText(element, target, alpha)
     element.uox_animToken++;
     token = element.uox_animToken;
 
+    time1 = time / 3;
+    time2 = time / 1.5; 
+
+    element.fontscale = target * 2.0;
     element.alpha = 0;
     element fadeOverTime(0.15);
     element.alpha = alpha;
 
-    if(!tweenFontScale(element, target * 2.0, target * 0.9, 0.2, "in", token))
+    if(!tweenFontScale(element, target * 1.5, target * 0.9, time1, "in", token))
         return;
-    tweenFontScale(element, target * 0.9, target, 0.1, "out", token);
+    tweenFontScale(element, target * 0.9, target, time2, "linear", token);
    
 }

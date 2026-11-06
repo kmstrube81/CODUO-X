@@ -143,6 +143,10 @@ onPlayerKill(victim, attacker)
             bonus = [[level.getVars]]("scr_defensebonus");
             attacker.score += bonus;
             attacker.pers["score"] = attacker.score;
+            attacker.notification = "flag_defense";
+            lpattacknum = attacker getEntityNumber();
+            lpattackguid = attacker getGuid();
+            logPrint("A;" + lpattackguid + ";" + lpattacknum + ";" + attacker.pers["team"] + ";" + attacker.name + ";" + "dom_defended" + "\n");
         }
     }
 }
@@ -1109,6 +1113,7 @@ GivePointsToCappers( team )
 			lpselfnum = player getEntityNumber();
 			lpselfguid = player getGuid();
 			logPrint("A;" + lpselfguid + ";" + lpselfnum + ";" + player.pers["team"] + ";" + player.name + ";" + "dom_captured" + "\n");
+            player.notification = "flag_captured";
 		}
 	}
 }
