@@ -230,6 +230,10 @@ checkScoreLimit()
 
 checkOTScoreLimit()
 {
+
+    if(!isOvertime())
+        return;
+        
     ot_scorelimit = [[level.getVars]]("scr_ot_scorelimit");
     if(!game["suddendeath"] && ot_scorelimit <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
 		return; //nothing to do in that case
@@ -260,7 +264,7 @@ checkOTScoreLimit()
         players = getentarray("player", "classname"); //get players
         for(i = 0; i < players.size; i++) //loop players
         {	
-            if(players[i].score >= ot_winningscore //if current player is over the scorelimit
+            if(players[i].score >= ot_winningscore) //if current player is over the scorelimit
                 break; //exit the loop
         }
 
@@ -638,7 +642,7 @@ checkTimeLimit(endMap)
 		{ 	//check if game is tied
 			if(checkTie([[level.getVars]]("scr_score_rounds")))
 			{
-			    game["ot_basescore"] = getTeam1Score();
+			    game["ot_basescore"] = getOTBaseScore();
 				game["suddendeath"] = true;
 			}
 		}
@@ -1959,7 +1963,7 @@ doHalftime(midRound)
 ************************************************************************************************* */
 doOvertime(announce)
 {
-    game["ot_basescore"] = getTeam1Score();
+    game["ot_basescore"] = getOTBaseScore();
 	game["suddendeath"] = true;
 	//announce that the game is in sudden death
 	if(isDefined(announce))
@@ -1973,6 +1977,22 @@ doOvertime(announce)
 	}
 	
 }
+
+getOTBaseScore()
+{
+	if(level.uox_teamplay && level.objective != "bel")
+		return getTeam1Score(); //tied, so team1 == team2
+
+	best = 0;
+	players = getentarray("player", "classname");
+	for(i = 0; i < players.size; i++)
+	{
+		if(players[i].score > best)
+			best = players[i].score;
+	}
+	return best;
+}
+
 
 /* *************************************************************************************************
 **** resetScores()
