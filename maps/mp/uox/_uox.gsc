@@ -2710,7 +2710,7 @@ initObjectives(objective)
             game["attackers"] = undefined;
 			game["defenders"] = undefined;
             maps\mp\uox\_uox_radios::initVars();
-            maps\mp\uox\_uox_radios::hq_setup();
+            thread maps\mp\uox\_uox_radios::hq_setup();
             return;
         case "ctf":
             game["attackers"] = undefined;
