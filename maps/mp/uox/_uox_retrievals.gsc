@@ -879,6 +879,15 @@ drop_objective_on_disconnect_or_death(player)
 			announcement(&"RE_OBJ_DROPPED", level.obj[self.script_objective_name]);
 		else
 			announcement(&"RE_OBJ_DROPPED");
+
+        if(isPlayer(player))
+    	{
+    		if((isdefined(self.objnum)) && (isdefined(player.hasobj[self.objnum])))
+    			player.hasobj[self.objnum] = undefined;
+    		else
+    			println("#### " + self.objnum + "UNDEFINED");
+    		player.objs_held--;
+    	}
 	}
 
 	self thread objective_timeout();
