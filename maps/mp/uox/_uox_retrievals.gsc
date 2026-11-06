@@ -636,6 +636,7 @@ clear_player_dropbar(player)
 objective_timeout()
 {
 	self endon("picked up");
+    self endon("completed");
 	obj_timeout = 60;
 	wait obj_timeout;
 	announcement(&"RE_OBJ_TIMEOUT_RETURNING", obj_timeout);
