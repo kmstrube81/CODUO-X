@@ -131,7 +131,7 @@ checkScoreLimit()
 	if(!game["matchstarted"]) //if match isn't started
 		return; //then nothing to do
 
-    if(!game["suddendeath"] && isOvertime()) //if in ot
+    if(isOvertime()) //if in ot
     {
         checkOTScoreLimit();
         return;
@@ -145,55 +145,47 @@ checkScoreLimit()
 
 	doHalftime = false; //init doHalftime flag 
 	
-	if(game["suddendeath"]) //if suddendeath overtime
-	{
-		if(checkTie([[level.getVars]]("scr_score_rounds"))) //if game tied
-		{
-			return; //if game tied, nothing to do yet
-		}
-	}
-	else //if kill is in regulation
-	{
-		if(level.uox_teamplay && level.objective != "bel") //if team game
-		{	//if one team has reached the halfscore and game is in the first half
-			if([[level.getVars]]("scr_halftime")
+	//if kill is in regulation
+	if(level.uox_teamplay && level.objective != "bel") //if team game
+	{	//if one team has reached the halfscore and game is in the first half
+		if([[level.getVars]]("scr_halftime")
 			   && (alliedscore >= level.halfscore || axisscore >= level.halfscore) 
 			   && game["half"] == 1)
-			{	//if game is roundbased and both teams are less than the scorelimit and not scoring rounds
-				if(game["roundbased"] && alliedscore < [[level.getVars]]("scr_scorelimit")
+		{	//if game is roundbased and both teams are less than the scorelimit and not scoring rounds
+			if(game["roundbased"] && alliedscore < [[level.getVars]]("scr_scorelimit")
 					&& axisscore < [[level.getVars]]("scr_scorelimit") 
 					&& ![[level.getVars]]("scr_score_rounds"))
-						doHalftime(true);	//doHalftime
-			}
-			//if both teams or below the scorelimit
-			if(alliedscore < [[level.getVars]]("scr_scorelimit")
-				&& axisscore < [[level.getVars]]("scr_scorelimit"))
-				return; //nothing to do
+			    doHalftime(true);	//doHalftime
 		}
-		else //if free for all game
-		{
-			players = getentarray("player", "classname"); //get players
-			for(i = 0; i < players.size; i++) //loop players
-			{	//if current player score is greater than halfscore and game is in the first half
-				if([[level.getVars]]("scr_halftime") && players[i].score >= level.halfscore 
+		//if both teams or below the scorelimit
+		if(alliedscore < [[level.getVars]]("scr_scorelimit")
+				&& axisscore < [[level.getVars]]("scr_scorelimit"))
+		    return; //nothing to do
+	}
+	else //if free for all game
+	{
+	    players = getentarray("player", "classname"); //get players
+		for(i = 0; i < players.size; i++) //loop players
+		{	//if current player score is greater than halfscore and game is in the first half
+			if([[level.getVars]]("scr_halftime") && players[i].score >= level.halfscore 
 				&& game["half"] == 1 && players[i].score < [[level.getVars]]("scr_scorelimit"))
-				{	//if not scoring rounds and game is round based
-					if(![[level.getVars]]("scr_score_rounds") && game["roundbased"])
-						doHalftime = true; //set doHalftime flag
-				}
+			{	//if not scoring rounds and game is round based
+				if(![[level.getVars]]("scr_score_rounds") && game["roundbased"])
+					doHalftime = true; //set doHalftime flag
+			}
 				
-				if(players[i].score >= [[level.getVars]]("scr_scorelimit")) //if current player is over the scorelimit
-					break; //exit the loop
-			}
+			if(players[i].score >= [[level.getVars]]("scr_scorelimit")) //if current player is over the scorelimit
+				break; //exit the loop
+		}
 
-			if(i >= players.size) //if loop fully completed
-			{	//if doHalftime is true
-				if(doHalftime)
-					doHalftime(true); //do halftime
-				return; //nothing left to do
-			}
+		if(i >= players.size) //if loop fully completed
+		{	//if doHalftime is true
+			if(doHalftime)
+				doHalftime(true); //do halftime
+			return; //nothing left to do
 		}
 	}
+	
 	
 	//Loop exited early, because a player reached score limit
 	if(level.mapended) //if map already ended
@@ -236,9 +228,18 @@ checkScoreLimit()
 
 checkOTScoreLimit()
 {
-    if([[level.getVars]]("scr_ot_scorelimit") <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
+    ot_scorelimit = [[level.getVars]]("scr_ot_scorelimit");
+    if(!game["suddendeath"] && ot_scorelimit <= 0) //if scorelimit is 0 or negative, assume there is no scorelimit
 		return; //nothing to do in that case
-		
+	else if(ot_scorelimit <= 0)
+	    ot_scorelimit = 1;
+	    
+    if(!isDefined( game["ot_basescore"] ))
+	    basescore = 0;
+	else
+	    basescore = game["ot_basescore"];
+    ot_winningscore = basescore + ot_scorelimit;
+    
 	alliedscore = getAlliesTeamScore();
     axisscore = getAxisTeamScore();
 
@@ -246,41 +247,23 @@ checkOTScoreLimit()
 	
 	
     if(level.uox_teamplay && level.objective != "bel") //if team game
-    {	//if one team has reached the halfscore and game is in the first half
-        if([[level.getVars]]("scr_halftime")
-           && (alliedscore >= level.halfscore || axisscore >= level.halfscore) 
-           && game["half"] == 1)
-        {	//if game is roundbased and both teams are less than the scorelimit and not scoring rounds
-            if(game["roundbased"] && alliedscore < [[level.getVars]]("scr_ot_scorelimit")
-                && axisscore < [[level.getVars]]("scr_ot_scorelimit") 
-                && ![[level.getVars]]("scr_score_rounds"))
-                    doHalftime(true);	//doHalftime
-        }
+    {	
         //if both teams or below the scorelimit
-        if(alliedscore < [[level.getVars]]("scr_ot_scorelimit")
-            && axisscore < [[level.getVars]]("scr_ot_scorelimit"))
+        if(alliedscore < ot_winningscore
+            && axisscore < ot_winningscore)
             return; //nothing to do
     }
     else //if free for all game
     {
         players = getentarray("player", "classname"); //get players
         for(i = 0; i < players.size; i++) //loop players
-        {	//if current player score is greater than halfscore and game is in the first half
-            if([[level.getVars]]("scr_halftime") && players[i].score >= level.halfscore 
-            && game["half"] == 1 && players[i].score < [[level.getVars]]("scr_ot_scorelimit"))
-            {	//if not scoring rounds and game is round based
-                if(![[level.getVars]]("scr_score_rounds") && game["roundbased"])
-                    doHalftime = true; //set doHalftime flag
-            }
-            
-            if(players[i].score >= [[level.getVars]]("scr_ot_scorelimit")) //if current player is over the scorelimit
+        {	
+            if(players[i].score >= ot_winningscore //if current player is over the scorelimit
                 break; //exit the loop
         }
 
         if(i >= players.size) //if loop fully completed
-        {	//if doHalftime is true
-            if(doHalftime)
-                doHalftime(true); //do halftime
+        {	
             return; //nothing left to do
         }
     }
@@ -309,7 +292,7 @@ checkOTScoreLimit()
 		}	//if resetting scores do regular end round shenanigans.
 		if(level.uox_teamplay && level.objective != "bel") //if team game
 		{	//if allies are over the score limit
-			if(alliedscore >= [[level.getVars]]("scr_ot_scorelimit"))
+			if(alliedscore >= ot_winningscore)
 				endRound("allies"); //end round in allies favor
 			else //if allies didn't end the round, then axis must have
 				endRound("axis"); //end round in axis favor
@@ -645,6 +628,7 @@ checkTimeLimit()
 		{ 	//check if game is tied
 			if(checkTie([[level.getVars]]("scr_score_rounds")))
 			{
+			    game["ot_basescore"] = getTeam1Score();
 				game["suddendeath"] = true;
 			}
 		}
@@ -1941,46 +1925,21 @@ doHalftime(midRound)
 **** starts sudden death overtime (next score wins)
 **** 
 ************************************************************************************************* */
-doOvertime()
+doOvertime(announce)
 {
+    game["ot_basescore"] = getTeam1Score();
 	game["suddendeath"] = true;
 	//announce that the game is in sudden death
-	iprintlnbold("SUDDEN DEATH OVERTIME STARTING NOW");
-	
-	maps\mp\uox\_uox_loops::addToLoop(level, "medium", ::checkSuddenDeath, "checkSuddenDeath");
-}
-
-checkSuddenDeath()
-{
-	if(!checkTie([[level.getVars]]("scr_score_rounds")))
-		endOvertime();
-}
-
-endOvertime()
-{
-	//kill loop
-	maps\mp\uox\_uox_loops::removeFromLoop(level, "medium", "checkSuddenDeath");
-	
-	//tie has been broken. End Game
-	if(game["roundbased"])
-	{	//if round hasn't already ended
-		if(!level.roundended)
-			iprintlnbold(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit has been reached
-		if(level.uox_teamplay) //if team game
-		{
-			if(getTeamScore("allies") > getTeamScore("axis")) //if the allies won 
-				endRound("allies"); //run a final end round for the allies
-			else //if the axis won
-				endRound("axis"); //run a final end round for the axis
-		}
-		else //if free for all game
-			endRound("deathmatch"); //run a final deathmatch endround
-		return;
+	if(isDefined(announce))
+	{
+	    iprintlnbold("SUDDEN DEATH OVERTIME STARTING NOW");
+	    ot_scorelimit = [[level.getVars]]("scr_ot_scorelimit");
+	    if(ot_scorelimit == 1)
+	        iprintlnbold("NEXT SCORE WINS");
+        else
+            iprintlnbold("FIRST TO " + ot_scorelimit + " WINS"); 
 	}
-	//if a non round based game
-	level.mapended = true; //set map endend flag to true
-	iprintln(&"MPSCRIPT_SCORE_LIMIT_REACHED"); //announce score limit has been reached
-	level thread endMap(); //end the map
+	
 }
 
 /* *************************************************************************************************

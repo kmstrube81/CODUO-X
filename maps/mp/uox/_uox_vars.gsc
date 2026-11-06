@@ -283,7 +283,13 @@ updateVarValues(var)
 ************************************************************************************************* */
 getVars(cvarname)
 {
-	return maps\mp\uox\_uox_arrays::getValue(level.vars, cvarname)["value"];
+	var = maps\mp\uox\_uox_arrays::getValue(level.vars, cvarname);
+	if(!isDefined(var))
+	{
+		maps\mp\uox\_uox_debug::debugLog("error", "getVars: " + cvarname + " read before varDef");
+		return undefined;
+	}
+	return var["value"];
 }
 
 /* *************************************************************************************************
