@@ -293,20 +293,20 @@ hq_radio_think()
                         {
                             if (players[i].pers["team"] == "allies") //if player in radius is allies
                                 level.progressbar_axis_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_axis_netralize, "allies", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_allies); //create a team progress bar for allies
+                                    level.progressbar_axis_neutralize, "allies", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_allies); //create a team progress bar for allies
                             else //else if player in radius is axis
                                  level.progressbar_axis_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_axis_netralize, "axis", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_axis); //create a team progress bar for axis
+                                    level.progressbar_axis_neutralize, "axis", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_axis); //create a team progress bar for axis
                         }
                         else
                         if (self.team == "axis") //if radio is owned by axis
                         {
                             if (players[i].pers["team"] == "allies") //if player in radius is allies
                                 level.progressbar_allies_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_allies_netralize, "allies", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_allies); //create a team progress bar for allies
+                                    level.progressbar_allies_neutralize, "allies", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_allies); //create a team progress bar for allies
                             else //else if player in radius is axis
                                  level.progressbar_allies_neutralize = maps\mp\uox\_uox_hud::createTeamHUDProgressBar(
-                                    level.progressbar_allies_netralize, "axis", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_axis); //create a team progress bar for axis
+                                    level.progressbar_allies_neutralize, "axis", [[level.getVars]]("scr_radiocapturetime"), &"HQ_LOSING_RADIO", self.holdtime_axis); //create a team progress bar for axis
                         }
                     }
                     
@@ -339,7 +339,7 @@ hq_radio_think()
             else if ( (self.axis > 0) && (self.allies <= 0) && (self.team != "axis") ) //else if axis are on site and there are no allies and radio is not captured by axis
             {
                 self.holdtime_axis += level.frametime; //add to the capture bar.
-                if (self.holdtime_axis >= 250)
+                if (self.holdtime_axis >= [[level.getVars]]("scr_radiocapturetime"))
                 {
                     if ( (level.captured_radios["axis"] > 0) && (self.team != "none") )
                         level hq_radio_capture(self, "none");
