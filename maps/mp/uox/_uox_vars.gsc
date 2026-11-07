@@ -441,7 +441,7 @@ initGameTypeVars()
     level.drawfriend = 0;
     level.teambalance = 0;
     level.teamkill_penalty = false;
-    level.QuickMessageToAll = true;
+    level.QuickMessageToAll = !level.uox_teamplay;
 
 	if(level.uox_teamplay)
 	{
