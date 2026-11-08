@@ -3612,6 +3612,92 @@ getWeaponProperty(weapon, property)
                 case "webley_mp":
                     return 1;
             }
+		case "name":
+            switch(weapon)
+            {
+                case "bar_mp":
+                case "bar_slow_mp":
+                    return "BAR";
+                case "bazooka_mp":
+                    return "Bazooka";
+                case "binoculars_mp":
+                case "binoculars_artillery_mp":
+                    return "Binoculars";
+                case "colt_mp":
+                    return "Colt .45";
+                case "bren_mp":
+                    return "Bren";
+                case "dp28_mp":
+                    return "DP28";
+                case "enfield_mp":
+                    return "Lee Enfield";
+                case "fg42_mp":
+                case "fg42_semi_mp":
+                    return "FG42";
+                case "flamethrower_mp":
+                    return "Flamethrower";
+                case "fraggrenade_mp":
+                case "mk1britishfrag_mp":
+                case "rgd-33russianfrag_mp": 
+                case "stielhandgranate_mp":
+                    return "Grenade";
+                case "gewehr43_mp":
+                    return "Gewehr-43";
+                case "kar98k_mp":
+                    return "Kar98k";
+                case "kar98k_sniper_mp":
+                    return "Scoped Kar98k";
+                case "luger_mp":
+                    return "Luger";
+                case "m1garand_mp":
+                    return "M1 Garand";
+                case "m1carbine_mp":
+                    return "M1 Carbine";
+                case "mg34_mp":
+                    return "MG34";
+                case "mg30cal_mp":
+                    return "MG .30 Cal";
+                case "mg42_mp":
+                case "mg42_bipod_duck_mp":
+                case "mg42_bipod_prone_mp":
+                case "mg42_bipod_stand_mp":
+                    return "MG42";
+                case "mosin_nagant_mp":
+                    return "Mosin Nagant";
+                case "mosin_nagant_sniper_mp":
+                    return "Scoped Mosin Nagant";
+                case "mp40_mp":
+                    return "MP40";
+                case "mp44_mp":
+                case "mp44_semi_mp":
+                    return "MP44";
+                case "panzerfaust_mp":
+                    return "Panzerfaust";
+                case "panzerschreck_mp":
+                    return "Panzershreck";
+                case "ppsh_mp":
+                case "ppsh_semi_mp":
+                    return "PPSh";
+                case "satchelcharge_mp":
+                    return "RA Strats";
+                case "smokegrenade_mp":
+                    return "Tactical Smoke";
+                case "springfield_mp":
+                    return "Springfield";
+                case "sten_mp":
+                    return "Sten";
+                case "sten_silenced_mp":
+                    return "Sten (Silenced)";
+                case "svt40_mp":
+                    return "SVT40";
+                case "thompson_mp":
+                case "thompson_semi_mp":
+                    return "Thompson";
+                case "tt33_mp":
+                    return "TT33";
+                case "webley_mp":
+                    return "Webley";
+            }
             return 0;
     }
     return "";
