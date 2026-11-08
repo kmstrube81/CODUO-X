@@ -3697,6 +3697,8 @@ getWeaponProperty(weapon, property)
                     return "TT33";
                 case "webley_mp":
                     return "Webley";
+				default:
+					return weapon; 
             }
             return 0;
     }
