@@ -4,6 +4,7 @@ precache()
        just refering to them by the localized string*/
 	game["roundText"] = &"Round";
 	game["OTroundText"] = &"OT Round";
+    game["suddendeathText"] = &"Sudden Death"
 	game["startingText"] = &"Starting";
 	game["resumingText"] = &"Resuming";
 	game["respawnText"] = &"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN";
@@ -1380,14 +1381,22 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	
 	thread createHUDEndRoundScore(time, lastRound, doHalfTime);
 
-	if( maps\mp\uox\_uox::isOvertime() )
+    doSuddenDeath = false;
+
+	if( maps\mp\uox\_uox::isOvertime() && [[level.getVars]]("scr_score_rounds")))
 	{
 		text = game["OTroundText"];
 		round = game["roundsplayed"] + 1 - [[level.getVars]]("scr_roundlimit");
 	}
 	else
 	{
-		text = game["roundText"];	
+        if(game["suddendeath"])
+        {
+            text = game["suddendeathText"];
+            doSuddenDeath = true;
+        }
+        else
+            text = game["roundText"];	
 		round = game["roundsplayed"] + 1;
 	}
 
@@ -1401,7 +1410,8 @@ createHUDNextRound(time, lastRound, doHalfTime)
 	level.round = updateHUDElement(level.round, "text", text, options);
 	
 	options["y"] = 380;
-	level.roundnum = updateHUDElement(level.roundnum, "number", round, options);
+    if(!doSuddenDeath)
+        level.roundnum = updateHUDElement(level.roundnum, "number", round, options);
 
 	if(doHalfTime)
 		text = game["resumingText"];

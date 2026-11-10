@@ -1117,8 +1117,6 @@ endRound(roundwinner, numRoundWins)
 		//print round win to log
 		logPrint("RW;deathmatch;" + winners + "\n");
 	}
-	//determine time passed since start of round
-	game["timepassed"] = game["timepassed"] + ((getTime() - level.starttime) / 1000) / 60.0;
 
 	// for all living players store their weapons
 	if(game["matchstarted"])
@@ -1184,6 +1182,10 @@ endRound(roundwinner, numRoundWins)
 	level waittill("end_finalkillcam");
 
 	checkTimeLimit(true); //check that time limit wasn't reached during round end
+
+	//determine time passed since start of round
+	game["timepassed"] = game["timepassed"] + ((getTime() - level.starttime) / 1000) / 60.0;
+
     if(level.mapended) //if map has already ended
 		return;	//nothing to do
 
@@ -1456,7 +1458,7 @@ checkRoundLimit()
 		return; //nothing to check if no round limit
 	
 	//if rounds played is greater than the round limit, we are in OT
-	if(isOvertime())
+	if(isOvertime() && [[level.getVars]]("scr_score_rounds"))
 	{
 		//if the number of rounds over regulation divided by the rounds per OT has a remainder
 		if((game["roundsplayed"] - [[level.getVars]]("scr_roundlimit")) % [[level.getVars]]("scr_ot_roundlimit"))
