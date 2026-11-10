@@ -671,7 +671,13 @@ checkTimeLimit(endMap)
 		else //free for all game
 			endRound("deathmatch");
 	}
-	else
+	else if(checkTie([[level.getVars]]("scr_score_rounds")) && [[level.getVars]]("scr_overtime"))
+    {
+        iprintln(&"MPSCRIPT_TIME_LIMIT_REACHED"); //announce time is over
+        game["ot_basescore"] = getOTBaseScore();
+		game["suddendeath"] = true;
+    }
+    else
 	{
 		level.mapended = true; //set map ended flag
 		level thread endMap(); //end map
@@ -1176,6 +1182,11 @@ endRound(roundwinner, numRoundWins)
 	level notify("postround");
 
 	level waittill("end_finalkillcam");
+
+	checkTimeLimit(true); //check that time limit wasn't reached during round end
+    if(level.mapended) //if map has already ended
+		return;	//nothing to do
+
 	if(game["matchstarted"]) //if game is in progress (not pregame)
 	{		
 		if(game["suddendeath"] && !checkTie([[level.getVars]]("scr_score_rounds"))) //if in sudden death and game in not tied
@@ -1212,10 +1223,6 @@ endRound(roundwinner, numRoundWins)
 		game["roundsplayed"] = 0; //set rounds played to 0
 	}
 
-	checkTimeLimit(true); //check that time limit wasn't reached during round end
-
-	if(level.mapended) //if map has already ended
-		return;	//nothing to do
 	level.mapended = true; //set map ended flag to true
 
 	if ( (level.teambalance > 0) && (game["BalanceTeamsNextRound"]) )
@@ -1702,6 +1709,10 @@ doHalftime(midRound)
 {
     //final scoreboard update
     level thread maps\mp\uox\_uox_hud::updateScoreboard();
+
+    //abort doing halftime if game is over and aren't going to do an OT
+    if([[level.getVars]]("scr_timelimit") > 0 && ( (game["timepassed"] + ((getTime() - level.starttime) / 1000) / 60.0 ) >= [[level.getVars]]("scr_timelimit") ) && !game["suddendeath"] )
+        return;
 
     level notify("halftime");
     level.halftime = true;
