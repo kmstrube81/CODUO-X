@@ -1383,7 +1383,7 @@ createHUDNextRound(time, lastRound, doHalfTime)
 
     doSuddenDeath = false;
 
-	if( maps\mp\uox\_uox::isOvertime() && [[level.getVars]]("scr_score_rounds")))
+	if( maps\mp\uox\_uox::isOvertime() && [[level.getVars]]("scr_score_rounds"))
 	{
 		text = game["OTroundText"];
 		round = game["roundsplayed"] + 1 - [[level.getVars]]("scr_roundlimit");
