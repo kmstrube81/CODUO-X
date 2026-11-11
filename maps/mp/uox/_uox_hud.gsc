@@ -4,7 +4,7 @@ precache()
        just refering to them by the localized string*/
 	game["roundText"] = &"Round";
 	game["OTroundText"] = &"OT Round";
-    game["suddendeathText"] = &"Sudden Death"
+    game["suddendeathText"] = &"Sudden Death";
 	game["startingText"] = &"Starting";
 	game["resumingText"] = &"Resuming";
 	game["respawnText"] = &"MPSCRIPT_PRESS_ACTIVATE_TO_RESPAWN";
