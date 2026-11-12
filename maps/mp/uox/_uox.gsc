@@ -1215,6 +1215,9 @@ endRound(roundwinner, numRoundWins)
             maps\mp\uox\_uox_debug::debugLog("info", "::EndRound ::checkScoreLimit " + getAlliesTeamScore() + "/" + getAxisTeamScore() + " of " + [[level.getVars]]("scr_scorelimit"));
         }
 		checkScoreLimit(); //make sure we haven't hit score limit
+
+        if(level.mapended) //if map has already ended
+            return;	//nothing to do
 	}
 
 	//if game has been started and a reset was requested
