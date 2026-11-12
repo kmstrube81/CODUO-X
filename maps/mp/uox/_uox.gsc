@@ -774,8 +774,7 @@ startRound()
 	//get epoch time for round start
 	level.roundstarttime = getTime();
 	
-	level.roundTimeLeft = (level.roundlength * 60)
-									- ( level.roundstarttime / 1000 );
+	level.roundTimeLeft = (level.roundlength * 60);
 									
 	level.roundresumetime = level.roundstarttime;		
 	
@@ -1048,23 +1047,26 @@ endRound(roundwinner, numRoundWins)
 
 	
 	if(roundwinner == "allies") //if allies win
-	{		
-		if(game["half"] % 2) //if 1st Half
-		{
-			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round1team1score"] += numRoundWins; //increment team 1 score for the half
-			else //if team 2 are the allies
-				game["round1team2score"] += numRoundWins; //increment team 2 score for the half
-		}
-		else //if 2nd Half
-		{
-			if(game["team1"] == "allies") //if team 1 are the allies
-				game["round2team1score"] += numRoundWins; //increment team 1 score for the half
-			else //if team 2 are the allies
-				game["round2team2score"] += numRoundWins; //increment team 2 score for the half
-		}
-		//get players
-		players = getentarray("player", "classname");
+	{	
+        if([[level.getVars]]("scr_score_rounds"))
+        {
+            if(game["half"] % 2) //if 1st Half
+            {
+                if(game["team1"] == "allies") //if team 1 are the allies
+                    game["round1team1score"] += numRoundWins; //increment team 1 score for the half
+                else //if team 2 are the allies
+                    game["round1team2score"] += numRoundWins; //increment team 2 score for the half
+            }
+            else //if 2nd Half
+            {
+                if(game["team1"] == "allies") //if team 1 are the allies
+                    game["round2team1score"] += numRoundWins; //increment team 1 score for the half
+                else //if team 2 are the allies
+                    game["round2team2score"] += numRoundWins; //increment team 2 score for the half
+            }
+        }
+        //get players
+        players = getentarray("player", "classname");
 		for(i = 0; i < players.size; i++) //loop players
 		{	//get player guid 
 			lpGuid = players[i] getGuid();
@@ -1080,21 +1082,24 @@ endRound(roundwinner, numRoundWins)
 		logPrint("RL;axis;" + losers + "\n");	 //print round loss to log
 	}
 	else if(roundwinner == "axis") //if round was won by axis
-	{ 			
-		if(game["half"] % 2) //if 1st Half
-		{
-			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round1team1score"] += numRoundWins; //increment team 1 score for the half
-			else //if team 2 are the allies
-				game["round1team2score"] += numRoundWins; //increment team 2 score for the half
-		}
-		else //if 2nd Half
-		{
-			if(game["team1"] == "axis") //if team 1 are the axis
-				game["round2team1score"] += numRoundWins; //increment team 1 score for the half
-			else //if team 2 are the allies
-				game["round2team2score"] += numRoundWins; //increment team 2 score for the half
-		}
+	{ 	
+        if([[level.getVars]]("scr_score_rounds"))
+        {
+            if(game["half"] % 2) //if 1st Half
+            {
+                if(game["team1"] == "axis") //if team 1 are the axis
+                    game["round1team1score"] += numRoundWins; //increment team 1 score for the half
+                else //if team 2 are the allies
+                    game["round1team2score"] += numRoundWins; //increment team 2 score for the half
+            }
+            else //if 2nd Half
+            {
+                if(game["team1"] == "axis") //if team 1 are the axis
+                    game["round2team1score"] += numRoundWins; //increment team 1 score for the half
+                else //if team 2 are the allies
+                    game["round2team2score"] += numRoundWins; //increment team 2 score for the half
+            }
+        }
 
 		players = getentarray("player", "classname"); //get players
 		for(i = 0; i < players.size; i++) //loop players
@@ -2264,6 +2269,20 @@ incrementTeamScore(team, val)
 			teamscore += val;
 			game["axisscore"] = teamscore;
 			setTeamScore("axis", game["axisscore"]);
+            if(game["half"] % 2) //if 1st Half
+            {
+                if(game["team1"] == "axis") //if team 1 are the axis
+                    game["round1team1score"] = game["axisscore"]; //increment team 1 score for the half
+                else
+                    game["round1team2score"] = game["axisscore"]; //increment team 2 score for the half
+            }
+            else //if 2nd Half
+            {
+                if(game["team1"] == "axis") //if team 1 are the axis
+                    game["round2team1score"] = game["axisscore"]; //increment team 1 score for the half
+                else
+                    game["round2team2score"] = game["axisscore"]; //increment team 2 score for the half
+            }
 		}
 	}
 	else if(team == "allies")
@@ -2281,6 +2300,20 @@ incrementTeamScore(team, val)
 			teamscore += val;
 			game["alliedscore"] = teamscore;
 			setTeamScore("allies", game["alliedscore"]);
+            if(game["half"] % 2) //if 1st Half
+            {
+                if(game["team1"] == "allies") //if team 1 are the axis
+                    game["round1team1score"] = game["alliedscore"]; //increment team 1 score for the half
+                else //if team 2 are the allies
+                    game["round1team2score"] = game["alliedscore"]; //increment team 2 score for the half
+            }
+            else //if 2nd Half
+            {
+                if(game["team1"] == "allies") //if team 1 are the axis
+                    game["round2team1score"] = game["alliedscore"]; //increment team 1 score for the half
+                else //if team 2 are the allies
+                    game["round2team2score"] = game["alliedscore"]; //increment team 2 score for the half
+            }
 		}
 	}
     thread checkScoreLimit();

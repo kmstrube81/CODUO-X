@@ -111,11 +111,15 @@ bombzone_think(other)
 {
 	level endon("round_ended");
 
-    //can plant if you are a player and are on the attacking team, and are on the ground and not
-    //in a vehicle and canPlant is true
-    if(isPlayer(other) && other.pers["team"] == game["attackers"])
-        other thread check_bombzone(self);
-	
+	if(!isPlayer(other) || !isDefined(other.pers["team"]))
+		return;
+
+	//attackers try to plant at this site
+	if(other.pers["team"] == game["attackers"])
+		other thread check_bombzone(self);
+	//defenders try to defuse this site's bomb, if one is planted here
+	else if(other.pers["team"] == game["defenders"] && isDefined(self.bomb))
+		other thread check_bomb(self.bomb);
 }
 
 canPlant(trigger)
@@ -124,6 +128,9 @@ canPlant(trigger)
 		return false;
 		
 	if(!isDefined(trigger) || isDefined(trigger.doing))
+		return false;
+	//site already has a live bomb (zone now stays active for defusing)
+	if(level.bombsites[trigger.objectiveName]["planted"])
 		return false;
 	if(level.bombmode < 1 && isDefined(trigger.bombzone_other) && isDefined(trigger.bombzone_other.doing))
 		return false;
@@ -146,30 +153,31 @@ planting(trigger)
 
 plantBomb(trigger)
 {
-    trigger notify("bomb planted");
+	//cancel the planted-text cleanup from any earlier plant; this plant owns it now
+	level notify("bomb_planted_hud");
+	level endon("bomb_planted_hud");
 
 	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
 	self.pers["score"] += [[level.getVars]]("scr_bombplantbonuspoints");
 	self.score = self.pers["score"];
 	
-	bombexploder = trigger.script_noteworthy;
-	level.bombexploders[trigger.objectiveName] = bombexploder;
+	name = trigger.objectiveName;
+	level.bombexploders[name] = trigger.script_noteworthy;
 	
 	if(level.bombmode < 1)
 	{
-		bombzone_A = getent("bombzone_A", "targetname");
-		bombzone_B = getent("bombzone_B", "targetname");
-		bombzone_A delete();
-		bombzone_B delete();
+		//single plant: retire the other site, keep this one alive for defusing
+		if(isDefined(trigger.bombzone_other))
+		{
+			trigger.bombzone_other delete();
+			trigger.bombzone_other = undefined;
+		}
 		objective_delete(0);
 		objective_delete(1);
 	}
-    else
-    {
-        trigger maps\mp\_utility::triggerOff();
-        objective_delete(trigger.objective);
-    }
+	else
+		objective_delete(trigger.objective);
 
 	plant = self maps\mp\_util_mp_gmi::getPlantGMI();
 	
@@ -177,18 +185,22 @@ plantBomb(trigger)
 	bombmodel.angles = plant.angles;
 	bombmodel setmodel("xmodel/mp_bomb1_defuse");
 	bombmodel playSound("Explo_plant_no_tick");
-	bombmodel.objectiveName = trigger.objectiveName;
+	bombmodel.objectiveName = name;
 	bombmodel.objective = trigger.objective;
-	
-	bombtrigger = getent("bombtrigger", "targetname");
-	bombtrigger.origin = bombmodel.origin;
 
-    bombtrigger.bomb = bombmodel;
+	//link site <-> bomb; all per-bomb state lives on the model from here on
+	bombmodel.zone = trigger;
+	trigger.bomb = bombmodel;
+	level.bombs[name] = bombmodel;
 
 	if(level.bombmode < 1)
-		objective_add(0, "current", bombtrigger.origin, "gfx/hud/hud@bombplanted.tga");
+		objective_add(0, "current", bombmodel.origin, "gfx/hud/hud@bombplanted.tga");
 
-	level.bombsites[trigger.objectiveName]["planted"] = true;
+	//bank elapsed round time on the FIRST plant only - must run before this site is flagged
+	if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
+		level.roundTimeLeft = level.roundTimeLeft - ( (getTime() - level.roundresumetime) / 1000 );
+
+	level.bombsites[name]["planted"] = true;
 	
 	lpselfnum = self getEntityNumber();
 	lpselfguid = self getGuid();
@@ -211,52 +223,37 @@ plantBomb(trigger)
 		game["bombPlantedText"], options);
 		
 	level.mainClock = level maps\mp\uox\_uox_hud::deleteHUDMainClock();
-	
-	if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
-		level.roundTimeLeft = level.roundTimeLeft - ( (getTime() - level.roundresumetime) / 1000 );
 		
 	level.objectivetime = getTime();		
 
 	if([[level.getVars]]("sv_showbombtimer"))
-    {
-        if(!isDefined(level.mainBombClock))
-        {
-            maps\mp\uox\_uox_hud::updateHUDMainBombClock([[level.getVars]]("scr_bombtimer"));
-            //if secondary clock exists, move it
-            if(isDefined(level.secondBombClock))
-                level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
-                    level.secondBombClock, "x", 180);
-            bombmodel.clock = level.mainBombClock;
-        }
-        else
-        {
-            maps\mp\uox\_uox_hud::updateHUDSecondaryBombClock(
-                [[level.getVars]]("scr_bombtimer"));
-            bombmodel.clock = level.secondBombClock;
-        }
-        level.bombs[trigger.objectiveName] = bombmodel;
-    }
-	
-	//bombtrigger thread bomb_think(bombmodel);
+	{
+		if(!isDefined(level.mainBombClock))
+		{
+			maps\mp\uox\_uox_hud::updateHUDMainBombClock([[level.getVars]]("scr_bombtimer"));
+			//if secondary clock exists, move it
+			if(isDefined(level.secondBombClock))
+				level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
+					level.secondBombClock, "x", 180);
+			bombmodel.clock = level.mainBombClock;
+		}
+		else
+		{
+			maps\mp\uox\_uox_hud::updateHUDSecondaryBombClock(
+				[[level.getVars]]("scr_bombtimer"));
+			bombmodel.clock = level.secondBombClock;
+		}
+	}
 
-    bombtrigger thread maps\mp\uox\_uox_loops::initEntityLoop();
-
-    bombtrigger maps\mp\uox\_uox_loops::addToWaitTills(bombtrigger, "trigger", ::bomb_think, true);
-
-    bombtrigger thread maps\mp\uox\_uox_loops::removeFromWaitTills(bombtrigger, "trigger", bombtrigger, "bomb_exploded");
-
-	bombtrigger thread bomb_countdown(bombmodel);
+	bombmodel thread bomb_countdown();
 	
 	level notify("timer_paused");
 
-    if([[level.getVars]]("sv_showbombtimer"))
-    {
-        trigger endon("bomb planted");
-
-        wait 8;
-        level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
-    }
-	
+	if([[level.getVars]]("sv_showbombtimer"))
+	{
+		wait 8;
+		level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
+	}
 }
 
 check_bombzone(trigger)
@@ -296,67 +293,57 @@ check_bombzone(trigger)
 	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
 }
 
-bomb_countdown(bomb)
+/* *************************************************************************************************
+**** bomb_countdown()
+****
+**** self: bomb script_model spawned in plantBomb (.objectiveName, .objective, .zone, .clock)
+**** USAGE: one thread per bomb; ended only by THIS bomb's "bomb_defused"
+************************************************************************************************* */
+bomb_countdown()
 {
 	self endon("bomb_defused");
 	level endon("intermission");
 	
-	bomb playLoopSound("bomb_tick");
-	clock = bomb.clock;
+	self playLoopSound("bomb_tick");
 
 	wait level.countdowntime;
-		
+
 	// bomb timer is up
+	name = self.objectiveName;
+	zone = self.zone;
+	clock = self.clock;
+	origin = self.origin;
+
 	if(level.bombmode < 1)
-	{
 		objective_delete(0);
-	}
 	else
-	{
-		objective_delete(bomb.objective);
-	}
-	level.bombsites[bomb.objectiveName]["exploded"] = true;
-	level.bombsites[bomb.objectiveName]["planted"] = false;
+		objective_delete(self.objective);
+
+	level.bombsites[name]["exploded"] = true;
+	level.bombsites[name]["planted"] = false;
 	
 	self notify("bomb_exploded");
 
+	//site is finished - no more planting or defusing here
+	if(isDefined(zone))
+	{
+		zone.bomb = undefined;
+		zone maps\mp\_utility::triggerOff();
+	}
+
 	// trigger exploder if it exists
-	if(isDefined(level.bombexploders[bomb.objectiveName]))
-		maps\mp\_utility::exploder(level.bombexploders[bomb.objectiveName]);
+	if(isDefined(level.bombexploders[name]))
+		maps\mp\_utility::exploder(level.bombexploders[name]);
 
-	// explode bomb
-	origin = self getorigin();
-	range = 500;
-	maxdamage = 2000;
-	mindamage = 1000;
-		
-	self delete(); // delete the defuse trigger
-	bomb stopLoopSound();
-	level.bombs[bomb.objectiveName] = undefined;
-	bomb delete();
+	self stopLoopSound();
+	level.bombs[name] = undefined;
 	level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
+	deleteBombClock(clock);
 
+	// explode bomb at ITS OWN origin
 	playfx(level._effect["bombexplosion"], origin);
-	radiusDamage(origin, range, maxdamage, mindamage);
+	radiusDamage(origin, 500, 2000, 1000);
 
-	//delete clock
-    if(isdefined(clock))
-    {
-        if(clock == level.mainBombClock)
-        {
-            //delete clock
-            level.mainBombClock = level maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
-            //if secondary clock exists, move it
-            if(isDefined(level.secondBombClock))
-                level.secondBombClock = level maps\mp\uox\_uox_hud::updateHUDElementProperty(
-                    level.secondBombClock, "x", 320);
-        }
-        else if(clock == level.secondBombClock)
-        {
-            //delete clock
-            level.mainBombClock = level maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
-        }
-    }
 	if(![[level.getVars]]("scr_score_rounds"))
 	{
 		level maps\mp\uox\_uox::incrementTeamScore(game["attackers"]);
@@ -372,67 +359,83 @@ bomb_countdown(bomb)
 			announcement(game["axisSuccessText"]);
 		}
 		level thread maps\mp\uox\_uox::endRound(game["attackers"]);
-        return;
 	}
-	
-	//if no bombs are planted go ahead turn round timer back on
-	if( ( !(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]) ))
-	{
-		level.roundresumetime = getTime();
-		timer = level.roundTimeLeft + ( [[level.getVars]]("scr_bombbonustime") * 60 );
-		level thread maps\mp\uox\_uox::startRoundTimer(timer);
-		level.mainClock = level maps\mp\uox\_uox_hud::updateHUDMainClock(timer);
-	}
+	else
+		resumeRoundTimerIfClear();
+
+	//delete last: this thread runs on the model
+	self delete();
 }
 
-bomb_think(other)
+canDefuse(bomb)
 {
-	self endon("bomb_exploded");
-	
-    // check for having been triggered by a valid player
-    if(isPlayer(other) && (other.pers["team"] == game["defenders"]) && other isOnGround())
-        other thread check_bomb(self);
-	
-}
-
-canDefuse(trigger)
-{
-	if(!isDefined(trigger) || isDefined(trigger.doing))
+	if(!isDefined(bomb) || isDefined(bomb.doing))
+		return false;
+	if(!level.bombsites[bomb.objectiveName]["planted"])
 		return false;
 	if(!isAlive(self) || !(self isOnGround()))
 		return false;
-	if(distance(self.origin, trigger.origin) >= 64 || !(self islookingat(trigger)))
+	if(distance(self.origin, bomb.origin) >= 64)
+		return false;
+	if(!(self isLookingAtBomb(bomb)))
 		return false;
 	return true;
 }
 
-defusing(trigger)
+defusing(bomb)
 {
-	if(self islookingat(trigger) && distance(self.origin, trigger.origin) < 64 && isAlive(self))
-		return true;
-	return false;
+	if(!isDefined(bomb) || !isAlive(self))
+		return false;
+	if(distance(self.origin, bomb.origin) >= 64)
+		return false;
+	return self isLookingAtBomb(bomb);
 }
 
-defuseBomb(trigger)
+/* *************************************************************************************************
+**** isLookingAtBomb(entity bomb)
+****
+**** self: player
+**** USAGE: facing check that used to come free from the trigger_lookat. UNVERIFIED that
+**** islookingat registers on a script_model in UO 1.51 - test before relying on it
+************************************************************************************************* */
+isLookingAtBomb(bomb)
+{
+	return self islookingat(bomb);
+}
+
+defuseBomb(bomb)
 {
 	self maps\mp\uox\_uox_inputs::removeHoldUse("defuse_bomb");
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("defuse_icon");
 
+	//bomb went off in the same frame the hold finished
+	if(!isDefined(bomb) || !level.bombsites[bomb.objectiveName]["planted"])
+		return;
+
 	self.pers["score"] += [[level.getVars]]("scr_bombdefusebonuspoints");
 	self.score = self.pers["score"];
+
+	name = bomb.objectiveName;
+	zone = bomb.zone;
+	clock = bomb.clock;
+
+	bomb notify("bomb_defused"); //only this bomb's countdown listens
+	bomb stopLoopSound();
+	level.bombsites[name]["planted"] = false;
+	level.bombs[name] = undefined;
+
+	//defused site stays closed (same as before: no replant)
+	if(isDefined(zone))
+	{
+		zone.bomb = undefined;
+		zone maps\mp\_utility::triggerOff();
+	}
 
 	if(level.bombmode == 0)
 		objective_delete(0);
 
-    bomb = trigger.bomb;
-    clock = bomb.clock;
-
-	trigger notify("bomb_defused");
-	bomb setmodel("xmodel/mp_bomb1");
-	bomb stopLoopSound();
-	level.bombsites[bomb.objectiveName]["planted"] = false;
 	bomb delete();
-	trigger delete();
+	deleteBombClock(clock);
 
 	announcement(game["bombDefusedText"]);
 	
@@ -442,88 +445,96 @@ defuseBomb(trigger)
 	
 	players = getentarray("player", "classname");
 	for(i = 0; i < players.size; i++)
-	{
 		players[i] playLocalSound("MP_announcer_bomb_defused");
-	}
-	
-	//delete hud elements 
-	//delete clock
-    if(isdefined(clock))
-    {
-        if(clock == level.mainBombClock)
-        {
-            //delete clock
-            level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
-            //if secondary clock exists, move it
-            if(isDefined(level.secondBombClock))
-            {
-                    level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
-                        level.secondBombClock, "x", 320);
-            }
-            else
-                level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
-        }
-        else if(clock == level.secondBombClock)
-        {
-            //delete clock
-            level.mainBombClock = maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
-        } 
-    }
+
+	if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
+		level.hudplanted = maps\mp\uox\_uox_hud::deleteHUDElement(level.hudplanted);
 	
 	if(level.bombmode == 0)
 	{
 		maps\mp\uox\_uox::incrementTeamScore(game["defenders"]);
 		level thread maps\mp\uox\_uox::endRound(game["defenders"]);
-        return;
+		return;
 	}
 	
-	//if no bombs are planted go ahead turn round timer back on
-	if(!(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"]))
-	{
-		level.roundresumetime = getTime();
-		timer = level.roundTimeLeft + ( [[level.getVars]]("scr_bombbonustime") * 60 );
-		level thread maps\mp\uox\_uox::startRoundTimer(timer);
-		level.mainClock = level maps\mp\uox\_uox_hud::updateHUDMainClock(timer);
-	}
-	
-	return;	//TEMP, script should stop after the wait .05
+	resumeRoundTimerIfClear();
 }
 
-check_bomb(trigger)
+check_bomb(bomb)
 {
-    if(isDefined(self.checking) && self.checking == trigger) //already checking this bombzone
-        return;
+	//bombzone fires every frame a defender is inside it, so bail quietly when not in defuse
+	//position instead of churning HUD/holdUse cleanup each frame
+	if(!(self canDefuse(bomb)))
+		return;
 
-    self.checking = trigger;
+	if(isDefined(self.checking) && self.checking == bomb) //already checking this bomb
+		return;
 
-	if(self canDefuse(trigger))
-	{
-		iconOptions = [];
-		iconOptions["alignX"] = "center";
-		iconOptions["alignY"] = "middle";
-		iconOptions["x"] = 320;
-		iconOptions["y"] = 345;
-		iconOptions["width"] = 64;
-		iconOptions["height"] = 64;
+	self.checking = bomb;
 
-        maps\mp\uox\_uox_debug::debugLog("info", self.name + " create defuse icon");
+	iconOptions = [];
+	iconOptions["alignX"] = "center";
+	iconOptions["alignY"] = "middle";
+	iconOptions["x"] = 320;
+	iconOptions["y"] = 345;
+	iconOptions["width"] = 64;
+	iconOptions["height"] = 64;
 
-		self maps\mp\uox\_uox_hud::updateClientHUDElement("defuse_icon", "shader",
-			"ui_mp/assets/hud@defusebomb.tga", iconOptions);
-		self maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", false, 0, [[level.getVars]]("scr_bombdefusetime"),
-			::defusing, ::defuseBomb, ::check_bomb, true, true, true, trigger, "MP_bomb_defuse");
+	maps\mp\uox\_uox_debug::debugLog("info", self.name + " create defuse icon");
 
-		while(self canDefuse(trigger))
-			wait level.frametime;
-	}
+	self maps\mp\uox\_uox_hud::updateClientHUDElement("defuse_icon", "shader",
+		"ui_mp/assets/hud@defusebomb.tga", iconOptions);
+	self maps\mp\uox\_uox_inputs::addHoldUse("defuse_bomb", false, 0, [[level.getVars]]("scr_bombdefusetime"),
+		::defusing, ::defuseBomb, ::check_bomb, true, true, true, bomb, "MP_bomb_defuse");
 
-    self.checking = undefined;
+	while(self canDefuse(bomb))
+		wait level.frametime;
 
-    maps\mp\uox\_uox_debug::debugLog("info", self.name + " delete defuse icon");
+	self.checking = undefined;
+
+	maps\mp\uox\_uox_debug::debugLog("info", self.name + " delete defuse icon");
 
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("defuse_icon");
 	self maps\mp\uox\_uox_inputs::removeHoldUse("defuse_bomb");
 }
+
+/* *************************************************************************************************
+**** deleteBombClock(hudelem clock)
+****
+**** USAGE: removes a bomb's HUD clock; if it was the main clock, slides the secondary to center
+************************************************************************************************* */
+deleteBombClock(clock)
+{
+	if(!isDefined(clock))
+		return;
+
+	if(isDefined(level.mainBombClock) && clock == level.mainBombClock)
+	{
+		maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
+		if(isDefined(level.secondBombClock))
+			level.secondBombClock = maps\mp\uox\_uox_hud::updateHUDElementProperty(
+				level.secondBombClock, "x", 320);
+	}
+	else if(isDefined(level.secondBombClock) && clock == level.secondBombClock)
+		maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
+}
+
+/* *************************************************************************************************
+**** resumeRoundTimerIfClear()
+****
+**** USAGE: restarts the round clock (plus bonus time) once no bomb is ticking
+************************************************************************************************* */
+resumeRoundTimerIfClear()
+{
+	if(level.bombsites["A"]["planted"] || level.bombsites["B"]["planted"])
+		return;
+
+	level.roundresumetime = getTime();
+	timer = level.roundTimeLeft + ( [[level.getVars]]("scr_bombbonustime") * 60 );
+	level thread maps\mp\uox\_uox::startRoundTimer(timer);
+	level.mainClock = level maps\mp\uox\_uox_hud::updateHUDMainClock(timer);
+}
+
 
 onPlayerKill(victim, attacker)
 {
