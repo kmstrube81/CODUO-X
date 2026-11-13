@@ -124,7 +124,7 @@ bombzone_think(other)
 
 canPlant(trigger)
 {
-	if ( !game["matchstarted"] )
+	if(!maps\mp\uox\_uox::roundInProgress())
 		return false;
 		
 	if(!isDefined(trigger) || isDefined(trigger.doing))
@@ -145,6 +145,8 @@ canPlant(trigger)
 
 planting(trigger)
 {
+	if(!maps\mp\uox\_uox::roundInProgress())
+		return false;
 	if(self istouching(trigger) && isAlive(self) 
 		&& (self maps\mp\_util_mp_gmi::canPlantGMI()))
 		return true;
@@ -153,12 +155,17 @@ planting(trigger)
 
 plantBomb(trigger)
 {
+	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
+	self maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
+
+	//round ended in the same frame the hold finished
+	if(!maps\mp\uox\_uox::roundInProgress())
+		return;
+
 	//cancel the planted-text cleanup from any earlier plant; this plant owns it now
 	level notify("bomb_planted_hud");
 	level endon("bomb_planted_hud");
 
-	self maps\mp\uox\_uox_inputs::removeHoldUse("plant_bomb");
-	self maps\mp\uox\_uox_hud::deleteClientHUDElement("plant_icon");
 	self.pers["score"] += [[level.getVars]]("scr_bombplantbonuspoints");
 	self.score = self.pers["score"];
 	
@@ -261,9 +268,6 @@ check_bombzone(trigger)
     if(isDefined(self.checking) && self.checking == trigger) //already checking this bombzone
         return;
 
-	level endon("round_ended");
-    level endon("halftime");
-
     self.checking = trigger;
 
 	if(self canPlant(trigger))
@@ -344,6 +348,10 @@ bomb_countdown()
 	playfx(level._effect["bombexplosion"], origin);
 	radiusDamage(origin, 500, 2000, 1000);
 
+    //round already decided (eliminations) - don't score or re-end it
+	if(!maps\mp\uox\_uox::roundInProgress())
+		return;
+
 	if(![[level.getVars]]("scr_score_rounds"))
 	{
 		level maps\mp\uox\_uox::incrementTeamScore(game["attackers"]);
@@ -369,6 +377,8 @@ bomb_countdown()
 
 canDefuse(bomb)
 {
+	if(!maps\mp\uox\_uox::roundInProgress())
+		return false;
 	if(!isDefined(bomb) || isDefined(bomb.doing))
 		return false;
 	if(!level.bombsites[bomb.objectiveName]["planted"])
@@ -384,6 +394,8 @@ canDefuse(bomb)
 
 defusing(bomb)
 {
+	if(!maps\mp\uox\_uox::roundInProgress())
+		return false;
 	if(!isDefined(bomb) || !isAlive(self))
 		return false;
 	if(distance(self.origin, bomb.origin) >= 64)
@@ -408,8 +420,8 @@ defuseBomb(bomb)
 	self maps\mp\uox\_uox_inputs::removeHoldUse("defuse_bomb");
 	self maps\mp\uox\_uox_hud::deleteClientHUDElement("defuse_icon");
 
-	//bomb went off in the same frame the hold finished
-	if(!isDefined(bomb) || !level.bombsites[bomb.objectiveName]["planted"])
+	//bomb went off, or round ended, in the same frame the hold finished
+	if(!isDefined(bomb) || !level.bombsites[bomb.objectiveName]["planted"] || !maps\mp\uox\_uox::roundInProgress())
 		return;
 
 	self.pers["score"] += [[level.getVars]]("scr_bombdefusebonuspoints");

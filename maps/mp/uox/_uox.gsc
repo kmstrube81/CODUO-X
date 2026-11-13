@@ -796,6 +796,22 @@ startRound()
 	maps\mp\gametypes\_teams::sayMoveIn();
 }
 
+
+/* *************************************************************************************************
+**** roundInProgress()
+****
+**** USAGE: false once the round/half/map is over or before the match starts; gates every
+**** plant/defuse condition so in-progress holds fail cleanly through watchUse's fail path
+************************************************************************************************* */
+roundInProgress()
+{
+	if(!game["matchstarted"])
+		return false;
+	if(level.mapended || level.roundended || level.halftime)
+		return false;
+	return true;
+}
+
 /* *****************************************************************************************
 **** doStratTime( int time )
 **** 
