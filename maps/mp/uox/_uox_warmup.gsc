@@ -124,6 +124,10 @@ waitUntilReady()
 {
     level endon("abort ready");
 	wait 0;
+
+    //delete current timers
+    maps\mp\uox\_uox_hud::deleteHUDMainBombClock();
+	maps\mp\uox\_uox_hud::deleteHUDSecondaryBombClock();
 	
 	if([[level.getVars]]("scr_autoreadytime"))
 	{
