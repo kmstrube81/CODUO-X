@@ -407,12 +407,35 @@ defusing(bomb)
 **** isLookingAtBomb(entity bomb)
 ****
 **** self: player
-**** USAGE: facing check that used to come free from the trigger_lookat. UNVERIFIED that
-**** islookingat registers on a script_model in UO 1.51 - test before relying on it
+**** USAGE: manual replacement for islookingat (which doesn't register on script_models in 1.51).
+**** Builds an eye position from stance, takes the player's view direction, and checks the angle
+**** between it and the eye->bomb vector against a cone. cos(25 deg) ~= 0.906
 ************************************************************************************************* */
 isLookingAtBomb(bomb)
 {
-	return self islookingat(bomb);
+	//eye height by stance (idTech 3 / CoD1 view heights)
+	stance = self getstance();
+	if(stance == "prone")
+		eyeHeight = 11;
+	else if(stance == "crouch")
+		eyeHeight = 40;
+	else
+		eyeHeight = 60;
+
+	eye = self.origin + (0, 0, eyeHeight);
+	target = bomb.origin + (0, 0, 4); //model sits on the ground, aim a little above its base
+
+	toBomb = target - eye;
+	dist = distance(eye, target);
+	if(dist < 1)
+		return true; //eye is on top of it, any view counts
+
+	forward = anglesToForward(self getPlayerAngles()); //unit vector
+
+	//dot(forward, toBomb / dist) = cos(angle between view and bomb)
+	dot = ( (forward[0] * toBomb[0]) + (forward[1] * toBomb[1]) + (forward[2] * toBomb[2]) ) / dist;
+
+	return (dot >= 0.906);
 }
 
 defuseBomb(bomb)
