@@ -430,7 +430,7 @@ isLookingAtBomb(bomb)
 	if(dist < 1)
 		return true; //eye is on top of it, any view counts
 
-	forward = anglesToForward(self getPlayerAngles()); //unit vector
+		forward = maps\mp\uox\_uox_utils::anglesToForwardUOX(self maps\mp\uox\_uox_utils::getPlayerAngles()); //unit vector
 
 	//dot(forward, toBomb / dist) = cos(angle between view and bomb)
 	dot = ( (forward[0] * toBomb[0]) + (forward[1] * toBomb[1]) + (forward[2] * toBomb[2]) ) / dist;

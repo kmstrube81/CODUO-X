@@ -547,3 +547,58 @@ shortName(name, otherNames)
         result = subStr(result, 0, max);
     return result;
 }
+
+/* *************************************************************************************************
+**** getPlayerAngles()
+****
+**** self: player
+**** USAGE: stand-in for the CoD2+ built-in. Returns self.angles as (pitch, yaw, roll) in degrees.
+**** idTech convention: positive pitch = looking DOWN
+************************************************************************************************* */
+getPlayerAngles()
+{
+	return self.angles;
+}
+
+/* *************************************************************************************************
+**** uoxSin(float deg) / uoxCos(float deg)
+****
+**** USAGE: degree-based sine/cosine with no engine trig built-ins.
+**** Bhaskara I approximation, max error ~0.0016 - plenty for view-cone checks
+************************************************************************************************* */
+uoxSin(deg)
+{
+	deg = (float)deg;
+	//wrap to -180..180 (no float % assumed)
+	while(deg > 180)
+		deg = deg - 360;
+	while(deg < -180)
+		deg = deg + 360;
+
+	sign = 1.0;
+	if(deg < 0)
+	{
+		deg = 0 - deg;
+		sign = -1.0;
+	}
+
+	p = deg * (180.0 - deg);
+	return sign * (4.0 * p) / (40500.0 - p);
+}
+
+uoxCos(deg)
+{
+	return uoxSin((float)deg + 90.0);
+}
+
+/* *************************************************************************************************
+**** anglesToForwardUOX(vector angles)
+****
+**** USAGE: unit forward vector from (pitch, yaw, roll) degrees; replaces anglesToForward.
+**** z is negated because positive pitch looks down
+************************************************************************************************* */
+anglesToForwardUOX(angles)
+{
+	cp = uoxCos(angles[0]);
+	return ( cp * uoxCos(angles[1]), cp * uoxSin(angles[1]), 0 - uoxSin(angles[0]) );
+}
