@@ -398,47 +398,39 @@ defusing(bomb)
 		return false;
 	if(!isDefined(bomb) || !isAlive(self))
 		return false;
+	//facing is only required to START (canDefuse); looking away mid-defuse doesn't abort
 	if(distance(self.origin, bomb.origin) >= 64)
 		return false;
-	return self isLookingAtBomb(bomb);
+	return true;
 }
 
 /* *************************************************************************************************
 **** isLookingAtBomb(entity bomb)
 ****
 **** self: player
-**** USAGE: manual replacement for islookingat (which doesn't register on script_models in 1.51).
-**** Builds an eye position from stance, takes the player's view direction, and checks the angle
-**** between it and the eye->bomb vector against a cone. cos(25 deg) ~= 0.906
+**** USAGE: manual replacement for islookingat (doesn't register on script_models in 1.51).
+**** Yaw-only facing check: player self.angles carries no pitch in UO 1.51 (confirmed from log -
+**** every dot sat at the pitch=0 ceiling), so compare horizontal view dir to horizontal dir to bomb.
+**** cos(30 deg) ~= 0.866
 ************************************************************************************************* */
 isLookingAtBomb(bomb)
 {
-	//eye height by stance (idTech 3 / CoD1 view heights)
-	stance = self getstance();
-	if(stance == "prone")
-		eyeHeight = 11;
-	else if(stance == "crouch")
-		eyeHeight = 40;
-	else
-		eyeHeight = 60;
+	//flatten the bomb to the player's height
+	flatBomb = (bomb.origin[0], bomb.origin[1], self.origin[2]);
+	hdist = distance(self.origin, flatBomb);
+	if(hdist < 16)
+		return true; //standing on top of it - facing is meaningless
 
-	eye = self.origin + (0, 0, eyeHeight);
-	target = bomb.origin + (0, 0, 4); //model sits on the ground, aim a little above its base
+	toBomb = flatBomb - self.origin;
+	yaw = self.angles[1];
 
-	toBomb = target - eye;
-	dist = distance(eye, target);
-	if(dist < 1)
-		return true; //eye is on top of it, any view counts
+	//dot(yawForward, toBomb / hdist) = cos(horizontal angle to bomb)
+	dot = ( (maps\mp\uox\_uox_utils::uoxCos(yaw) * toBomb[0])
+		+ (maps\mp\uox\_uox_utils::uoxSin(yaw) * toBomb[1]) ) / hdist;
 
-		forward = maps\mp\uox\_uox_utils::anglesToForwardUOX(self maps\mp\uox\_uox_utils::getPlayerAngles()); //unit vector
+	//maps\mp\uox\_uox_debug::debugLog("info", self.name + " bomb look dot=" + dot + " hdist=" + hdist);
 
-	//dot(forward, toBomb / dist) = cos(angle between view and bomb)
-	dot = ( (forward[0] * toBomb[0]) + (forward[1] * toBomb[1]) + (forward[2] * toBomb[2]) ) / dist;
-
-	maps\mp\uox\_uox_debug::debugLog("info", self.name + " bomb look dot=" + dot + " dist=" + dist);
-	maps\mp\uox\_uox_debug::debugLog("info", self.name + " angles=" + self.angles + " dot=" + dot);
-
-	return (dot >= 0.906);
+	return (dot >= 0.866);
 }
 
 defuseBomb(bomb)
