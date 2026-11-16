@@ -436,6 +436,7 @@ isLookingAtBomb(bomb)
 	dot = ( (forward[0] * toBomb[0]) + (forward[1] * toBomb[1]) + (forward[2] * toBomb[2]) ) / dist;
 
 	maps\mp\uox\_uox_debug::debugLog("info", self.name + " bomb look dot=" + dot + " dist=" + dist);
+	maps\mp\uox\_uox_debug::debugLog("info", self.name + " angles=" + self.angles + " dot=" + dot);
 
 	return (dot >= 0.906);
 }
