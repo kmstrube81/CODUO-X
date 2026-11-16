@@ -217,8 +217,14 @@ updateVar(cvar, value)
 {
 	_var = maps\mp\uox\_uox_arrays::getValue(level.vars, cvar);
 
-	if(!isDefined(_var) || value == _var["value"]) //if var hasn't been defined or update doesn't actually change the value
-		return; //then nothing to update
+	 if(!isDefined(_var)) return;
+
+    if(_var["type"] == "int") 
+        value = (int)value;
+    else if(_var["type"] == "float")
+        value = (float)value;
+
+    if(value == _var["value"]) return;
 
 	level.vars = maps\mp\uox\_uox_arrays::updateProperty(level.vars, cvar, "value", value);
 
@@ -356,7 +362,7 @@ initGameTypeVars()
 	makeCvarServerInfo("ui_" + gt + "_roundlength", "30");
 	
 	varDef("scr", "graceperiod", "int", true, 15, 0, undefined, "Grace Period");
-	varDef("scr", "strattime", "int", true, 15, 0, 60, "Strat Time");
+	varDef("scr", "strattime", "int", true, 0, 0, 60, "Strat Time");
 	varDef("scr", "postroundtime", "int", true, 5, 0, 15, "Post Round Time");
 	
 	varDef("scr", "roundreset", "bool", true, false, undefined, undefined, "Round Reset"); //clear scores in between rounds

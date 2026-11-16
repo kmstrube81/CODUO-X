@@ -843,6 +843,7 @@ doStratTime( time )
 	
 	level.stratTimeHud = maps\mp\uox\_uox_hud::deleteHUDElement(level.stratTimeHud);
 	maps\mp\uox\_uox_hud::updateHUDMainClockColor( ( 1, 1, 1 ) );
+    level.playerlock = false;
 	unlockPlayersMovement();
 }
 /* *************************************************************************************************
